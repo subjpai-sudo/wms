@@ -620,6 +620,51 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   </div>
 </div>
 
+<!-- Barcode not found modal -->
+<div class="modal-bg h" id="m-nf">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--am2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="20" height="20" style="color:var(--am3)"><use href="#ic-warn"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700">Barcode not found</div>
+        <div style="font-size:11px;color:var(--tx3);font-family:monospace;margin-top:2px" id="nf-scanned"></div>
+      </div>
+      <button class="btn btn-sm" onclick="closeModal('m-nf')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
+    </div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:10px">This barcode is not linked to any product yet. Search and tap the correct product to link it:</div>
+    <div style="position:relative;margin-bottom:10px">
+      <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.4;pointer-events:none"><svg width="16" height="16"><use href="#ic-barcode"/></svg></span>
+      <input type="search" id="nf-search" placeholder="Search product name…" oninput="renderNfList(this.value)" style="padding-left:36px" autocomplete="off"/>
+    </div>
+    <div class="plist" id="nf-prod-list" style="max-height:340px;overflow-y:auto"></div>
+    <button class="btn w100 mt12" style="justify-content:center" onclick="closeModal('m-nf')">Cancel — skip this barcode</button>
+  </div>
+</div>
+
+<!-- Product photo modal -->
+<div class="modal-bg h" id="m-photo">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:700;flex:1">Product photo</div>
+      <button class="btn btn-sm" onclick="closeModal('m-photo')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
+    </div>
+    <div style="font-size:12px;color:var(--tx2);margin-bottom:8px" id="ph-prod-name"></div>
+    <div id="ph-preview" style="margin-bottom:12px"></div>
+    <label style="display:block;width:100%;background:var(--pu);color:#fff;border-radius:var(--r);padding:11px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px">
+      <svg width="16" height="16" style="vertical-align:-2px;margin-right:6px"><use href="#ic-cam"/></svg>
+      Upload photo
+      <input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload(this)" style="display:none"/>
+    </label>
+    <button class="btn w100" style="justify-content:center;color:var(--rd3)" onclick="removePhoto()">
+      <svg width="14" height="14"><use href="#ic-trash"/></svg> Remove photo
+    </button>
+  </div>
+</div>
+
 <!-- Register barcode modal -->
 <div class="modal-bg h" id="m-rbc">
   <div class="modal">
@@ -1089,16 +1134,22 @@ function openSI(pid) {
     a1_spice:'#fbe9e7,#bf360c', rice:'#f3e5f5,#6a1b9a'
   };
   let colors = (catColors[p.cat] || '#eeecff,#2a1fff').split(',');
-  let photoHtml =
-    '<div style="width:100%;height:140px;background:linear-gradient(135deg,' + colors[0] + ' 0%,' + colors[0] + '99 100%);display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--rl) var(--rl) 0 0">' +
-      '<div style="text-align:center">' +
-        '<div style="width:72px;height:72px;border-radius:16px;background:#fff;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.12)">' +
-          '<svg width="36" height="36" style="color:' + colors[1] + ';opacity:.7"><use href="#ic-pkg"/></svg>' +
+  let photoHtml = p.photo
+    ? '<div style="width:100%;height:140px;border-radius:var(--rl) var(--rl) 0 0;overflow:hidden;position:relative">' +
+        '<img src="' + p.photo + '" style="width:100%;height:100%;object-fit:cover"/>' +
+        '<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.4) 0%,transparent 60%)"></div>' +
+        '<span class="badge" style="position:absolute;bottom:8px;left:10px;background:#fff;color:' + colors[1] + ';font-size:11px">' + cN(p.cat) + '</span>' +
+        (p.barcode ? '<div style="position:absolute;bottom:8px;right:10px;font-size:10px;color:#fff;opacity:.9;font-family:monospace">' + p.barcode + 'xxxx</div>' : '') +
+      '</div>'
+    : '<div style="width:100%;height:140px;background:linear-gradient(135deg,' + colors[0] + ' 0%,' + colors[0] + '99 100%);display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--rl) var(--rl) 0 0">' +
+        '<div style="text-align:center">' +
+          '<div style="width:72px;height:72px;border-radius:16px;background:#fff;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.12)">' +
+            '<svg width="36" height="36" style="color:' + colors[1] + ';opacity:.7"><use href="#ic-pkg"/></svg>' +
+          '</div>' +
+          '<span class="badge" style="background:#fff;color:' + colors[1] + ';font-size:11px">' + cN(p.cat) + '</span>' +
         '</div>' +
-        '<span class="badge" style="background:#fff;color:' + colors[1] + ';font-size:11px">' + cN(p.cat) + '</span>' +
-      '</div>' +
-      (p.barcode ? '<div style="position:absolute;bottom:8px;right:10px;font-size:10px;color:' + colors[1] + ';opacity:.7;font-family:monospace">' + p.barcode + 'xxxx</div>' : '') +
-    '</div>';
+        (p.barcode ? '<div style="position:absolute;bottom:8px;right:10px;font-size:10px;color:' + colors[1] + ';opacity:.7;font-family:monospace">' + p.barcode + 'xxxx</div>' : '') +
+      '</div>';
 
   document.getElementById('si-m-photo').innerHTML = photoHtml;
   document.getElementById('si-m-name').textContent = p.name;
@@ -1124,17 +1175,28 @@ function confirmSI() {
   toast('+' + qty + ' added to ' + p.name);
 }
 
-// ===== CAMERA — AUTO SCAN =====
-let camLocked = false; // prevent double-fires during modal open
+// ===== CAMERA — UNIVERSAL SCAN (ZXing — works Safari/Chrome/Firefox) =====
+let camLocked = false;
+let zxingReader = null;
 
 async function toggleCam() {
   let area = document.getElementById('cam-area'), btn = document.getElementById('cam-btn');
   if (area.style.display === 'block') {
     stopCam(); area.style.display = 'none'; btn.classList.remove('act');
-    document.getElementById('cam-status').textContent = 'Starting…';
     return;
   }
   await startCam();
+}
+
+async function loadZXing() {
+  if (window.ZXing) return true;
+  return new Promise((resolve) => {
+    let s = document.createElement('script');
+    s.src = 'https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js';
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.head.appendChild(s);
+  });
 }
 
 async function startCam() {
@@ -1142,103 +1204,172 @@ async function startCam() {
   area.style.display = 'block'; btn.classList.add('act');
   camLocked = false;
   let statusEl = document.getElementById('cam-status');
+  statusEl.innerHTML = '<span class="spin">↻</span> Loading scanner…';
+
+  // Load ZXing
+  let ok = await loadZXing();
+  if (!ok) {
+    statusEl.textContent = '✗ Could not load scanner library — check connection';
+    area.style.display = 'none'; btn.classList.remove('act');
+    return;
+  }
+
   statusEl.textContent = 'Starting camera…';
+
   try {
-    camStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false
-    });
     let v = document.getElementById('cam-vid');
-    v.srcObject = camStream; await v.play();
-    statusEl.textContent = 'Point camera at barcode — hold steady';
+    let hints = new Map();
+    // ZXing: scan common formats
+    let formats = [
+      ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
+      ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39,
+      ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.UPC_E,
+      ZXing.BarcodeFormat.ITF, ZXing.BarcodeFormat.QR_CODE,
+    ];
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+
+    zxingReader = new ZXing.BrowserMultiFormatReader(hints, 400); // scan every 400ms
+
+    // Get rear camera
+    let devices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
+    // prefer back camera
+    let device = devices.find(d => /back|rear|environment/i.test(d.label)) || devices[devices.length - 1] || null;
+    let deviceId = device ? device.deviceId : undefined;
+
+    statusEl.textContent = 'Point camera at barcode';
     camScanning = true;
 
-    if (!('BarcodeDetector' in window)) {
-      statusEl.innerHTML = '⚠ Camera scanning not supported in this browser — <strong>use USB scanner or type barcode</strong>';
-      return;
-    }
+    await zxingReader.decodeFromVideoDevice(deviceId, v, (result, err) => {
+      if (!result || camLocked) return;
+      let raw = result.getText();
+      if (!raw) return;
 
-    let det = new BarcodeDetector({
-      formats: ['ean_13','ean_8','code_128','code_39','code_93','upc_a','upc_e','itf','qr_code']
+      camLocked = true;
+      statusEl.innerHTML = '✓ <strong>' + raw + '</strong>';
+      if (navigator.vibrate) navigator.vibrate(80);
+
+      let handled = processBarcodeInstant(raw);
+      if (handled) {
+        stopCam();
+        area.style.display = 'none';
+        btn.classList.remove('act');
+      } else {
+        // not found — stop cam, show not-found modal
+        stopCam();
+        area.style.display = 'none';
+        btn.classList.remove('act');
+        openNotFoundModal(raw);
+      }
     });
 
-    let tick = async () => {
-      if (!camScanning || camLocked) return;
-      try {
-        let codes = await det.detect(v);
-        if (codes.length && !camLocked) {
-          let raw = codes[0].rawValue;
-          camLocked = true; // lock immediately to prevent double-fire
-          statusEl.innerHTML = '✓ Scanned: <strong>' + raw + '</strong>';
-
-          // vibrate on mobile if supported
-          if (navigator.vibrate) navigator.vibrate(80);
-
-          // process the barcode — this opens modal or shows register panel
-          let handled = processBarcodeInstant(raw);
-
-          if (handled) {
-            // product found — stop camera, modal is open
-            stopCam();
-            area.style.display = 'none';
-            btn.classList.remove('act');
-          } else {
-            // not found — keep camera open, show register UI, unlock after 2s
-            setTimeout(() => { camLocked = false; }, 2000);
-            if (camScanning) requestAnimationFrame(tick);
-          }
-          return;
-        }
-      } catch (e) {}
-      if (camScanning) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+    camStream = v.srcObject;
 
   } catch (e) {
     area.style.display = 'none'; btn.classList.remove('act');
-    if (e.name === 'NotAllowedError') {
-      toast('Camera permission denied — allow camera access in browser settings', 'rd');
+    if (e && e.name === 'NotAllowedError') {
+      toast('Camera permission denied — tap Allow when browser asks', 'rd');
+      statusEl.textContent = 'Camera permission denied';
     } else {
-      toast('Camera not available', 'rd');
+      statusEl.textContent = 'Camera error — type barcode manually';
+      toast('Camera unavailable — type barcode in the input above', 'rd');
     }
   }
-}
-
-// Returns true if product was found and modal opened
-function processBarcodeInstant(raw) {
-  let inp = document.getElementById('si-inp');
-  if (inp) inp.value = raw;
-
-  if (isBcLike(raw)) {
-    let res = findByBc(raw);
-    if (res) {
-      if (!res.p.barcode) res.p.barcode = bcPrefix(raw);
-      openSI(res.p.id); // opens modal immediately
-      return true;
-    }
-    // not found — show register UI
-    let pfx = bcPrefix(raw);
-    let tip = document.getElementById('si-tip');
-    tip.className = 'tip-bar tip-am';
-    tip.innerHTML = '⚠ Barcode <strong>' + pfx + 'xxxx</strong> not in system — tap a product below to link it';
-    tip.style.display = 'flex';
-    let fl = document.getElementById('si-fuz-list');
-    let flbl = document.getElementById('si-fuz-lbl');
-    flbl.textContent = 'Tap product to register this barcode:';
-    fl.innerHTML = products.slice(0, 30).map(p => pRow(p, 'linkBc("' + raw + '",' + p.id + ')')).join('');
-    document.getElementById('si-fuzzy').style.display = 'block';
-    return false;
-  }
-
-  // not barcode-like — treat as text search
-  _siLookNow();
-  return false;
 }
 
 function stopCam() {
   camScanning = false; camLocked = false;
-  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
-  let v = document.getElementById('cam-vid'); if (v) v.srcObject = null;
+  if (zxingReader) { try { zxingReader.reset(); } catch(e){} zxingReader = null; }
+  if (camStream) { try { camStream.getTracks().forEach(t => t.stop()); } catch(e){} camStream = null; }
+  let v = document.getElementById('cam-vid'); if (v) { try { v.srcObject = null; } catch(e){} }
+}
+
+// Returns true if product found and modal opened
+function processBarcodeInstant(raw) {
+  let inp = document.getElementById('si-inp');
+  if (inp) inp.value = raw;
+  if (isBcLike(raw)) {
+    let res = findByBc(raw);
+    if (res) {
+      if (!res.p.barcode) res.p.barcode = bcPrefix(raw);
+      openSI(res.p.id);
+      return true;
+    }
+    return false;
+  }
+  _siLookNow();
+  return false;
+}
+
+// ── Barcode not found modal ──────────────────────────────────────────────────
+let _nfRaw = '';
+function openNotFoundModal(raw) {
+  _nfRaw = raw;
+  let pfx = bcPrefix(raw);
+  document.getElementById('nf-scanned').textContent = raw + '  (prefix: ' + pfx + ')';
+  document.getElementById('nf-search').value = '';
+  renderNfList('');
+  openModal('m-nf');
+  setTimeout(() => document.getElementById('nf-search').focus(), 200);
+}
+
+function renderNfList(q) {
+  let pool = q.length > 1 ? fuzzy(q, products, 20) : products.slice(0, 30);
+  document.getElementById('nf-prod-list').innerHTML = pool.map(p => {
+    let qc = p.qty === 0 ? 'var(--rd)' : p.qty <= p.threshold ? 'var(--am)' : 'var(--gn)';
+    let bcLabel = p.barcode ? '<span style="font-family:monospace;font-size:10px;color:var(--gn3)">' + p.barcode + 'xxxx</span>' : '<span style="font-size:10px;color:var(--am3)">no barcode</span>';
+    return '<div class="prow" onclick="nfLinkAndOpen(' + p.id + ')">' +
+      '<div class="prow-icon"><svg width="15" height="15" style="color:var(--pu3)"><use href="#ic-pkg"/></svg></div>' +
+      '<div style="flex:1;min-width:0"><div class="prow-name">' + p.name + '</div>' +
+      '<div class="prow-sub">' + cN(p.cat) + ' › ' + sN(p.cat, p.sub) + '  ' + bcLabel + '</div></div>' +
+      '<div style="text-align:right;flex-shrink:0"><div class="prow-qty" style="color:' + qc + '">' + p.qty + '</div><div style="font-size:10px;color:var(--tx3)">boxes</div></div>' +
+    '</div>';
+  }).join('') || '<div style="padding:16px;text-align:center;color:var(--tx3)">No products found</div>';
+}
+
+function nfLinkAndOpen(pid) {
+  let p = gP(pid);
+  p.barcode = bcPrefix(_nfRaw);
+  toast('Barcode linked to ' + p.name.split(' ').slice(0,3).join(' '));
+  closeModal('m-nf');
+  openSI(pid);
+}
+
+// ── Product photo upload ─────────────────────────────────────────────────────
+let _photoProdId = null;
+function openPhotoModal(pid) {
+  _photoProdId = pid;
+  let p = gP(pid);
+  document.getElementById('ph-prod-name').textContent = p.name;
+  let preview = document.getElementById('ph-preview');
+  if (p.photo) {
+    preview.innerHTML = '<img src="' + p.photo + '" style="width:100%;height:160px;object-fit:cover;border-radius:var(--r)"/>';
+  } else {
+    preview.innerHTML = '<div style="width:100%;height:160px;background:var(--sur2);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--tx3)"><svg width="36" height="36" style="opacity:.4"><use href="#ic-pkg"/></svg><div style="font-size:12px">No photo yet</div></div>';
+  }
+  openModal('m-photo');
+}
+
+function handlePhotoUpload(input) {
+  let file = input.files[0];
+  if (!file) return;
+  let reader = new FileReader();
+  reader.onload = e => {
+    let p = gP(_photoProdId);
+    p.photo = e.target.result;
+    document.getElementById('ph-preview').innerHTML = '<img src="' + p.photo + '" style="width:100%;height:160px;object-fit:cover;border-radius:var(--r)"/>';
+    toast('Photo saved for ' + p.name.split(' ').slice(0,3).join(' '));
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto() {
+  let p = gP(_photoProdId);
+  if (!p) return;
+  p.photo = null;
+  let preview = document.getElementById('ph-preview');
+  preview.innerHTML = '<div style="width:100%;height:160px;background:var(--sur2);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--tx3)"><svg width="36" height="36" style="opacity:.4"><use href="#ic-pkg"/></svg><div style="font-size:12px">No photo</div></div>';
+  toast('Photo removed');
 }
 
 // ===== STOCK OUT =====
@@ -1298,6 +1429,7 @@ function renderProds() {
           : '<button class="btn btn-sm" onclick="openRegisterBc(' + p.id + ')" style="font-size:11px;background:var(--am2);color:var(--am3);border-color:transparent;padding:3px 8px">Register</button>';
         let actionBtns =
           '<button class="btn btn-sm" onclick="openSI(' + p.id + ')" title="Stock in" style="padding:4px 7px"><svg width="13" height="13"><use href="#ic-in"/></svg></button> ' +
+          '<button class="btn btn-sm" onclick="openPhotoModal(' + p.id + ')" title="Add photo" style="padding:4px 7px;background:var(--bl2);color:var(--bl3);border-color:transparent"><svg width="13" height="13"><use href="#ic-cam"/></svg></button> ' +
           '<button class="btn btn-sm" onclick="openRegisterBc(' + p.id + ')" title="Register barcode" style="padding:4px 7px;background:var(--pu2);color:var(--pu3);border-color:transparent"><svg width="13" height="13"><use href="#ic-barcode"/></svg></button> ' +
           '<button class="btn btn-sm btn-rd" onclick="delProd(' + p.id + ')" title="Delete" style="padding:4px 7px"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>';
         return '<tr>' +
