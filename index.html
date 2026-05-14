@@ -1415,7 +1415,9 @@ async function _camStart(){
         if(_camLocked)return;
         try{
           let codes=await det.detect(v);
-          if(codes.length&&!_camLocked){_onBarcode(codes[0].rawValue);return;}
+          if(codes.length&&!_camLocked){
+            _onBarcode(codes[0].rawValue);
+          }
         }catch(e){}
         _camRaf=requestAnimationFrame(tick);
       };
@@ -1476,21 +1478,91 @@ async function _camStart(){
     Quagga.onDetected(data=>{
       if(_camLocked||!_quaggaOn)return;
       let code=data.codeResult.code;
-      if(code&&code.length>3) _onBarcode(code);
+      // Only accept if Quagga confidence is high enough
+      let err = data.codeResult.decodedCodes
+        .filter(c => c.error !== undefined)
+        .reduce((sum, c) => sum + c.error, 0);
+      let avgErr = err / Math.max(data.codeResult.decodedCodes.filter(c=>c.error!==undefined).length, 1);
+      // Reject low-confidence reads (error > 0.25 means unreliable)
+      if(avgErr > 0.25) return;
+      if(code && code.length >= 6) _onBarcode(code);
     });
   });
 }
 
+// Consensus buffer — require same code N times before accepting
+let _scanBuffer=[], _scanRequired=3;
+
 function _onBarcode(raw){
   if(_camLocked||!raw)return;
-  _camLocked=true;
-  if(navigator.vibrate)navigator.vibrate([80]);
-  document.getElementById('cam-ov-status').innerHTML='✓ <strong>'+raw+'</strong>';
-  setTimeout(()=>{ closeCamera(); if(_camCb)_camCb(raw); }, 350);
+  let d = raw.replace(/\D/g,'');
+  if(!d||d.length<4)return;
+
+  // Add to buffer
+  _scanBuffer.push(d);
+  if(_scanBuffer.length>_scanRequired*2)_scanBuffer=_scanBuffer.slice(-_scanRequired*2);
+
+  // Count consecutive same reads at end of buffer
+  let last = _scanBuffer[_scanBuffer.length-1];
+  let consecutive = 0;
+  for(let i=_scanBuffer.length-1;i>=0;i--){
+    if(_scanBuffer[i]===last)consecutive++;
+    else break;
+  }
+
+  // Show current reading in status
+  let statusEl=document.getElementById('cam-ov-status');
+  statusEl.innerHTML='Reading: <strong>'+raw+'</strong> <span style="color:#888">('+consecutive+'/'+_scanRequired+')</span>';
+
+  // After N consistent reads, show confirmation UI
+  if(consecutive >= _scanRequired && !_camLocked){
+    _camLocked=true;
+    _scanBuffer=[];
+    if(navigator.vibrate)navigator.vibrate([80]);
+    _showScanConfirm(raw);
+  }
+}
+
+function _showScanConfirm(raw){
+  let statusEl=document.getElementById('cam-ov-status');
+  statusEl.textContent='';
+  // Show confirm bar inside overlay
+  let bar=document.getElementById('cam-confirm-bar');
+  if(!bar){
+    bar=document.createElement('div');
+    bar.id='cam-confirm-bar';
+    bar.style.cssText='position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.92);padding:16px;display:flex;flex-direction:column;gap:10px;z-index:10';
+    document.getElementById('cam-ov-container').appendChild(bar);
+  }
+  bar.style.display='block';
+  bar.innerHTML=
+    '<div style="font-size:11px;color:#888;margin-bottom:2px">Scanned barcode</div>'+
+    '<div style="font-size:22px;font-weight:800;color:#25d366;font-family:monospace;letter-spacing:2px">'+raw+'</div>'+
+    '<div style="display:flex;gap:10px;margin-top:4px">'+
+      '<button onclick="_scanAccept(\''+raw+'\')" style="flex:1;background:#25d366;color:#000;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:700;cursor:pointer">✓ Use this barcode</button>'+
+      '<button onclick="_scanRetry()" style="flex:1;background:#333;color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:600;cursor:pointer">↻ Scan again</button>'+
+    '</div>';
+}
+
+function _scanAccept(raw){
+  let bar=document.getElementById('cam-confirm-bar');
+  if(bar)bar.style.display='none';
+  closeCamera();
+  if(_camCb)_camCb(raw);
+}
+
+function _scanRetry(){
+  let bar=document.getElementById('cam-confirm-bar');
+  if(bar)bar.style.display='none';
+  _camLocked=false;
+  _scanBuffer=[];
+  let statusEl=document.getElementById('cam-ov-status');
+  if(statusEl)statusEl.textContent='Point at barcode — hold steady';
 }
 
 function stopCamera(){
   _camLocked=false;
+  _scanBuffer=[];
   if(_camRaf){cancelAnimationFrame(_camRaf);_camRaf=null;}
   if(_quaggaOn){try{Quagga.stop();}catch(e){}  _quaggaOn=false;}
   if(_camStream){try{_camStream.getTracks().forEach(t=>t.stop());}catch(e){} _camStream=null;}
