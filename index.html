@@ -309,6 +309,8 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   <div class="sep"></div>
   <button class="ni" id="ni-orders" data-page="orders" onclick="nav('orders')"><svg width="16" height="16"><use href="#ic-send"/></svg> Order request</button>
   <div class="sep"></div>
+  <button class="ni" data-page="settings" onclick="nav('settings')"><svg width="16" height="16"><use href="#ic-settings"/></svg> Settings</button>
+  <div class="sep"></div>
   <button class="ni" onclick="switchRole()"><svg width="16" height="16"><use href="#ic-users"/></svg> Switch role</button>
 </div>
 <div id="sb-ov" onclick="closeSb()"></div>
@@ -507,10 +509,129 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   <div id="wa-preview" style="display:none;margin-top:14px"><div class="sec mb8">Message preview</div><div class="wa-bubble"><div class="wa-msg" id="wa-msg-body"></div><div style="font-size:10px;color:var(--tx3);text-align:right;margin-top:4px" id="wa-msg-time"></div></div></div>
 </div>
 
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="pt">Settings</div>
+  <div class="ps">Configure Supabase for real-time global sync</div>
+
+  <!-- Supabase config -->
+  <div class="card mb12" style="border:1.5px solid #3ecf8e">
+    <div class="fx gap10 mb14">
+      <div style="width:40px;height:40px;border-radius:var(--r);background:#e8fdf5;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 3L4.5 13.5M21 3l-6.5 18L4.5 13.5M21 3L9 15" stroke="#3ecf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700">Supabase real-time sync</div>
+        <div style="font-size:12px;color:var(--tx2);margin-top:2px">All devices update instantly when stock changes</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <div id="sb-status-dot" style="width:9px;height:9px;border-radius:50%;background:var(--rd)"></div>
+        <span id="sb-status-lbl" style="font-size:12px;color:var(--tx2)">Not connected</span>
+      </div>
+    </div>
+
+    <div style="background:var(--sur2);border-radius:var(--r);padding:12px;margin-bottom:14px;font-size:12px;color:var(--tx2);line-height:1.6">
+      <strong style="color:var(--tx)">Setup steps:</strong><br>
+      1. Go to <strong>supabase.com</strong> → Create free project<br>
+      2. Go to <strong>SQL Editor</strong> → paste the schema below → Run<br>
+      3. Go to <strong>Project Settings → API</strong> → copy URL and anon key<br>
+      4. Paste both below and click Connect
+    </div>
+
+    <!-- Schema SQL -->
+    <details style="margin-bottom:14px">
+      <summary style="font-size:12px;font-weight:600;cursor:pointer;color:var(--pu3);padding:4px 0">Show SQL schema to run in Supabase</summary>
+      <div style="margin-top:8px">
+        <pre id="sb-schema" style="background:var(--sur3);border-radius:var(--r);padding:12px;font-size:11px;overflow-x:auto;line-height:1.6;color:var(--tx);white-space:pre-wrap">-- Run this in Supabase SQL Editor
+
+create table if not exists products (
+  id int primary key,
+  name text not null,
+  sku text,
+  cat text,
+  sub text,
+  qty int default 0,
+  threshold int default 20,
+  vendor text,
+  barcode text,
+  last_updated date,
+  photo text
+);
+
+create table if not exists activity (
+  id bigserial primary key,
+  created_at timestamptz default now(),
+  type text,
+  prod text,
+  qty int,
+  time text,
+  "user" text,
+  dest text,
+  dest_name text
+);
+
+-- Enable real-time for both tables
+alter publication supabase_realtime add table products;
+alter publication supabase_realtime add table activity;</pre>
+        <button class="btn btn-sm mt8" onclick="navigator.clipboard.writeText(document.getElementById('sb-schema').textContent).then(()=>toast('SQL copied'))">Copy SQL</button>
+      </div>
+    </details>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Supabase Project URL</label>
+        <input type="text" id="sb-url-inp" placeholder="https://xxxxxxxxxxxx.supabase.co" value="" oninput="this.value=this.value.trim()"/>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Anon / Public Key</label>
+        <input type="password" id="sb-key-inp" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"/>
+      </div>
+    </div>
+
+    <div class="fx gap8 mb10">
+      <button class="btn btn-pu" style="flex:1;justify-content:center;font-size:14px;padding:11px" onclick="sbInitFromForm()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Connect to Supabase
+      </button>
+      <button class="btn" onclick="sbDisconnect()" title="Disconnect">Disconnect</button>
+    </div>
+
+    <div style="font-size:11px;color:var(--tx3)">
+      Credentials saved locally in browser. Push all current products to Supabase after connecting.
+    </div>
+  </div>
+
+  <!-- Push all data -->
+  <div class="card mb12">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">Sync actions</div>
+    <div class="fx gap8">
+      <button class="btn" style="flex:1;justify-content:center" onclick="sbPushAll()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/></svg>
+        Push all products to Supabase
+      </button>
+      <button class="btn" style="flex:1;justify-content:center" onclick="sbPull()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9m0 0l-4 4m4-4l4 4M3 7V5a2 2 0 012-2h14a2 2 0 012 2v2"/></svg>
+        Pull latest from Supabase
+      </button>
+    </div>
+  </div>
+
+  <!-- App info -->
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">App info</div>
+    <div style="font-size:12px;color:var(--tx2);line-height:1.8">
+      <div>Products: <strong id="info-prods">0</strong></div>
+      <div>Categories: <strong>8</strong></div>
+      <div>Activity logs: <strong id="info-acts">0</strong></div>
+      <div style="margin-top:8px;color:var(--tx3)">StockFlow WMS v2.0 — Myanmar Grocery Warehouse</div>
+    </div>
+  </div>
+</div>
+
+
+
 </div><!-- /main -->
 </div><!-- /layout -->
-
-<!-- BOTTOM NAV -->
 <div id="bottom-nav">
   <div class="bn-row">
     <button class="bn-btn on" onclick="nav('dash');setBn(this)"><svg width="22" height="22"><use href="#ic-dash"/></svg>Dashboard</button>
@@ -522,6 +643,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   <div id="bn-more-menu">
     <button class="bn-mi" onclick="nav('cats');closeBnMore()"><svg width="15" height="15"><use href="#ic-folder"/></svg> Categories</button>
     <button class="bn-mi" onclick="nav('orders');closeBnMore()"><svg width="15" height="15"><use href="#ic-send"/></svg> Order request</button>
+    <button class="bn-mi" onclick="nav('settings');closeBnMore()"><svg width="15" height="15"><use href="#ic-settings"/></svg> Settings</button>
     <button class="bn-mi" onclick="switchRole();closeBnMore()"><svg width="15" height="15"><use href="#ic-users"/></svg> Switch role</button>
   </div>
 </div>
@@ -742,17 +864,39 @@ function openModal(id) { document.getElementById(id).classList.remove('h'); }
 function closeModal(id) { document.getElementById(id).classList.add('h'); }
 
 // ── Barcode ───────────────────────────────────────────────────────────────────
+// ── Barcode helpers ───────────────────────────────────────────────────────────
 function bcDigits(raw) { return String(raw || '').replace(/\D/g, ''); }
-function bcPrefix(raw) { let d = bcDigits(raw); return d.length > 4 ? d.slice(0, -4) : d; }
-function isBcLike(v) { let d = bcDigits(v); return d.length >= 6 && d.length / Math.max(v.length, 1) > 0.6; }
+
+// Normalize for storage — store exact digits as scanned (no stripping)
+function bcNorm(raw) { return bcDigits(raw); }
+
+// For matching: try exact, then last-1-digit off (check digit tolerance), then prefix
 function findByBc(raw) {
-  let d = bcDigits(raw); if (d.length < 4) return null;
-  let pfx = bcPrefix(d);
-  let h = products.find(p => p.barcode && bcDigits(p.barcode) === d); if (h) return h;
-  h = products.find(p => p.barcode && bcDigits(p.barcode) === pfx); if (h) return h;
-  h = products.find(p => { if (!p.barcode) return false; let sb = bcDigits(p.barcode); return pfx.startsWith(sb) || sb.startsWith(pfx) || d.startsWith(sb) || sb.startsWith(d); });
+  let d = bcDigits(raw);
+  if (d.length < 4) return null;
+
+  // 1. Exact match
+  let h = products.find(p => p.barcode && bcDigits(p.barcode) === d);
+  if (h) return h;
+
+  // 2. Registered barcode is a prefix of scanned (batch suffix tolerance)
+  //    e.g. stored=5060075352867, scanned=50600753528679 (extra digit) → still matches
+  h = products.find(p => {
+    if (!p.barcode) return false;
+    let sb = bcDigits(p.barcode);
+    if (sb.length < 4) return false;
+    // stored is prefix of scanned or vice versa (within 2 digit diff)
+    if (d.startsWith(sb) && d.length - sb.length <= 2) return true;
+    if (sb.startsWith(d) && sb.length - d.length <= 2) return true;
+    // strip last 4 of scanned and compare (batch code tolerance)
+    if (d.length > 4 && d.slice(0, -4) === sb) return true;
+    if (d.length > 4 && d.slice(0, -4) === d.slice(0, -4) && sb === d.slice(0, -4)) return true;
+    return false;
+  });
   return h || null;
 }
+
+function isBcLike(v) { let d = bcDigits(v); return d.length >= 4 && d.length / Math.max(v.length, 1) > 0.6; }
 function fuzzyScore(q, name) {
   let ql = q.toLowerCase(), nl = name.toLowerCase();
   if (nl === ql) return 100; if (nl.startsWith(ql)) return 90; if (nl.includes(ql)) return 70;
@@ -794,6 +938,14 @@ function nav(page) {
   if (page === 'products') renderProds();
   if (page === 'cats') renderCatTree();
   if (page === 'orders') renderRS();
+  if (page === 'settings') {
+    document.getElementById('info-prods').textContent = products.length;
+    document.getElementById('info-acts').textContent = activity.length;
+    // Restore saved credentials to inputs
+    let url = localStorage.getItem('sb_url')||'', key = localStorage.getItem('sb_key')||'';
+    let ui = document.getElementById('sb-url-inp'); if(ui && !ui.value) ui.value = url;
+    updateSbStatus(sbConnected);
+  }
   closeSb(); closeBnMore();
 }
 
@@ -1076,7 +1228,7 @@ function _siNow(){
     let res=findByBc(val);
     if(res){
       tip.className='tip tip-gn'; tip.innerHTML='✓ Matched — opening product'; tip.style.display='flex';
-      fz.style.display='none'; if(!res.barcode)res.barcode=bcDigits(val);
+      fz.style.display='none'; if(!res.barcode)res.barcode=bcNorm(val);
       openSI(res.id); document.getElementById('si-inp').value=''; return;
     }
     tip.className='tip tip-am'; tip.innerHTML='⚠ Barcode not found — tap product to link it'; tip.style.display='flex';
@@ -1091,7 +1243,7 @@ function _siNow(){
   }
 }
 
-function linkBc(raw,pid){let p=gP(pid);p.barcode=bcDigits(raw);toast('Barcode linked to '+p.name.split(' ').slice(0,3).join(' '));document.getElementById('si-inp').value='';document.getElementById('si-fuzzy').style.display='none';document.getElementById('si-tip').style.display='none';openSI(pid);}
+function linkBc(raw,pid){let p=gP(pid);p.barcode=bcNorm(raw);toast('Barcode linked to '+p.name.split(' ').slice(0,3).join(' '));document.getElementById('si-inp').value='';document.getElementById('si-fuzzy').style.display='none';document.getElementById('si-tip').style.display='none';openSI(pid);}
 
 function openSI(pid){
   siProdId=pid; let p=gP(pid);
@@ -1350,7 +1502,7 @@ function handleScannedBarcode(raw, ctx){
   if(ctx==='stockin'){
     let inp=document.getElementById('si-inp'); if(inp)inp.value=raw;
     let hit=findByBc(raw);
-    if(hit){if(!hit.barcode)hit.barcode=bcDigits(raw);openSI(hit.id);}
+    if(hit){if(!hit.barcode)hit.barcode=bcNorm(raw);openSI(hit.id);}
     else openNotFoundModal(raw);
   } else if(ctx==='stockout'){
     let inp=document.getElementById('so-inp'); if(inp)inp.value=raw; soRender();
@@ -1378,7 +1530,7 @@ function renderNfList(q){
       +'</div>';
   }).join('')||'<div style="padding:14px;text-align:center;color:var(--tx3)">No products found</div>';
 }
-function nfLink(pid){let p=gP(pid);p.barcode=bcDigits(_nfRaw);toast('Barcode linked to '+p.name.split(' ').slice(0,3).join(' '));closeModal('m-nf');openSI(pid);}
+function nfLink(pid){let p=gP(pid);p.barcode=bcNorm(_nfRaw);toast('Barcode linked to '+p.name.split(' ').slice(0,3).join(' '));closeModal('m-nf');openSI(pid);}
 
 // ── Products page ─────────────────────────────────────────────────────────────
 function renderProds(){
@@ -1457,10 +1609,10 @@ function saveRegisterBc(){
   let id=parseInt(document.getElementById('rbc-prod-id').value);
   let raw=document.getElementById('rbc-input').value.trim();
   if(!raw){toast('Enter a barcode','rd');return;}
-  let digits=bcDigits(raw); if(!digits){toast('Enter a valid barcode number','rd');return;}
+  let digits=bcNorm(raw); if(!digits||digits.length<4){toast('Enter a valid barcode number','rd');return;}
   let p=gP(id); p.barcode=digits;
   closeModal('m-rbc'); renderProds();
-  toast('Barcode '+digits+' registered');
+  toast('Barcode saved: '+digits+' → '+p.name.split(' ').slice(0,3).join(' '));
 }
 
 // ── Photo upload ──────────────────────────────────────────────────────────────
@@ -1514,7 +1666,7 @@ function delSub(cid,sid){let cnt=products.filter(p=>p.cat===cid&&p.sub===sid).le
 
 // ── Order Request ─────────────────────────────────────────────────────────────
 function toggleWA(){let p=document.getElementById('wa-panel');p.style.display=p.style.display==='none'?'block':'none';}
-function saveWA(){waConfig.server=document.getElementById('wa-server').value.trim().replace(/\/$/,'');waConfig.phone=document.getElementById('wa-phone').value.trim().replace(/\D/g,'');toast('WhatsApp config saved');updateWaDot(null);}
+function saveWA(){waConfig.server=document.getElementById('wa-server').value.trim().replace(/\/$/,'');waConfig.phone=document.getElementById('wa-phone').value.trim().replace(/\D/g,'');toast('WhatsApp config saved');updateWaDot(null);sbPushSettings();}
 function updateWaDot(ok){let d=document.getElementById('wa-dot');d.style.background=ok===true?'var(--wa)':ok===false?'var(--rd)':'var(--tx3)';let b=document.getElementById('wa-status-badge');b.textContent=ok===true?'Connected':'Not connected';b.className='badge '+(ok===true?'bg':'bgr');}
 async function testWA(){
   let btn=document.getElementById('wa-test-btn'),msg=document.getElementById('wa-conn-msg');
@@ -1578,6 +1730,40 @@ function renderOH(){
   document.getElementById('oh-tbl').innerHTML=orderHistory.map(o=>'<tr><td style="font-size:12px">'+o.desc+'</td><td class="hm">'+(tm[o.type]||o.type)+'</td><td class="hm" style="text-align:center">'+o.items+'</td><td style="font-size:11px;color:var(--tx2)">'+o.time+'</td><td>'+(wm[String(o.waOk)]||wm['null'])+'</td><td>'+(sm[o.status]||o.status)+'</td></tr>').join('')||'<tr><td colspan="6" style="text-align:center;color:var(--tx3);padding:16px">No requests yet</td></tr>';
 }
 
+function sbInitFromForm() {
+  // Credentials are hardcoded — just reconnect
+  sbInit();
+}
+
+function sbDisconnect() {
+  if (sbClient) { try { sbClient.removeAllChannels(); } catch(e){} sbClient = null; }
+  sbConnected = false; updateSbStatus(false);
+  toast('Disconnected from Supabase');
+}
+
+async function sbPushAll() {
+  if (!sbClient) { toast('Not connected to Supabase', 'rd'); return; }
+  toast('Pushing all data to Supabase…');
+  try {
+    // Products
+    let pRows = products.map(p => ({
+      id:p.id, name:p.name, sku:p.sku||'', cat:p.cat, sub:p.sub,
+      qty:p.qty, threshold:p.threshold, vendor:p.vendor||'',
+      barcode:p.barcode||null, last_updated:p.lastUpdated||null, photo:p.photo||null
+    }));
+    await sbClient.from('products').upsert(pRows);
+
+    // Categories
+    let cRows = categories.map(c => ({id:c.id, name:c.name, subs:c.subs}));
+    await sbClient.from('categories').upsert(cRows);
+
+    // Settings
+    await sbPushSettings();
+
+    toast('✓ All data pushed to Supabase (' + products.length + ' products, ' + categories.length + ' categories)');
+  } catch(e) { toast('Push failed: ' + (e.message||String(e)), 'rd'); console.error(e); }
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 refreshDash();
 window.addEventListener('resize', () => {
@@ -1586,6 +1772,245 @@ window.addEventListener('resize', () => {
     drawChart(mvHistory.slice(-7)); drawDonut(tot-low-out,low,out);
   }
 });
+
+// ── Supabase integration ──────────────────────────────────────────────────────
+// Paste your Supabase URL and anon key here (from supabase.com → project settings → API)
+const SB_URL  = 'https://ilyaqubsrpjrfgekwonw.supabase.co';
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseWFxdWJzcnBqcmZnZWt3b253Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NTczNzMsImV4cCI6MjA5NDMzMzM3M30.EMp_EDJwzfbYgNEOeiXdjiB-GFjAEsAkRgTWb5ixF5M';
+let sbClient  = null;
+let sbConnected = false;
+
+async function sbInit() {
+  let url = SB_URL;
+  let key = SB_KEY;
+  if (!url || !key) return;
+
+  // Load Supabase JS client from CDN
+  if (!window.supabase) {
+    await new Promise((res, rej) => {
+      let s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  sbClient = window.supabase.createClient(url, key);
+  sbConnected = true;
+  updateSbStatus(true);
+
+  // Pre-fill settings page inputs
+  let ui = document.getElementById('sb-url-inp'); if (ui) ui.value = url;
+
+  await sbPull();   // load latest data from Supabase
+  sbSubscribe();    // listen for real-time changes
+  toast('✓ Supabase connected — real-time sync active');
+}
+
+async function sbPull() {
+  if (!sbClient) return;
+  try {
+    // Pull products
+    let { data: prods, error: pe } = await sbClient.from('products').select('*');
+    if (!pe && prods && prods.length) {
+      products = prods.map(r => ({
+        id: r.id, name: r.name, sku: r.sku || '', cat: r.cat, sub: r.sub,
+        qty: r.qty || 0, threshold: r.threshold || 20, vendor: r.vendor || '',
+        barcode: r.barcode || undefined, lastUpdated: r.last_updated, photo: r.photo || undefined
+      }));
+      refreshDash();
+      if (document.getElementById('page-products').classList.contains('on')) renderProds();
+    }
+
+    // Pull activity
+    let { data: acts, error: ae } = await sbClient.from('activity').select('*').order('created_at', {ascending: false}).limit(100);
+    if (!ae && acts && acts.length) {
+      activity = acts.map(r => ({type:r.type, prod:r.prod, qty:r.qty, time:r.time, user:r.user, dest:r.dest, destName:r.dest_name}));
+      renderActFeed(); renderDestTracker();
+    }
+
+    // Pull order history
+    let { data: orders, error: oe } = await sbClient.from('order_history').select('*').order('created_at', {ascending: false}).limit(50);
+    if (!oe && orders && orders.length) {
+      orderHistory = orders.map(r => ({id:r.id, desc:r.description, type:r.type, items:r.items, time:r.time, waOk:r.wa_ok, status:r.status}));
+    }
+
+    // Pull categories
+    let { data: cats, error: ce } = await sbClient.from('categories').select('*');
+    if (!ce && cats && cats.length) {
+      categories = cats.map(r => ({id:r.id, name:r.name, subs:r.subs||[]}));
+    }
+
+    // Pull settings (WA config etc)
+    let { data: setts, error: se } = await sbClient.from('settings').select('*');
+    if (!se && setts) {
+      setts.forEach(row => {
+        if (row.key === 'wa_server') waConfig.server = row.value;
+        if (row.key === 'wa_phone')  waConfig.phone  = row.value;
+      });
+    }
+
+  } catch(e) { console.error('Supabase pull error:', e); }
+}
+
+function sbSubscribe() {
+  if (!sbClient) return;
+  // Real-time: listen for product changes
+  sbClient.channel('products-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, payload => {
+      let r = payload.new || payload.old;
+      if (payload.eventType === 'DELETE') {
+        products = products.filter(p => p.id !== r.id);
+      } else {
+        let idx = products.findIndex(p => p.id === r.id);
+        let mapped = { id:r.id, name:r.name, sku:r.sku, cat:r.cat, sub:r.sub, qty:r.qty, threshold:r.threshold, vendor:r.vendor, barcode:r.barcode, lastUpdated:r.last_updated, photo:r.photo };
+        if (idx >= 0) products[idx] = mapped; else products.push(mapped);
+      }
+      refreshDash();
+      if (document.getElementById('page-products').classList.contains('on')) renderProds();
+    })
+    .subscribe();
+
+  // Real-time: listen for activity
+  sbClient.channel('activity-changes')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity' }, payload => {
+      let r = payload.new;
+      activity.unshift({type:r.type, prod:r.prod, qty:r.qty, time:r.time, user:r.user, dest:r.dest, destName:r.dest_name});
+      renderActFeed(); renderDestTracker();
+    })
+    .subscribe();
+}
+
+function sbSubscribe() {
+  if (!sbClient) return;
+
+  // Products — real-time
+  sbClient.channel('products-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, payload => {
+      let r = payload.new || payload.old;
+      if (payload.eventType === 'DELETE') {
+        products = products.filter(p => p.id !== r.id);
+      } else {
+        let mapped = { id:r.id, name:r.name, sku:r.sku||'', cat:r.cat, sub:r.sub, qty:r.qty||0, threshold:r.threshold||20, vendor:r.vendor||'', barcode:r.barcode||undefined, lastUpdated:r.last_updated, photo:r.photo||undefined };
+        let idx = products.findIndex(p => p.id === r.id);
+        if (idx >= 0) products[idx] = mapped; else products.push(mapped);
+      }
+      refreshDash();
+      if (document.getElementById('page-products').classList.contains('on')) renderProds();
+    })
+    .subscribe();
+
+  // Activity — real-time inserts
+  sbClient.channel('activity-rt')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity' }, payload => {
+      let r = payload.new;
+      activity.unshift({type:r.type, prod:r.prod, qty:r.qty, time:r.time, user:r.user, dest:r.dest, destName:r.dest_name});
+      renderActFeed(); renderDestTracker(); refreshDash();
+    })
+    .subscribe();
+
+  // Order history — real-time inserts
+  sbClient.channel('orders-rt')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'order_history' }, payload => {
+      let r = payload.new;
+      orderHistory.unshift({id:r.id, desc:r.description, type:r.type, items:r.items, time:r.time, waOk:r.wa_ok, status:r.status});
+      if (document.getElementById('page-orders').classList.contains('on')) renderOH();
+    })
+    .subscribe();
+
+  // Categories — real-time
+  sbClient.channel('cats-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, async () => {
+      let { data } = await sbClient.from('categories').select('*');
+      if (data) { categories = data.map(r => ({id:r.id, name:r.name, subs:r.subs||[]})); }
+      if (document.getElementById('page-cats').classList.contains('on')) renderCatTree();
+    })
+    .subscribe();
+}
+
+// Push a product update to Supabase
+async function sbPushProduct(p) {
+  if (!sbClient) return;
+  try {
+    await sbClient.from('products').upsert({
+      id:p.id, name:p.name, sku:p.sku, cat:p.cat, sub:p.sub,
+      qty:p.qty, threshold:p.threshold, vendor:p.vendor||'',
+      barcode:p.barcode||null, last_updated:p.lastUpdated||null, photo:p.photo||null
+    });
+  } catch(e) { console.error('sbPushProduct:', e); }
+}
+
+// Push an activity row to Supabase
+async function sbPushActivity(a) {
+  if (!sbClient) return;
+  try {
+    await sbClient.from('activity').insert({
+      type:a.type, prod:a.prod, qty:a.qty, time:a.time,
+      user:a.user||null, dest:a.dest||null, dest_name:a.destName||null
+    });
+  } catch(e) { console.error('sbPushActivity:', e); }
+}
+
+// Push order to Supabase
+async function sbPushOrder(o) {
+  if (!sbClient) return;
+  try {
+    await sbClient.from('order_history').insert({
+      description:o.desc, type:o.type, items:o.items,
+      time:o.time, wa_ok:o.waOk||false, status:o.status||'pending'
+    });
+  } catch(e) { console.error('sbPushOrder:', e); }
+}
+
+// Push WA settings
+async function sbPushSettings() {
+  if (!sbClient) return;
+  try {
+    await sbClient.from('settings').upsert([
+      {key:'wa_server', value:waConfig.server},
+      {key:'wa_phone',  value:waConfig.phone}
+    ]);
+  } catch(e) { console.error('sbPushSettings:', e); }
+}
+
+function updateSbStatus(ok) {
+  let dot = document.getElementById('sb-status-dot');
+  let lbl = document.getElementById('sb-status-lbl');
+  if (dot) dot.style.background = ok ? 'var(--gn)' : 'var(--rd)';
+  if (lbl) lbl.textContent = ok ? 'Connected' : 'Not connected';
+}
+
+// ── Patch stock actions to sync with Supabase ─────────────────────────────────
+const _origConfirmSI = confirmSI;
+confirmSI = function() {
+  let prevId = siProdId;
+  _origConfirmSI();
+  if (sbClient && prevId) {
+    let p = gP(prevId);
+    if (p) { sbPushProduct(p); if (activity[0]) sbPushActivity(activity[0]); }
+  }
+};
+
+const _origDoSO = doSO;
+doSO = function() {
+  let prevId = soProdId, prevLen = activity.length;
+  _origDoSO();
+  if (sbClient && prevId) {
+    let p = gP(prevId);
+    if (p) sbPushProduct(p);
+    if (activity.length > prevLen) sbPushActivity(activity[0]);
+  }
+};
+
+const _origUpdateThreshold = updateThreshold;
+updateThreshold = function(id, val) {
+  _origUpdateThreshold(id, val);
+  if (sbClient) { let p = gP(id); if (p) sbPushProduct(p); }
+};
+
+// Auto-connect on load
+sbInit();
+
 
 </script>
 </html>
