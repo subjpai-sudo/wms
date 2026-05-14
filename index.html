@@ -202,6 +202,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 /* ── ACTION BUTTONS in table ── */
 .act-btns{display:flex;gap:4px;align-items:center}
+.dest-btn{flex:1;border:2px solid var(--bdr2);border-radius:var(--rl);padding:14px 10px;background:var(--sur);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s}
+.dest-btn:active{opacity:.8}
+.dest-btn.dest-sel{border-color:var(--pu);background:var(--pu2)}
 /* ── PIN ── */
 .pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--bdr2);transition:all .15s;display:inline-block}
 .pin-dot.filled{background:var(--pu);border-color:var(--pu)}
@@ -337,6 +340,49 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
     <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:10px">By category</div><div id="cat-bars"></div></div>
     <div class="card"><div class="fx mb8"><span style="font-size:13px;font-weight:600;flex:1">Top movers</span><div class="fx gap4"><button class="btn btn-sm" id="mv-in-btn" onclick="setMvTab('in')" style="background:var(--gn2);color:var(--gn3);border-color:transparent;font-size:11px"><svg width="11" height="11"><use href="#ic-in"/></svg> In</button><button class="btn btn-sm" id="mv-out-btn" onclick="setMvTab('out')" style="font-size:11px"><svg width="11" height="11"><use href="#ic-out"/></svg> Out</button></div></div><div id="top-movers"></div></div>
   </div>
+
+  <!-- Destination tracker -->
+  <div class="card mb10">
+    <div class="fx gap8 mb12">
+      <span style="font-size:13px;font-weight:600;flex:1">Stock out distribution</span>
+      <span style="font-size:11px;color:var(--tx3)" id="dest-total-label">0 boxes dispatched</span>
+    </div>
+    <div style="display:grid;grid-template-columns:140px 1fr;gap:20px;align-items:center">
+      <canvas id="dest-donut" width="140" height="140" style="display:block"></canvas>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <div class="fx gap8 mb5">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--gn);flex-shrink:0;margin-top:2px"></div>
+            <div style="flex:1">
+              <div class="fx mb4" style="justify-content:space-between">
+                <span style="font-size:13px;font-weight:600;color:var(--gn3)">🏪 Shops</span>
+                <div class="fx gap6"><span style="font-size:20px;font-weight:800;color:var(--gn);line-height:1" id="dest-shop-pct">0%</span><span class="badge bg" id="shop-total-badge" style="font-size:11px">0 boxes</span></div>
+              </div>
+              <div style="height:12px;border-radius:6px;background:var(--sur2);overflow:hidden">
+                <div id="dest-shop-bar" style="height:100%;width:0%;background:var(--gn);border-radius:6px;transition:width .6s ease"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="fx gap8 mb5">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--bl);flex-shrink:0;margin-top:2px"></div>
+            <div style="flex:1">
+              <div class="fx mb4" style="justify-content:space-between">
+                <span style="font-size:13px;font-weight:600;color:var(--bl3)">🚚 Deliveries</span>
+                <div class="fx gap6"><span style="font-size:20px;font-weight:800;color:var(--bl);line-height:1" id="dest-del-pct">0%</span><span class="badge bb" id="del-total-badge" style="font-size:11px">0 boxes</span></div>
+              </div>
+              <div style="height:12px;border-radius:6px;background:var(--sur2);overflow:hidden">
+                <div id="dest-del-bar" style="height:100%;width:0%;background:var(--bl);border-radius:6px;transition:width .6s ease"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--tx3);border-top:1px solid var(--bdr);padding-top:6px">Stock out → select destination to track dispatch</div>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="tabs">
       <button class="tb on" onclick="swTab(this,'tab-act')">Activity</button>
@@ -566,6 +612,63 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   </div></div>
 </div>
 
+<!-- Stock-out confirm with destination -->
+<div class="modal-bg h" id="m-so">
+  <div class="modal" style="max-width:480px">
+    <div id="so-m-photo"></div>
+    <div class="modal-body">
+      <div class="fx gap8 mb12">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:700;line-height:1.3" id="so-m-name"></div>
+          <div style="font-size:12px;color:var(--tx2);margin-top:2px" id="so-m-meta"></div>
+        </div>
+        <button class="btn btn-sm" onclick="closeModal('m-so')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
+      </div>
+      <div class="g2 mb14" style="gap:8px">
+        <div style="background:var(--sur2);border-radius:var(--r);padding:8px;text-align:center">
+          <div style="font-size:18px;font-weight:800;line-height:1" id="so-m-qty">0</div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:2px">boxes in stock</div>
+        </div>
+        <div style="background:var(--sur2);border-radius:var(--r);padding:8px;text-align:center">
+          <div id="so-m-stat" style="font-size:13px;font-weight:600"></div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:2px">status</div>
+        </div>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Quantity to remove <span style="color:var(--rd)">*</span></div>
+      <div class="qty-row">
+        <button class="qbtn" onclick="adjSOQty(-1)">−</button>
+        <input type="number" id="so-qty2" class="qnum" placeholder="0" min="1" inputmode="numeric"/>
+        <button class="qbtn" onclick="adjSOQty(1)">+</button>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Where is this going? <span style="color:var(--rd)">*</span></div>
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <button class="dest-btn" id="so-dest-shop" data-dest="shop" onclick="soSelectDest('shop')">
+          <div style="font-size:28px;line-height:1">🏪</div>
+          <div style="font-size:13px;font-weight:600;color:var(--tx)">Shop</div>
+          <div style="font-size:11px;color:var(--tx3)">Retail / supermarket</div>
+        </button>
+        <button class="dest-btn" id="so-dest-del" data-dest="delivery" onclick="soSelectDest('delivery')">
+          <div style="font-size:28px;line-height:1">🚚</div>
+          <div style="font-size:13px;font-weight:600;color:var(--tx)">Delivery</div>
+          <div style="font-size:11px;color:var(--tx3)">Customer / order</div>
+        </button>
+      </div>
+      <div id="so-dest-wrap" style="display:none;margin-bottom:12px">
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:5px" id="so-dest-label">Name</label>
+        <input type="text" id="so-dest-name" placeholder="Shop or customer name" autocomplete="off"/>
+      </div>
+      <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:5px">Note (optional)</label>
+      <input type="text" id="so-reason2" placeholder="Damage, return, reason…" style="margin-bottom:16px"/>
+      <div class="g2">
+        <button class="btn w100" onclick="closeModal('m-so')">Cancel</button>
+        <button class="btn btn-rd w100" style="font-size:15px;font-weight:700;padding:12px" onclick="doSO()">
+          <svg width="16" height="16"><use href="#ic-out"/></svg> Confirm out
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <!-- PIN LOGIN SCREEN -->
 <div id="pin-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
@@ -604,7 +707,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 </div>
 
 <!-- SETTINGS PAGE -->
-<div class="page" id="page-settings" style="display:none">
+<div class="page" id="page-settings">
   <div class="pt">Settings</div>
   <div class="tabs">
     <button class="tb on" onclick="swTab(this,'stab-users')">Users &amp; Access</button>
@@ -635,6 +738,8 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
         <div style="flex:1"><div style="font-size:13px;font-weight:700">Supabase real-time sync</div><div style="font-size:11px;color:var(--tx2);margin-top:1px">Connected to ilyaqubsrpjrfgekwonw.supabase.co</div></div>
         <div style="display:flex;align-items:center;gap:5px"><div id="sb-status-dot" style="width:9px;height:9px;border-radius:50%;background:var(--rd)"></div><span id="sb-status-lbl" style="font-size:12px;color:var(--tx2)">Not connected</span></div>
       </div>
+      <!-- Hidden input for sb-url so JS can reference it -->
+      <input type="hidden" id="sb-url-inp" value="https://ilyaqubsrpjrfgekwonw.supabase.co"/>
       <div class="fx gap8">
         <button class="btn btn-sm btn-pu" style="flex:1;justify-content:center" onclick="sbPushAll()">Push all data to Supabase</button>
         <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="sbPull()">Pull from Supabase</button>
@@ -1027,17 +1132,15 @@ function refreshDash() {
 }
 
 function swTab(btn, id) {
-  btn.closest('.card') && btn.closest('.card').querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  btn.closest('.card') && btn.closest('.card').querySelectorAll('.tbp').forEach(p => p.classList.remove('on'));
-  // Also handle settings tabs which are not inside a .card
-  if (!btn.closest('.card')) {
-    let tabs = btn.closest('.page') || document;
-    tabs.querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    tabs.querySelectorAll('.tbp').forEach(p => p.classList.remove('on'));
+  // Find the nearest tab container (card or page)
+  let container = btn.closest('.card') || btn.closest('.page');
+  if (container) {
+    container.querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
+    container.querySelectorAll('.tbp').forEach(p => p.classList.remove('on'));
   }
-  let el = document.getElementById(id); if (el) el.classList.add('on');
+  btn.classList.add('on');
+  let target = document.getElementById(id);
+  if (target) target.classList.add('on');
 }
 
 function renderActFeed() {
