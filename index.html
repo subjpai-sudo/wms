@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>StockFlow WMS</title>
 <style>
 :root{
@@ -15,182 +17,255 @@
   --rd:#c0392b;--rd2:#fdecea;--rd3:#922b21;
   --bl:#1565c0;--bl2:#e3f0ff;--bl3:#0d47a1;
   --wa:#25d366;
-  --sb:200px;--tb:52px;
+  --tb:52px;--bn:60px;
   --r:8px;--rl:12px;--rx:18px;
-  font-size:14px;
+  --sw:220px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;display:flex;flex-direction:column}
-button,input,select,textarea{font-family:inherit}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column}
+button,input,select,textarea{font-family:inherit;font-size:inherit}
 svg{display:inline-block;vertical-align:middle;flex-shrink:0}
+button{cursor:pointer;-webkit-appearance:none}
 
-/* ── Layout ── */
-#tb{height:var(--tb);background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;z-index:20}
-#tb .logo{font-weight:700;font-size:15px;color:var(--tx);flex:1;display:flex;align-items:center;gap:7px}
-.badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;border-radius:20px;padding:2px 9px}
-.bdg-role{background:var(--pu2);color:var(--pu3)}
+/* ── TOP BAR ── */
+#topbar{height:var(--tb);background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;z-index:30;position:relative}
+.logo{font-weight:700;font-size:15px;color:var(--tx);flex:1;display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#menu-btn{display:none;background:none;border:none;padding:6px;color:var(--tx)}
+.av{width:30px;height:30px;border-radius:50%;background:var(--pu);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.role-badge{font-size:11px;font-weight:600;background:var(--pu2);color:var(--pu3);border-radius:20px;padding:2px 9px;white-space:nowrap}
+.bell-wrap{position:relative;flex-shrink:0}
+.bell-btn{background:none;border:none;padding:6px;color:var(--tx2);display:flex;align-items:center}
+.bell-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--rd);border-radius:50%;border:1.5px solid var(--sur);display:none}
+
+/* ── LAYOUT ── */
+#layout{display:flex;flex:1;overflow:hidden;position:relative}
+
+/* ── SIDEBAR (desktop) ── */
+#sidebar{width:var(--sw);background:var(--sur);border-right:1px solid var(--bdr);padding:10px 8px;display:flex;flex-direction:column;gap:1px;flex-shrink:0;overflow-y:auto;transition:transform .25s;z-index:20}
+.ni{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:var(--r);font-size:13px;color:var(--tx2);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:background .1s}
+.ni:hover{background:var(--sur2);color:var(--tx)}
+.ni.on{background:var(--pu2);color:var(--pu3);font-weight:600}
+.sep{height:1px;background:var(--bdr);margin:6px 4px}
+
+/* ── MAIN CONTENT ── */
+#main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px}
+
+/* ── BOTTOM NAV (mobile) ── */
+#bottom-nav{display:none;height:var(--bn);background:var(--sur);border-top:1px solid var(--bdr);flex-shrink:0;z-index:30;position:relative}
+.bn-inner{display:flex;height:100%}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;color:var(--tx3);font-size:9px;font-weight:500;cursor:pointer;padding:0;transition:color .12s}
+.bn-item.on{color:var(--pu3)}
+.bn-item svg{width:20px;height:20px}
+.bn-more-menu{position:absolute;bottom:100%;right:0;width:180px;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl) var(--rl) 0 0;padding:8px;display:none;flex-direction:column;gap:2px;box-shadow:0 -4px 20px rgba(0,0,0,.1)}
+.bn-more-menu.open{display:flex}
+.bn-menu-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);font-size:13px;color:var(--tx2);cursor:pointer;border:none;background:none;width:100%;text-align:left}
+.bn-menu-item:hover,.bn-menu-item.on{background:var(--pu2);color:var(--pu3)}
+
+/* ── SIDEBAR OVERLAY (mobile) ── */
+#sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:19;opacity:0;transition:opacity .25s}
+
+/* ── PAGES ── */
+.page{display:none}.page.on{display:block}
+.pt{font-size:18px;font-weight:700;margin-bottom:2px}
+.ps{font-size:13px;color:var(--tx2);margin-bottom:16px}
+
+/* ── CARDS ── */
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px}
+.sec{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;border-radius:var(--r);padding:8px 14px;font-size:13px;font-weight:500;border:1px solid var(--bdr2);background:var(--sur);color:var(--tx);cursor:pointer;transition:all .1s;white-space:nowrap}
+.btn:active{opacity:.8}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-pu{background:var(--pu);color:#fff;border-color:var(--pu)}
+.btn-gn{background:var(--gn);color:#fff;border-color:var(--gn)}
+.btn-rd{background:var(--rd2);color:var(--rd3);border-color:transparent}
+.btn-wa{background:var(--wa);color:#fff;border-color:var(--wa)}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* ── INPUTS ── */
+input[type=text],input[type=number],input[type=search],select,textarea{width:100%;border:1px solid var(--bdr2);border-radius:var(--r);padding:9px 12px;font-size:14px;color:var(--tx);background:var(--sur);outline:none;transition:border-color .12s;-webkit-appearance:none;appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--pu);box-shadow:0 0 0 3px var(--pu2)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239e9c94' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:32px}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;border-radius:20px;padding:2px 8px}
 .bdg-g{background:var(--gn2);color:var(--gn3)}
 .bdg-a{background:var(--am2);color:var(--am3)}
 .bdg-r{background:var(--rd2);color:var(--rd3)}
 .bdg-b{background:var(--bl2);color:var(--bl3)}
 .bdg-p{background:var(--pu2);color:var(--pu3)}
 .bdg-gray{background:var(--sur3);color:var(--tx2)}
-.av{width:30px;height:30px;border-radius:50%;background:var(--pu);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
-#layout{display:flex;flex:1;overflow:hidden}
 
-/* ── Sidebar ── */
-#sb{width:var(--sb);background:var(--sur);border-right:1px solid var(--bdr);padding:10px 8px;display:flex;flex-direction:column;gap:1px;flex-shrink:0}
-.ni{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--r);font-size:13px;color:var(--tx2);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:background .12s}
-.ni:hover{background:var(--sur2);color:var(--tx)}
-.ni.on{background:var(--pu2);color:var(--pu3);font-weight:600}
-.ni svg{flex-shrink:0}
-.sep{height:1px;background:var(--bdr);margin:6px 4px}
-
-/* ── Main ── */
-#main{flex:1;overflow-y:auto;padding:20px 24px}
-.page{display:none}.page.on{display:block}
-.pt{font-size:18px;font-weight:700;color:var(--tx);margin-bottom:2px}
-.ps{font-size:13px;color:var(--tx2);margin-bottom:18px}
-.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px}
-.sec{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
-.btn{display:inline-flex;align-items:center;gap:6px;border-radius:var(--r);padding:8px 15px;font-size:13px;font-weight:500;border:1px solid var(--bdr2);background:var(--sur);color:var(--tx);cursor:pointer;transition:all .12s}
-.btn:hover{background:var(--sur2)}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.btn-pu{background:var(--pu);color:#fff;border-color:var(--pu)}.btn-pu:hover{background:#3a2fe0}
-.btn-gn{background:var(--gn);color:#fff;border-color:var(--gn)}.btn-gn:hover{background:#145f3a}
-.btn-rd{background:var(--rd2);color:var(--rd3);border-color:transparent}
-.btn-wa{background:var(--wa);color:#fff;border-color:var(--wa)}
-.btn-sm{padding:5px 10px;font-size:12px}
-input[type=text],input[type=number],input[type=search],select,textarea{width:100%;border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 11px;font-size:13px;color:var(--tx);background:var(--sur);outline:none;transition:border-color .12s}
-input:focus,select:focus,textarea:focus{border-color:var(--pu)}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-.fx{display:flex;align-items:center}
-.fx1{flex:1}
-.gap6{gap:6px}.gap8{gap:8px}.gap10{gap:10px}.gap12{gap:12px}
-.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}
-.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}
-
-/* ── Metrics ── */
-.metric{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px}
-.mv{font-size:24px;font-weight:700;line-height:1;margin-bottom:3px}
+/* ── METRICS ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+.metric{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:12px}
+.mv{font-size:22px;font-weight:700;line-height:1;margin-bottom:2px}
 .ml{font-size:11px;color:var(--tx2)}
 
-/* ── Table ── */
-.tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{text-align:left;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;padding:7px 10px;border-bottom:1px solid var(--bdr);background:var(--sur2)}
-.tbl td{padding:8px 10px;border-bottom:1px solid var(--bdr);vertical-align:middle}
-.tbl tr:last-child td{border-bottom:none}
-.tbl tr:hover td{background:var(--sur2)}
-
-/* ── Tabs ── */
-.tabs{display:flex;gap:2px;border-bottom:1px solid var(--bdr);margin-bottom:14px}
-.tb-btn{padding:8px 13px;font-size:13px;color:var(--tx2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s}
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--bdr);margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tb-btn{padding:8px 14px;font-size:13px;color:var(--tx2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .12s;flex-shrink:0}
 .tb-btn.on{color:var(--pu);border-bottom-color:var(--pu);font-weight:600}
 .tb-pane{display:none}.tb-pane.on{display:block}
 
-/* ── Activity ── */
+/* ── PRODUCT ROWS ── */
+.prow{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--bdr);transition:background .1s;background:var(--sur)}
+.prow:last-child{border-bottom:none}
+.prow:active{background:var(--sur2)}
+.prow-icon{width:34px;height:34px;border-radius:var(--r);background:var(--pu2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.prow-name{font-size:13px;font-weight:500;line-height:1.3;margin-bottom:1px}
+.prow-sub{font-size:11px;color:var(--tx3)}
+.prow-right{text-align:right;flex-shrink:0;min-width:48px}
+.prow-qty{font-size:15px;font-weight:700}
+.prow-date{font-size:10px;color:var(--tx3);margin-top:1px}
+
+/* ── PLIST ── */
+.plist{border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;background:var(--sur)}
+
+/* ── ACTIVITY ── */
 .ai{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr)}
 .ai:last-child{border-bottom:none}
 .adot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
 .dgn{background:var(--gn)}.drd{background:var(--rd)}.dam{background:var(--am)}
 
-/* ── Cat cards ── */
-.cg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
-.cc{border:1.5px solid var(--bdr);border-radius:var(--rl);padding:12px 8px;text-align:center;cursor:pointer;transition:all .12s;background:var(--sur)}
-.cc:hover,.cc.on{border-color:var(--pu);background:var(--pu2)}
-.cc .cn{font-size:12px;font-weight:600;color:var(--tx);margin-top:6px}
-.cc .cs{font-size:11px;color:var(--tx3);margin-top:2px}
-.cc.on .cn{color:var(--pu3)}
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;padding:7px 10px;border-bottom:1px solid var(--bdr);background:var(--sur2);white-space:nowrap}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--bdr);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--bdr)}
+.tbl-wrap .tbl th:first-child,.tbl-wrap .tbl td:first-child{position:sticky;left:0;background:var(--sur2);z-index:1}
+.tbl-wrap .tbl td:first-child{background:var(--sur)}
+.tbl-wrap .tbl tr:hover td{background:var(--sur2)}
+.tbl-wrap .tbl tr:hover td:first-child{background:var(--sur2)}
 
-/* ── Scan screen ── */
-.scan-wrap{position:relative}
-.scan-input-bar{display:flex;gap:8px;margin-bottom:10px}
-.scan-input-bar input{padding-left:38px;font-size:14px;font-weight:500}
-.si-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.45}
-.scan-btn{width:40px;height:40px;border-radius:var(--r);border:1px solid var(--bdr2);background:var(--sur);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s}
-.scan-btn:hover{background:var(--sur2)}
+/* ── SCAN ── */
+.scan-bar{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.scan-bar input{padding-left:38px;font-size:14px;font-weight:500}
+.scan-icon-wrap{position:relative;flex:1}
+.scan-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.4}
+.scan-btn{width:44px;height:44px;border-radius:var(--r);border:1px solid var(--bdr2);background:var(--sur);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .1s}
+.scan-btn:active{background:var(--sur2)}
 .scan-btn.act{background:var(--pu2);border-color:var(--pu)}
 .cam-area{background:#000;border-radius:var(--rl);overflow:hidden;margin-bottom:10px;position:relative}
-.cam-area video{width:100%;max-height:180px;display:block}
+.cam-area video{width:100%;max-height:200px;display:block}
 .cam-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.cam-frame{width:200px;height:70px;border:2px solid #25d366;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
-.tip-bar{border-radius:var(--r);padding:7px 11px;font-size:12px;display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.cam-frame{width:200px;height:70px;border:2.5px solid #25d366;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
+.tip-bar{border-radius:var(--r);padding:8px 11px;font-size:12px;display:flex;align-items:flex-start;gap:7px;margin-bottom:8px;line-height:1.4}
 .tip-am{background:var(--am2);color:var(--am3)}
 .tip-gn{background:var(--gn2);color:var(--gn3)}
-.tip-rd{background:var(--rd2);color:var(--rd3)}
-.plist{border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;max-height:260px;overflow-y:auto}
-.prow{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--bdr);transition:background .1s}
-.prow:last-child{border-bottom:none}
-.prow:hover{background:var(--sur2)}
-.prow-icon{width:30px;height:30px;border-radius:var(--r);background:var(--pu2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.prow-name{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.prow-sub{font-size:11px;color:var(--tx3)}
-.prow-qty{font-size:13px;font-weight:700;text-align:right;flex-shrink:0}
 
-/* ── Product detail card (shows after scan) ── */
-.pd-card{background:var(--sur);border:1.5px solid var(--pu);border-radius:var(--rx);padding:0;overflow:hidden;margin-bottom:12px}
-.pd-header{background:linear-gradient(135deg,var(--pu2) 0%,#dddaff 100%);padding:20px;display:flex;gap:16px;align-items:center}
-.pd-photo{width:72px;height:72px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--bdr)}
-.pd-title{font-size:15px;font-weight:700;color:var(--pu3);line-height:1.3;margin-bottom:4px}
-.pd-meta{font-size:12px;color:var(--pu);opacity:.8}
-.pd-body{padding:16px}
-.pd-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px}
+/* ── STOCK IN LAYOUT ── */
+.si-layout{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.si-right-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;color:var(--tx3);text-align:center;gap:10px}
+
+/* ── QTY CONTROLS ── */
+.qty-row{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+.qty-ctrl{width:44px;height:44px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;flex-shrink:0;cursor:pointer;transition:background .1s;border:none}
+.qty-ctrl:active{background:var(--sur3)}
+.qty-num{flex:1;text-align:center;font-size:22px;font-weight:700;border:2px solid var(--pu) !important;border-radius:var(--r);padding:8px}
+
+/* ── PRODUCT DETAIL ── */
+.pd-header{background:linear-gradient(135deg,var(--pu2) 0%,#dddaff 100%);border-radius:var(--rl) var(--rl) 0 0;padding:16px;display:flex;gap:14px;align-items:center}
+.pd-photo{width:64px;height:64px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--bdr)}
+.pd-card{border:1.5px solid var(--pu);border-radius:var(--rl);overflow:hidden;margin-bottom:12px}
+.pd-body{padding:14px}
+.pd-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr);font-size:13px}
 .pd-row:last-child{border-bottom:none}
-.pd-lbl{color:var(--tx2)}
-.pd-val{font-weight:600;color:var(--tx)}
-.pd-qty-input{display:flex;gap:8px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)}
-.qty-ctrl{width:36px;height:36px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--sur2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:500;flex-shrink:0;transition:background .1s}
-.qty-ctrl:hover{background:var(--sur3)}
-.qty-num{flex:1;text-align:center;font-size:22px;font-weight:700;border:2px solid var(--pu);border-radius:var(--r);padding:6px}
+.pd-lbl{color:var(--tx2);font-size:12px}
+.pd-val{font-weight:600;font-size:13px}
 
-/* ── Register barcode panel ── */
-.reg-panel{background:var(--am2);border:1.5px solid var(--am);border-radius:var(--rl);padding:14px;margin-bottom:10px}
-.reg-title{font-size:13px;font-weight:600;color:var(--am3);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.reg-body{font-size:12px;color:var(--am3);margin-bottom:10px;line-height:1.5}
-
-/* ── Modal ── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:100;padding:0}
 .modal-bg.h{display:none}
-.modal{background:var(--sur);border-radius:var(--rx);padding:22px;width:100%;max-width:380px;max-height:90vh;overflow-y:auto}
+.modal{background:var(--sur);border-radius:var(--rx) var(--rx) 0 0;padding:20px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;animation:slideUp .22s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--bdr2);border-radius:2px;margin:0 auto 16px}
 
-/* ── Toast ── */
-#toast{position:fixed;bottom:20px;right:20px;background:var(--gn);color:#fff;border-radius:var(--rl);padding:11px 16px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;z-index:300;transform:translateY(70px);opacity:0;transition:all .28s}
-#toast.show{transform:translateY(0);opacity:1}
+/* ── CAT TREE ── */
+.cat-root{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:8px}
+.cat-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sur2);border-bottom:1px solid var(--bdr)}
+.cat-hdr-title{font-size:13px;font-weight:600;flex:1}
+.sub-item{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:13px;color:var(--tx2);border-bottom:1px solid var(--bdr)}
+.sub-item:last-child{border-bottom:none}
 
-/* ── Charts ── */
-@keyframes spin{to{transform:rotate(360deg)}}
-.spin{animation:spin 1s linear infinite;display:inline-block}
-
-/* ── WhatsApp chat bubble ── */
-.wa-bubble{background:#e5ddd5;border-radius:var(--rl);padding:14px;max-width:300px}
+/* ── WA BUBBLE ── */
+.wa-bubble{background:#e5ddd5;border-radius:var(--rl);padding:14px;max-width:320px}
 .wa-msg{background:#fff;border-radius:8px 8px 8px 0;padding:10px 12px;font-size:12px;color:var(--tx);white-space:pre-line;line-height:1.6}
 .wa-time{font-size:10px;color:var(--tx3);text-align:right;margin-top:4px}
 
-/* ── Cat tree ── */
-.cat-root{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:8px}
-.cat-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sur2);border-bottom:1px solid var(--bdr)}
-.cat-hdr-title{font-size:13px;font-weight:600;color:var(--tx);flex:1}
-.sub-item{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:13px;color:var(--tx2);border-bottom:1px solid var(--bdr)}
-.sub-item:last-child{border-bottom:none}
-.sub-item:hover{background:var(--sur2)}
+/* ── TOAST ── */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--gn);color:#fff;border-radius:var(--rl);padding:10px 18px;font-size:13px;font-weight:500;white-space:nowrap;z-index:400;opacity:0;transition:all .28s;max-width:90vw;text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
-/* ── Role-specific ── */
-.owner-only,.admin-only,.op-only{display:none}
-body.role-owner .owner-only{display:flex}
-body.role-admin .admin-only{display:flex}
-body.role-operator .op-only{display:flex}
-body.role-owner .admin-only,body.role-owner .op-only{display:none}
-body.role-admin .owner-only,body.role-admin .op-only{display:none}
-body.role-operator .owner-only,body.role-operator .admin-only{display:none}
+/* ── UTILS ── */
+.fx{display:flex;align-items:center}.fx1{flex:1}.gap6{gap:6px}.gap8{gap:8px}.gap10{gap:10px}.gap12{gap:12px}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.w100{width:100%}
+
+/* ── LAST UPDATED CHIP ── */
+.lu-chip{font-size:10px;color:var(--tx3);background:var(--sur2);border-radius:20px;padding:1px 7px;white-space:nowrap}
+.lu-chip.today{color:var(--gn3);background:var(--gn2)}
+.lu-chip.old{color:var(--am3);background:var(--am2)}
+
+/* ════════════════════════════════
+   MOBILE  (max 768px)
+════════════════════════════════ */
+@media(max-width:768px){
+  #menu-btn{display:flex}
+  #sidebar{position:fixed;top:var(--tb);left:0;bottom:var(--bn);width:var(--sw);transform:translateX(-100%);box-shadow:4px 0 20px rgba(0,0,0,.12)}
+  #sidebar.open{transform:translateX(0)}
+  #sb-overlay{display:block}
+  #bottom-nav{display:flex}
+  #main{padding:12px;padding-bottom:8px}
+  #toast{bottom:70px}
+
+  /* Metrics 2 col on mobile */
+  .metrics-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .metrics-grid .metric:last-child{grid-column:span 2}
+
+  /* Dashboard charts stack */
+  #dash-row2{grid-template-columns:1fr !important}
+  #dash-row3{grid-template-columns:1fr !important}
+
+  /* Stock in full width */
+  .si-layout{grid-template-columns:1fr}
+
+  /* Tables scroll horizontally */
+  .tbl-wrap{border-radius:var(--r)}
+
+  /* Modal full bottom sheet */
+  .modal{max-height:88vh}
+
+  /* Hide less important table cols on mobile */
+  .hide-mob{display:none}
+
+  /* Bigger touch targets */
+  .ni{padding:12px}
+  .prow{padding:11px 12px}
+}
+
+@media(min-width:769px){
+  #sb-overlay{display:none !important}
+  .bn-more-menu{display:none !important}
+}
+
+/* Role visibility */
+body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-events:none}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite;display:inline-block}
 </style>
 </head>
 <body class="role-admin">
 
-<!-- SVG icons sprite -->
-<svg style="display:none">
+<!-- SVG sprite -->
+<svg style="display:none" aria-hidden="true">
   <symbol id="ic-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
   <symbol id="ic-in" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/></symbol>
   <symbol id="ic-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9m0 0l-4 4m4-4l4 4M3 7V5a2 2 0 012-2h14a2 2 0 012 2v2"/></symbol>
@@ -199,7 +274,6 @@ body.role-operator .owner-only,body.role-operator .admin-only{display:none}
   <symbol id="ic-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></symbol>
   <symbol id="ic-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></symbol>
   <symbol id="ic-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></symbol>
-  <symbol id="ic-scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M7 12h10"/></symbol>
   <symbol id="ic-cam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></symbol>
   <symbol id="ic-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></symbol>
   <symbol id="ic-chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></symbol>
@@ -207,268 +281,302 @@ body.role-operator .owner-only,body.role-operator .admin-only{display:none}
   <symbol id="ic-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
   <symbol id="ic-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></symbol>
   <symbol id="ic-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
-  <symbol id="ic-arr-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
-  <symbol id="ic-arr-l" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
-  <symbol id="ic-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></symbol>
+  <symbol id="ic-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></symbol>
+  <symbol id="ic-barcode" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 5v14M7 5v14M11 5v14M15 5v14M19 5v14M3 5h2M3 19h2M19 5h2M19 19h2"/></symbol>
   <symbol id="ic-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></symbol>
-  <symbol id="ic-wa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.65-3.8a9 9 0 113.4 2.9L3 21"/><path d="M9 10c.5 1 1.5 2 2 2.5s1.5.5 2 1"/></symbol>
+  <symbol id="ic-wa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.65-3.8a9 9 0 113.4 2.9L3 21"/></symbol>
+  <symbol id="ic-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></symbol>
   <symbol id="ic-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></symbol>
-  <symbol id="ic-barcode" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5v14M7 5v14M11 5v14M15 5v14M19 5v14M3 5h2M3 19h2M19 5h2M19 19h2"/></symbol>
 </svg>
 
-<!-- Top bar -->
-<div id="tb">
-  <div class="logo"><svg width="20" height="20"><use href="#ic-pkg"/></svg> StockFlow WMS</div>
-  <div style="position:relative;display:flex">
-    <button class="btn btn-sm" onclick="nav('orders')" style="gap:4px"><svg width="16" height="16"><use href="#ic-bell"/></svg></button>
-    <div id="bell-dot" style="position:absolute;top:3px;right:3px;width:7px;height:7px;background:var(--rd);border-radius:50%;border:1.5px solid var(--sur);display:none"></div>
+<!-- TOP BAR -->
+<div id="topbar">
+  <button id="menu-btn" onclick="toggleSidebar()" aria-label="Menu"><svg width="20" height="20"><use href="#ic-menu"/></svg></button>
+  <div class="logo"><svg width="18" height="18"><use href="#ic-pkg"/></svg> StockFlow WMS</div>
+  <div class="bell-wrap">
+    <button class="bell-btn" onclick="nav('dash');swTab(document.querySelector('.tb-btn:nth-child(2)'),'tab-low')" aria-label="Alerts">
+      <svg width="18" height="18"><use href="#ic-bell"/></svg>
+    </button>
+    <div class="bell-dot" id="bell-dot"></div>
   </div>
-  <span class="badge bdg-role" id="role-lbl">Admin</span>
+  <span class="role-badge" id="role-lbl">Admin</span>
   <div class="av" id="av-txt">AD</div>
 </div>
 
+<!-- LAYOUT -->
 <div id="layout">
-<!-- Sidebar -->
-<div id="sb">
-  <button class="ni on" data-page="dash"><svg width="16" height="16"><use href="#ic-dash"/></svg> Dashboard</button>
-  <button class="ni" data-page="stockin"><svg width="16" height="16"><use href="#ic-in"/></svg> Stock in</button>
-  <button class="ni" data-page="stockout"><svg width="16" height="16"><use href="#ic-out"/></svg> Stock out</button>
-  <button class="ni" data-page="products"><svg width="16" height="16"><use href="#ic-pkg"/></svg> Products</button>
-  <button class="ni" id="ni-cats" data-page="cats"><svg width="16" height="16"><use href="#ic-folder"/></svg> Categories</button>
-  <div class="sep"></div>
-  <button class="ni" id="ni-orders" data-page="orders"><svg width="16" height="16"><use href="#ic-send"/></svg> Order request</button>
-  <div class="sep"></div>
-  <button class="ni" onclick="switchRole()"><svg width="16" height="16"><use href="#ic-users"/></svg> Switch role</button>
-</div>
 
-<div id="main">
+  <!-- SIDEBAR (desktop + mobile drawer) -->
+  <div id="sidebar">
+    <button class="ni on" data-page="dash"><svg width="16" height="16"><use href="#ic-dash"/></svg> Dashboard</button>
+    <button class="ni" data-page="stockin"><svg width="16" height="16"><use href="#ic-in"/></svg> Stock in</button>
+    <button class="ni" data-page="stockout"><svg width="16" height="16"><use href="#ic-out"/></svg> Stock out</button>
+    <button class="ni" data-page="products"><svg width="16" height="16"><use href="#ic-pkg"/></svg> Products</button>
+    <button class="ni" id="ni-cats" data-page="cats"><svg width="16" height="16"><use href="#ic-folder"/></svg> Categories</button>
+    <div class="sep"></div>
+    <button class="ni" id="ni-orders" data-page="orders"><svg width="16" height="16"><use href="#ic-send"/></svg> Order request</button>
+    <div class="sep"></div>
+    <button class="ni" onclick="switchRole()"><svg width="16" height="16"><use href="#ic-users"/></svg> Switch role</button>
+  </div>
+  <div id="sb-overlay" onclick="closeSidebar()"></div>
 
-<!-- ===== DASHBOARD ===== -->
-<div class="page on" id="page-dash">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-    <div><div class="pt" id="dash-title">Dashboard</div><div style="font-size:12px;color:var(--tx3)" id="dash-date"></div></div>
-    <select id="dash-period" onchange="refreshDash()" style="width:auto;min-width:110px;font-size:12px;padding:5px 10px">
-      <option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30">Last 30 days</option>
-    </select>
-  </div>
-  <div class="g5 mb12">
-    <div class="metric"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="width:30px;height:30px;border-radius:7px;background:var(--pu2);display:flex;align-items:center;justify-content:center"><svg width="15" height="15" style="color:var(--pu3)"><use href="#ic-pkg"/></svg></div><span style="font-size:10px;color:var(--tx3)">SKUs</span></div><div class="mv" id="m-tot">0</div><div class="ml">Total products</div></div>
-    <div class="metric"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="width:30px;height:30px;border-radius:7px;background:var(--gn2);display:flex;align-items:center;justify-content:center"><svg width="15" height="15" style="color:var(--gn3)"><use href="#ic-in"/></svg></div><span style="font-size:10px;color:var(--gn3)" id="m-in-tr"></span></div><div class="mv" style="color:var(--gn)" id="m-in">0</div><div class="ml">Units stocked in</div></div>
-    <div class="metric"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="width:30px;height:30px;border-radius:7px;background:var(--rd2);display:flex;align-items:center;justify-content:center"><svg width="15" height="15" style="color:var(--rd3)"><use href="#ic-out"/></svg></div><span style="font-size:10px;color:var(--rd3)" id="m-out-tr"></span></div><div class="mv" style="color:var(--rd)" id="m-out">0</div><div class="ml">Units moved out</div></div>
-    <div class="metric"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="width:30px;height:30px;border-radius:7px;background:var(--am2);display:flex;align-items:center;justify-content:center"><svg width="15" height="15" style="color:var(--am3)"><use href="#ic-warn"/></svg></div><span style="font-size:10px;color:var(--am3)" id="m-low-pct"></span></div><div class="mv" style="color:var(--am)" id="m-low">0</div><div class="ml">Low stock</div></div>
-    <div class="metric"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="width:30px;height:30px;border-radius:7px;background:var(--rd2);display:flex;align-items:center;justify-content:center"><svg width="15" height="15" style="color:var(--rd3)"><use href="#ic-x"/></svg></div><span style="font-size:10px;color:var(--rd3)">urgent</span></div><div class="mv" style="color:var(--rd)" id="m-oos">0</div><div class="ml">Out of stock</div></div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 280px;gap:12px;margin-bottom:12px">
-    <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:13px;font-weight:600">Stock movement</div><div style="display:flex;gap:10px;font-size:11px"><span style="display:flex;align-items:center;gap:4px;color:var(--gn3)"><span style="width:10px;height:3px;border-radius:2px;background:var(--gn);display:inline-block"></span>In</span><span style="display:flex;align-items:center;gap:4px;color:var(--rd3)"><span style="width:10px;height:3px;border-radius:2px;background:var(--rd);display:inline-block"></span>Out</span></div></div><canvas id="mv-chart" height="130"></canvas></div>
-    <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px;align-self:flex-start">Stock health</div>
-      <div style="position:relative;width:110px;height:110px;margin-bottom:10px"><canvas id="h-donut" width="110" height="110"></canvas><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:18px;font-weight:700" id="h-pct">0%</div><div style="font-size:10px;color:var(--tx3)">healthy</div></div></div>
-      <div style="width:100%;display:flex;flex-direction:column;gap:4px">
-        <div style="display:flex;justify-content:space-between;font-size:11px"><span style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--gn);display:inline-block"></span>In stock</span><strong id="hl-ok">0</strong></div>
-        <div style="display:flex;justify-content:space-between;font-size:11px"><span style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--am);display:inline-block"></span>Low stock</span><strong id="hl-low">0</strong></div>
-        <div style="display:flex;justify-content:space-between;font-size:11px"><span style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--rd);display:inline-block"></span>Out of stock</span><strong id="hl-out">0</strong></div>
-      </div>
-    </div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-    <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:10px">Stock by category</div><div id="cat-bars"></div></div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:13px;font-weight:600">Top movers</div>
-        <div style="display:flex;gap:4px">
-          <button class="btn btn-sm" id="mv-in-btn" onclick="setMvTab('in')" style="background:var(--gn2);color:var(--gn3);border-color:transparent;font-size:11px"><svg width="12" height="12"><use href="#ic-in"/></svg> In</button>
-          <button class="btn btn-sm" id="mv-out-btn" onclick="setMvTab('out')" style="font-size:11px"><svg width="12" height="12"><use href="#ic-out"/></svg> Out</button>
-        </div>
-      </div>
-      <div id="top-movers"></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="tabs">
-      <button class="tb-btn on" onclick="swTab(this,'tab-act')">Recent activity</button>
-      <button class="tb-btn" onclick="swTab(this,'tab-low')">Low stock <span id="low-cnt" style="background:var(--am2);color:var(--am3);border-radius:20px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:2px"></span></button>
-      <button class="tb-btn" onclick="swTab(this,'tab-prods')">Product list</button>
-    </div>
-    <div class="tb-pane on" id="tab-act"><div id="act-feed"></div></div>
-    <div class="tb-pane" id="tab-low">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:12px;color:var(--tx2)" id="ls-count"></div>
-        <button class="btn btn-sm" onclick="nav('orders');setOType('low')" style="background:var(--am2);color:var(--am3);border-color:transparent;font-size:11px"><svg width="12" height="12"><use href="#ic-send"/></svg> Request restock</button>
-      </div>
-      <table class="tbl"><thead><tr><th>Product</th><th>Brand</th><th>Category</th><th>Qty</th><th>Threshold</th><th>Short</th><th>Status</th></tr></thead><tbody id="ls-tbl"></tbody></table>
-    </div>
-    <div class="tb-pane" id="tab-prods">
-      <table class="tbl"><thead><tr><th>Product</th><th>Category</th><th>Brand</th><th>Qty</th><th>Status</th></tr></thead><tbody id="all-tbl"></tbody></table>
-    </div>
-  </div>
-</div>
+  <!-- MAIN -->
+  <div id="main">
 
-<!-- ===== STOCK IN ===== -->
-<div class="page" id="page-stockin">
-  <div class="pt">Stock in</div>
-  <div class="ps">Scan barcode or search product to add stock</div>
-  <div class="g2">
-    <!-- Left: scan panel -->
-    <div>
-      <div class="card mb12">
-        <div class="sec">Scan barcode</div>
-        <div class="scan-wrap">
-          <div class="scan-input-bar">
-            <div style="position:relative;flex:1">
-              <span class="si-icon"><svg width="17" height="17"><use href="#ic-barcode"/></svg></span>
-              <input type="text" id="si-inp" placeholder="Scan or type barcode / product name…" oninput="siLook()" onkeydown="if(event.key==='Enter')siConfirmFirst()" autocomplete="off"/>
-            </div>
-            <button class="scan-btn" id="cam-btn" onclick="toggleCam()" title="Camera scan"><svg width="18" height="18"><use href="#ic-cam"/></svg></button>
-            <button class="scan-btn" onclick="siClear()" title="Clear"><svg width="16" height="16"><use href="#ic-x"/></svg></button>
-          </div>
-          <div id="cam-area" style="display:none">
-            <div class="cam-area"><video id="cam-vid" autoplay playsinline muted></video><div class="cam-overlay"><div class="cam-frame"></div></div></div>
-            <div style="font-size:11px;color:var(--tx3);text-align:center;margin-top:5px" id="cam-status">Starting camera…</div>
-          </div>
-          <div id="si-tip" style="display:none"></div>
-          <div id="si-fuzzy" style="display:none">
-            <div style="font-size:11px;color:var(--tx3);margin-bottom:5px" id="si-fuz-lbl">Matches</div>
-            <div class="plist" id="si-fuz-list"></div>
+    <!-- DASHBOARD -->
+    <div class="page on" id="page-dash">
+      <div class="fx gap8 mb12" style="flex-wrap:wrap">
+        <div style="flex:1;min-width:0"><div class="pt" id="dash-title">Dashboard</div><div style="font-size:11px;color:var(--tx3)" id="dash-date"></div></div>
+        <select id="dash-period" onchange="refreshDash()" style="width:auto;font-size:12px;padding:6px 28px 6px 10px;flex-shrink:0">
+          <option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30">Last 30 days</option>
+        </select>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><div style="width:28px;height:28px;border-radius:7px;background:var(--pu2);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" style="color:var(--pu3)"><use href="#ic-pkg"/></svg></div><span style="font-size:10px;color:var(--tx3)">SKUs</span></div><div class="mv" id="m-tot">0</div><div class="ml">Total products</div></div>
+        <div class="metric"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><div style="width:28px;height:28px;border-radius:7px;background:var(--gn2);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" style="color:var(--gn3)"><use href="#ic-in"/></svg></div><span style="font-size:10px;color:var(--gn3)" id="m-in-tr"></span></div><div class="mv" style="color:var(--gn)" id="m-in">0</div><div class="ml">Stocked in</div></div>
+        <div class="metric"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><div style="width:28px;height:28px;border-radius:7px;background:var(--rd2);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" style="color:var(--rd3)"><use href="#ic-out"/></svg></div><span style="font-size:10px;color:var(--rd3)" id="m-out-tr"></span></div><div class="mv" style="color:var(--rd)" id="m-out">0</div><div class="ml">Moved out</div></div>
+        <div class="metric"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><div style="width:28px;height:28px;border-radius:7px;background:var(--am2);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" style="color:var(--am3)"><use href="#ic-warn"/></svg></div><span style="font-size:10px;color:var(--am3)" id="m-low-pct"></span></div><div class="mv" style="color:var(--am)" id="m-low">0</div><div class="ml">Low stock</div></div>
+        <div class="metric"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><div style="width:28px;height:28px;border-radius:7px;background:var(--rd2);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" style="color:var(--rd3)"><use href="#ic-x"/></svg></div><span style="font-size:10px;color:var(--rd3)">urgent</span></div><div class="mv" style="color:var(--rd)" id="m-oos">0</div><div class="ml">Out of stock</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 260px;gap:10px;margin-bottom:10px" id="dash-row2">
+        <div class="card"><div class="fx mb10"><span style="font-size:13px;font-weight:600;flex:1">Stock movement</span><div class="fx gap10" style="font-size:11px"><span class="fx gap6" style="color:var(--gn3)"><span style="width:9px;height:3px;border-radius:2px;background:var(--gn);display:inline-block"></span>In</span><span class="fx gap6" style="color:var(--rd3)"><span style="width:9px;height:3px;border-radius:2px;background:var(--rd);display:inline-block"></span>Out</span></div></div><canvas id="mv-chart" height="120"></canvas></div>
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;align-self:flex-start">Stock health</div>
+          <div style="position:relative;width:100px;height:100px;margin-bottom:8px"><canvas id="h-donut" width="100" height="100"></canvas><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:17px;font-weight:700" id="h-pct">0%</div><div style="font-size:10px;color:var(--tx3)">healthy</div></div></div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;justify-content:space-between;font-size:11px"><span class="fx gap6"><span style="width:7px;height:7px;border-radius:50%;background:var(--gn);display:inline-block"></span>In stock</span><strong id="hl-ok">0</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px"><span class="fx gap6"><span style="width:7px;height:7px;border-radius:50%;background:var(--am);display:inline-block"></span>Low stock</span><strong id="hl-low">0</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px"><span class="fx gap6"><span style="width:7px;height:7px;border-radius:50%;background:var(--rd);display:inline-block"></span>Out of stock</span><strong id="hl-out">0</strong></div>
           </div>
         </div>
       </div>
-      <!-- Filter by category -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px" id="dash-row3">
+        <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:10px">By category</div><div id="cat-bars"></div></div>
+        <div class="card">
+          <div class="fx mb8"><span style="font-size:13px;font-weight:600;flex:1">Top movers</span><div class="fx gap4"><button class="btn btn-sm" id="mv-in-btn" onclick="setMvTab('in')" style="background:var(--gn2);color:var(--gn3);border-color:transparent;font-size:11px"><svg width="11" height="11"><use href="#ic-in"/></svg> In</button><button class="btn btn-sm" id="mv-out-btn" onclick="setMvTab('out')" style="font-size:11px"><svg width="11" height="11"><use href="#ic-out"/></svg> Out</button></div></div>
+          <div id="top-movers"></div>
+        </div>
+      </div>
       <div class="card">
-        <div class="sec">Browse by category</div>
-        <div style="margin-bottom:8px">
-          <select id="si-cat-sel" onchange="siRenderList()" style="font-size:12px">
-            <option value="">All categories</option>
-          </select>
+        <div class="tabs">
+          <button class="tb-btn on" onclick="swTab(this,'tab-act')">Activity</button>
+          <button class="tb-btn" onclick="swTab(this,'tab-low')">Low stock <span id="low-cnt" style="background:var(--am2);color:var(--am3);border-radius:20px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:2px"></span></button>
+          <button class="tb-btn" onclick="swTab(this,'tab-prods')">Products</button>
         </div>
-        <div id="si-plist" class="plist"></div>
-      </div>
-    </div>
-
-    <!-- Right: product detail / register / confirm -->
-    <div id="si-right">
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:300px;color:var(--tx3);text-align:center;gap:10px">
-        <svg width="48" height="48" style="opacity:.3"><use href="#ic-barcode"/></svg>
-        <div style="font-size:14px">Scan or select a product</div>
-        <div style="font-size:12px">Product details appear here</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== STOCK OUT ===== -->
-<div class="page" id="page-stockout">
-  <div class="pt">Stock out</div>
-  <div class="ps">Scan or search product to remove stock</div>
-  <div class="g2">
-    <div>
-      <div class="card mb12">
-        <div class="sec">Find product</div>
-        <div style="position:relative;margin-bottom:8px">
-          <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.4;pointer-events:none"><svg width="17" height="17"><use href="#ic-barcode"/></svg></span>
-          <input type="text" id="so-inp" placeholder="Scan barcode or search product…" oninput="soRender()" style="padding-left:38px" autocomplete="off"/>
+        <div class="tb-pane on" id="tab-act"><div id="act-feed"></div></div>
+        <div class="tb-pane" id="tab-low">
+          <div class="fx mb10"><span style="font-size:12px;color:var(--tx2);flex:1" id="ls-count"></span><button class="btn btn-sm" onclick="nav('orders');setOType('low')" style="background:var(--am2);color:var(--am3);border-color:transparent;font-size:11px"><svg width="11" height="11"><use href="#ic-send"/></svg> Reorder</button></div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th class="hide-mob">Brand</th><th>Qty</th><th class="hide-mob">Short</th><th>Status</th><th>Updated</th></tr></thead><tbody id="ls-tbl"></tbody></table></div>
         </div>
-        <div style="font-size:11px;color:var(--tx3);margin-bottom:6px">Last 4 barcode digits ignored automatically</div>
-        <div class="plist" id="so-list"></div>
+        <div class="tb-pane" id="tab-prods">
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th class="hide-mob">Category</th><th>Qty</th><th>Status</th><th>Updated</th></tr></thead><tbody id="all-tbl"></tbody></table></div>
+        </div>
       </div>
     </div>
-    <div class="card" id="so-detail">
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:260px;color:var(--tx3);text-align:center;gap:10px">
-        <svg width="40" height="40" style="opacity:.3"><use href="#ic-pkg"/></svg>
-        <div style="font-size:13px">Select a product to remove stock</div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- ===== PRODUCTS ===== -->
-<div class="page" id="page-products">
-  <div class="fx gap12 mb12">
-    <div style="flex:1"><div class="pt">Products</div></div>
-    <button class="btn btn-pu btn-sm" onclick="openAddProd()"><svg width="14" height="14"><use href="#ic-plus"/></svg> Add product</button>
-  </div>
-  <div class="card">
-    <div class="fx gap8 mb12">
-      <input type="search" id="prod-srch" placeholder="Search products…" oninput="renderProds()" style="max-width:240px"/>
-      <select id="prod-cat-f" onchange="renderProds()" style="width:auto;min-width:130px;font-size:12px">
-        <option value="">All categories</option>
-      </select>
-    </div>
-    <table class="tbl"><thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Brand</th><th>Barcode prefix</th><th>Qty</th><th>Threshold</th><th>Status</th><th></th></tr></thead><tbody id="prod-tbl"></tbody></table>
-  </div>
-</div>
-
-<!-- ===== CATEGORIES ===== -->
-<div class="page" id="page-cats">
-  <div class="fx gap12 mb12">
-    <div style="flex:1"><div class="pt">Categories</div><div class="ps" style="margin-bottom:0">Manage categories and brands</div></div>
-    <button class="btn btn-pu btn-sm" onclick="openAddCat()"><svg width="14" height="14"><use href="#ic-plus"/></svg> Add category</button>
-  </div>
-  <div id="cat-tree"></div>
-</div>
-
-<!-- ===== ORDER REQUEST ===== -->
-<div class="page" id="page-orders">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-    <div class="pt">Order request</div>
-    <button class="btn btn-sm" onclick="toggleWA()" id="wa-cfg-btn"><svg width="14" height="14"><use href="#ic-settings"/></svg> WhatsApp setup <span id="wa-dot" style="width:7px;height:7px;border-radius:50%;background:var(--tx3);display:inline-block;margin-left:4px;vertical-align:middle"></span></button>
-  </div>
-  <div class="ps">Send restock or new order alert to owner via WhatsApp</div>
-  <div id="wa-panel" style="display:none;margin-bottom:14px">
-    <div class="card" style="border:1.5px solid var(--wa)">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-        <div style="width:34px;height:34px;border-radius:var(--r);background:#e7fce7;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" style="color:var(--wa)"><use href="#ic-wa"/></svg></div>
-        <div style="flex:1"><div style="font-size:13px;font-weight:600">WhatsApp configuration</div><div style="font-size:11px;color:var(--tx2)">Uses whatsapp-web.js relay server — no API fees</div></div>
-        <div id="wa-status-badge" class="badge bdg-gray">Not connected</div>
-      </div>
-      <div class="g2 mb10">
-        <div><label style="font-size:11px;color:var(--tx2);display:block;margin-bottom:3px">Relay server URL</label><input type="text" id="wa-server" placeholder="http://localhost:3456" value="http://localhost:3456"/></div>
-        <div><label style="font-size:11px;color:var(--tx2);display:block;margin-bottom:3px">Owner's WhatsApp number</label><input type="text" id="wa-phone" placeholder="959123456789"/></div>
-      </div>
-      <div class="fx gap8">
-        <button class="btn btn-sm" onclick="testWA()" id="wa-test-btn"><svg width="13" height="13"><use href="#ic-link"/></svg> Test connection</button>
-        <button class="btn btn-sm btn-pu" onclick="saveWA()">Save</button>
-        <div id="wa-conn-msg" style="font-size:12px;color:var(--tx3);margin-left:4px"></div>
+    <!-- STOCK IN -->
+    <div class="page" id="page-stockin">
+      <div class="pt">Stock in</div>
+      <div class="ps">Scan barcode or select product</div>
+      <div class="si-layout">
+        <div>
+          <div class="card mb12">
+            <div class="sec">Scan barcode</div>
+            <div class="scan-bar">
+              <div class="scan-icon-wrap">
+                <span class="scan-ico"><svg width="17" height="17"><use href="#ic-barcode"/></svg></span>
+                <input type="text" id="si-inp" placeholder="Scan or type product…" oninput="siLook()" onkeydown="if(event.key==='Enter')siConfirmFirst()" autocomplete="off" inputmode="text"/>
+              </div>
+              <button class="scan-btn" id="cam-btn" onclick="toggleCam()" aria-label="Camera"><svg width="18" height="18"><use href="#ic-cam"/></svg></button>
+              <button class="scan-btn" onclick="siClear()" aria-label="Clear"><svg width="16" height="16"><use href="#ic-x"/></svg></button>
+            </div>
+            <div id="cam-area" style="display:none">
+              <div class="cam-area"><video id="cam-vid" autoplay playsinline muted></video><div class="cam-overlay"><div class="cam-frame"></div></div></div>
+              <div style="font-size:11px;color:var(--tx3);text-align:center;margin-top:5px" id="cam-status">Starting…</div>
+            </div>
+            <div id="si-tip" style="display:none"></div>
+            <div id="si-fuzzy" style="display:none">
+              <div style="font-size:11px;color:var(--tx3);margin-bottom:5px" id="si-fuz-lbl"></div>
+              <div class="plist" id="si-fuz-list"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="sec">Browse by category</div>
+            <select id="si-cat-sel" onchange="siRenderList()" style="margin-bottom:8px;font-size:12px"></select>
+            <div class="plist" id="si-plist" style="max-height:340px;overflow-y:auto"></div>
+          </div>
+        </div>
+        <div id="si-right">
+          <div class="si-right-empty">
+            <svg width="52" height="52" style="opacity:.2"><use href="#ic-barcode"/></svg>
+            <div style="font-size:14px;font-weight:500">Ready to scan</div>
+            <div style="font-size:12px;color:var(--tx3)">Scan barcode or select product from the list</div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="g2 mb14">
-    <div class="card" id="ot-low" onclick="setOType('low')" style="cursor:pointer;border:1.5px solid var(--bdr);transition:border-color .12s">
-      <div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:var(--r);background:var(--am2);display:flex;align-items:center;justify-content:center"><svg width="17" height="17" style="color:var(--am3)"><use href="#ic-warn"/></svg></div><div><div style="font-size:14px;font-weight:600">Restock low stock</div><div style="font-size:12px;color:var(--tx2)">From low stock list</div></div></div>
-    </div>
-    <div class="card" id="ot-new" onclick="setOType('new')" style="cursor:pointer;border:1.5px solid var(--bdr);transition:border-color .12s">
-      <div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:var(--r);background:var(--bl2);display:flex;align-items:center;justify-content:center"><svg width="17" height="17" style="color:var(--bl3)"><use href="#ic-plus"/></svg></div><div><div style="font-size:14px;font-weight:600">New order</div><div style="font-size:12px;color:var(--tx2)">New products / category</div></div></div>
-    </div>
-  </div>
-  <div id="of-low" style="display:none">
-    <div class="card mb12"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="sec" style="margin-bottom:0">Select items to reorder</div><div style="font-size:11px;color:var(--tx3)" id="rs-cnt">0 selected</div></div>
-    <table class="tbl"><thead><tr><th style="width:30px"></th><th>Product</th><th>Brand</th><th>Qty</th><th>Status</th><th>Order qty</th></tr></thead><tbody id="rs-tbl"></tbody></table></div>
-    <div class="card mb12"><div class="sec">Note to owner</div><textarea id="rs-note" rows="2" placeholder="Add context…" style="resize:none"></textarea></div>
-    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn btn-wa" id="send-low-btn" onclick="sendOrder('low')"><svg width="14" height="14"><use href="#ic-wa"/></svg> Send via WhatsApp</button></div>
-  </div>
-  <div id="of-new" style="display:none">
-    <div class="card mb12"><div class="sec">New items to order</div>
-    <table class="tbl"><thead><tr><th>Product name</th><th>Category</th><th>Brand</th><th>Qty</th><th></th></tr></thead><tbody id="no-tbl"></tbody></table>
-    <button class="btn btn-sm mt8" onclick="addNORow()"><svg width="13" height="13"><use href="#ic-plus"/></svg> Add item</button></div>
-    <div class="card mb12"><div class="sec">Note to owner</div><textarea id="no-note" rows="2" placeholder="Supplier info, urgency…" style="resize:none"></textarea></div>
-    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn btn-wa" id="send-new-btn" onclick="sendOrder('new')"><svg width="14" height="14"><use href="#ic-wa"/></svg> Send via WhatsApp</button></div>
-  </div>
-  <div id="send-result" style="display:none;margin-top:10px"></div>
-  <div class="card mt20"><div class="sec">Request history</div>
-    <table class="tbl"><thead><tr><th>Request</th><th>Type</th><th>Items</th><th>Sent</th><th>WhatsApp</th><th>Status</th></tr></thead><tbody id="oh-tbl"></tbody></table>
-  </div>
-  <div id="wa-preview" style="display:none;margin-top:16px">
-    <div class="sec mb8">Message sent to owner</div>
-    <div class="wa-bubble"><div class="wa-msg" id="wa-msg-body"></div><div class="wa-time" id="wa-msg-time"></div></div>
-  </div>
-</div>
 
-</div><!-- /main -->
+    <!-- STOCK OUT -->
+    <div class="page" id="page-stockout">
+      <div class="pt">Stock out</div>
+      <div class="ps">Find product to remove stock</div>
+      <div class="si-layout">
+        <div>
+          <div class="card mb12">
+            <div class="sec">Find product</div>
+            <div style="position:relative;margin-bottom:6px">
+              <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.4;pointer-events:none"><svg width="17" height="17"><use href="#ic-barcode"/></svg></span>
+              <input type="text" id="so-inp" placeholder="Scan barcode or search…" oninput="soRender()" style="padding-left:38px" autocomplete="off"/>
+            </div>
+            <div style="font-size:11px;color:var(--tx3);margin-bottom:8px">Last 4 barcode digits ignored automatically</div>
+            <div class="plist" id="so-list" style="max-height:360px;overflow-y:auto"></div>
+          </div>
+        </div>
+        <div class="card" id="so-detail">
+          <div class="si-right-empty">
+            <svg width="40" height="40" style="opacity:.2"><use href="#ic-pkg"/></svg>
+            <div style="font-size:13px">Select a product to remove stock</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="page" id="page-products">
+      <div class="fx gap8 mb12">
+        <div style="flex:1"><div class="pt">Products</div></div>
+        <button class="btn btn-pu btn-sm" onclick="openAddProd()"><svg width="13" height="13"><use href="#ic-plus"/></svg> Add</button>
+      </div>
+      <div class="card">
+        <div class="fx gap8 mb12" style="flex-wrap:wrap">
+          <input type="search" id="prod-srch" placeholder="Search…" oninput="renderProds()" style="flex:1;min-width:140px"/>
+          <select id="prod-cat-f" onchange="renderProds()" style="width:auto;min-width:130px;font-size:12px"></select>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl"><thead><tr><th>Product</th><th class="hide-mob">Brand</th><th>Barcode</th><th>Qty</th><th class="hide-mob">Threshold</th><th>Status</th><th>Updated</th><th></th></tr></thead><tbody id="prod-tbl"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="page" id="page-cats">
+      <div class="fx gap8 mb12">
+        <div style="flex:1"><div class="pt">Categories</div></div>
+        <button class="btn btn-pu btn-sm" onclick="openAddCat()"><svg width="13" height="13"><use href="#ic-plus"/></svg> Add</button>
+      </div>
+      <div id="cat-tree"></div>
+    </div>
+
+    <!-- ORDER REQUEST -->
+    <div class="page" id="page-orders">
+      <div class="fx gap8 mb4">
+        <div class="pt" style="flex:1">Order request</div>
+        <button class="btn btn-sm" onclick="toggleWA()"><svg width="13" height="13"><use href="#ic-settings"/></svg> WA setup <span id="wa-dot" style="width:7px;height:7px;border-radius:50%;background:var(--tx3);display:inline-block;margin-left:3px;vertical-align:middle"></span></button>
+      </div>
+      <div class="ps">Send restock or new order alert to owner via WhatsApp</div>
+      <div id="wa-panel" style="display:none;margin-bottom:14px">
+        <div class="card" style="border:1.5px solid var(--wa)">
+          <div class="fx gap10 mb12">
+            <div style="width:32px;height:32px;border-radius:var(--r);background:#e7fce7;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" style="color:var(--wa)"><use href="#ic-wa"/></svg></div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">WhatsApp setup</div><div style="font-size:11px;color:var(--tx2)">Uses relay server — no API fees</div></div>
+            <div id="wa-status-badge" class="badge bdg-gray">Not connected</div>
+          </div>
+          <div class="g2 mb10">
+            <div><label style="font-size:11px;color:var(--tx2);display:block;margin-bottom:3px">Server URL</label><input type="text" id="wa-server" placeholder="http://localhost:3456" value="http://localhost:3456"/></div>
+            <div><label style="font-size:11px;color:var(--tx2);display:block;margin-bottom:3px">Owner's number</label><input type="text" id="wa-phone" placeholder="959123456789" inputmode="numeric"/></div>
+          </div>
+          <div class="fx gap8">
+            <button class="btn btn-sm" onclick="testWA()" id="wa-test-btn"><svg width="12" height="12"><use href="#ic-link"/></svg> Test</button>
+            <button class="btn btn-sm btn-pu" onclick="saveWA()">Save</button>
+            <div id="wa-conn-msg" style="font-size:12px;color:var(--tx3)"></div>
+          </div>
+        </div>
+      </div>
+      <div class="g2 mb14">
+        <div class="card" id="ot-low" onclick="setOType('low')" style="cursor:pointer;border:1.5px solid var(--bdr)">
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:var(--r);background:var(--am2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" style="color:var(--am3)"><use href="#ic-warn"/></svg></div><div><div style="font-size:13px;font-weight:600">Restock</div><div style="font-size:11px;color:var(--tx2)">From low stock list</div></div></div>
+        </div>
+        <div class="card" id="ot-new" onclick="setOType('new')" style="cursor:pointer;border:1.5px solid var(--bdr)">
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:var(--r);background:var(--bl2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" style="color:var(--bl3)"><use href="#ic-plus"/></svg></div><div><div style="font-size:13px;font-weight:600">New order</div><div style="font-size:11px;color:var(--tx2)">New products</div></div></div>
+        </div>
+      </div>
+      <div id="of-low" style="display:none">
+        <div class="card mb12">
+          <div class="fx mb8"><div class="sec" style="margin-bottom:0;flex:1">Select items to reorder</div><div style="font-size:11px;color:var(--tx3)" id="rs-cnt">0 selected</div></div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th style="width:30px"></th><th>Product</th><th class="hide-mob">Brand</th><th>Qty</th><th>Status</th><th>Order qty</th></tr></thead><tbody id="rs-tbl"></tbody></table></div>
+        </div>
+        <div class="card mb12"><div class="sec">Note to owner</div><textarea id="rs-note" rows="2" placeholder="Add context…" style="resize:none"></textarea></div>
+        <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn btn-wa" id="send-low-btn" onclick="sendOrder('low')"><svg width="13" height="13"><use href="#ic-wa"/></svg> Send via WhatsApp</button></div>
+      </div>
+      <div id="of-new" style="display:none">
+        <div class="card mb12">
+          <div class="sec">New items to order</div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th>Category</th><th class="hide-mob">Brand</th><th>Qty</th><th></th></tr></thead><tbody id="no-tbl"></tbody></table></div>
+          <button class="btn btn-sm mt8" onclick="addNORow()"><svg width="12" height="12"><use href="#ic-plus"/></svg> Add item</button>
+        </div>
+        <div class="card mb12"><div class="sec">Note to owner</div><textarea id="no-note" rows="2" placeholder="Supplier info, urgency…" style="resize:none"></textarea></div>
+        <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn btn-wa" id="send-new-btn" onclick="sendOrder('new')"><svg width="13" height="13"><use href="#ic-wa"/></svg> Send via WhatsApp</button></div>
+      </div>
+      <div id="send-result" style="display:none;margin-top:10px"></div>
+      <div class="card mt20"><div class="sec">Request history</div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Request</th><th class="hide-mob">Type</th><th class="hide-mob">Items</th><th>Sent</th><th>WA</th><th>Status</th></tr></thead><tbody id="oh-tbl"></tbody></table></div>
+      </div>
+      <div id="wa-preview" style="display:none;margin-top:14px">
+        <div class="sec mb8">Message preview</div>
+        <div class="wa-bubble"><div class="wa-msg" id="wa-msg-body"></div><div class="wa-time" id="wa-msg-time"></div></div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
 </div><!-- /layout -->
 
-<!-- ===== MODALS ===== -->
+<!-- BOTTOM NAV (mobile) -->
+<div id="bottom-nav">
+  <div class="bn-inner">
+    <button class="bn-item on" data-bnpage="dash" onclick="nav('dash');setBnActive(this)"><svg width="20" height="20"><use href="#ic-dash"/></svg>Dashboard</button>
+    <button class="bn-item" data-bnpage="stockin" onclick="nav('stockin');setBnActive(this)"><svg width="20" height="20"><use href="#ic-in"/></svg>Stock in</button>
+    <button class="bn-item" data-bnpage="stockout" onclick="nav('stockout');setBnActive(this)"><svg width="20" height="20"><use href="#ic-out"/></svg>Stock out</button>
+    <button class="bn-item" data-bnpage="products" onclick="nav('products');setBnActive(this)"><svg width="20" height="20"><use href="#ic-pkg"/></svg>Products</button>
+    <button class="bn-item" onclick="toggleMoreMenu(this)"><svg width="20" height="20"><use href="#ic-more"/></svg>More</button>
+  </div>
+  <div class="bn-more-menu" id="bn-more">
+    <button class="bn-menu-item" data-bnpage="cats" onclick="nav('cats');closeBnMore()"><svg width="15" height="15"><use href="#ic-folder"/></svg> Categories</button>
+    <button class="bn-menu-item" data-bnpage="orders" onclick="nav('orders');closeBnMore()"><svg width="15" height="15"><use href="#ic-send"/></svg> Order request</button>
+    <button class="bn-menu-item" onclick="switchRole();closeBnMore()"><svg width="15" height="15"><use href="#ic-users"/></svg> Switch role</button>
+  </div>
+</div>
+
+<!-- MODALS -->
+<!-- Stock-in confirm -->
+<div class="modal-bg h" id="m-si">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="fx gap8 mb14"><div style="font-size:16px;font-weight:700;flex:1">Confirm stock in</div><button class="btn btn-sm" onclick="closeModal('m-si')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
+    <div class="pd-card mb14">
+      <div class="pd-header">
+        <div class="pd-photo"><svg width="28" height="28" style="color:var(--pu3);opacity:.5"><use href="#ic-pkg"/></svg></div>
+        <div style="min-width:0"><div style="font-size:14px;font-weight:700;color:var(--pu3);line-height:1.3" id="si-m-name"></div><div style="font-size:11px;color:var(--pu);margin-top:3px" id="si-m-meta"></div><div style="font-size:11px;color:var(--pu);margin-top:2px;font-family:monospace" id="si-m-bc"></div></div>
+      </div>
+      <div class="pd-body">
+        <div class="pd-row"><span class="pd-lbl">Current stock</span><strong class="pd-val" id="si-m-qty"></strong></div>
+        <div class="pd-row"><span class="pd-lbl">Status</span><span id="si-m-stat"></span></div>
+        <div class="pd-row"><span class="pd-lbl">Last updated</span><span id="si-m-upd" class="lu-chip"></span></div>
+      </div>
+    </div>
+    <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:8px;font-weight:500">Quantity to add <span style="color:var(--rd)">*</span></label>
+    <div class="qty-row">
+      <button class="qty-ctrl" onclick="adjQty(-1)">−</button>
+      <input type="number" id="si-qty" class="qty-num" placeholder="0" min="1" inputmode="numeric"/>
+      <button class="qty-ctrl" onclick="adjQty(1)">+</button>
+    </div>
+    <div class="g2"><button class="btn w100" style="justify-content:center" onclick="closeModal('m-si')">Cancel</button><button class="btn btn-gn w100" style="justify-content:center" onclick="confirmSI()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Add to stock</button></div>
+  </div>
+</div>
 <!-- Add product -->
 <div class="modal-bg h" id="m-addprod">
   <div class="modal">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:15px;font-weight:700">Add product</div><button class="btn btn-sm" onclick="closeModal('m-addprod')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
+    <div class="modal-handle"></div>
+    <div class="fx gap8 mb14"><div style="font-size:16px;font-weight:700;flex:1">Add product</div><button class="btn btn-sm" onclick="closeModal('m-addprod')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Product name</label><input type="text" id="np-name" placeholder="e.g. READY Beef Curry 425g"/></div>
       <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">SKU</label><input type="text" id="np-sku" placeholder="Auto-generated if empty"/></div>
@@ -477,50 +585,29 @@ body.role-operator .owner-only,body.role-operator .admin-only{display:none}
         <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Brand</label><select id="np-sub"><option value="">Select…</option></select></div>
       </div>
       <div class="g2">
-        <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Initial qty</label><input type="number" id="np-qty" placeholder="0" min="0"/></div>
-        <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Low stock threshold</label><input type="number" id="np-thr" placeholder="20" min="0"/></div>
+        <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Initial qty</label><input type="number" id="np-qty" placeholder="0" min="0" inputmode="numeric"/></div>
+        <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Low stock threshold</label><input type="number" id="np-thr" placeholder="20" min="0" inputmode="numeric"/></div>
       </div>
-      <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Barcode prefix (optional)</label><input type="text" id="np-bc" placeholder="First 10 digits of barcode"/></div>
+      <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Barcode prefix (optional)</label><input type="text" id="np-bc" placeholder="First 10 digits" inputmode="numeric"/></div>
     </div>
-    <div class="g2 mt16"><button class="btn" onclick="closeModal('m-addprod')">Cancel</button><button class="btn btn-pu" onclick="saveProd()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Save product</button></div>
+    <div class="g2 mt16"><button class="btn w100" style="justify-content:center" onclick="closeModal('m-addprod')">Cancel</button><button class="btn btn-pu w100" style="justify-content:center" onclick="saveProd()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Save</button></div>
   </div>
 </div>
 <!-- Add category -->
 <div class="modal-bg h" id="m-addcat">
   <div class="modal">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:15px;font-weight:700">Add category</div><button class="btn btn-sm" onclick="closeModal('m-addcat')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
-    <div style="font-size:12px;color:var(--tx2);margin-bottom:3px">Category name</div><input type="text" id="nc-name" placeholder="e.g. Organic" style="margin-bottom:10px"/>
-    <div class="g2"><button class="btn" onclick="closeModal('m-addcat')">Cancel</button><button class="btn btn-pu" onclick="saveNewCat()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Add</button></div>
-  </div>
-</div>
-<!-- Stock-in confirm -->
-<div class="modal-bg h" id="m-si">
-  <div class="modal" style="max-width:340px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:15px;font-weight:700">Confirm stock in</div><button class="btn btn-sm" onclick="closeModal('m-si')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
-    <div style="background:linear-gradient(135deg,var(--pu2) 0%,#dddaff 100%);border-radius:var(--rl);padding:16px;margin-bottom:14px;display:flex;gap:14px;align-items:center">
-      <div style="width:60px;height:60px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--bdr)"><svg width="30" height="30" style="color:var(--pu3);opacity:.6"><use href="#ic-pkg"/></svg></div>
-      <div><div style="font-size:14px;font-weight:700;color:var(--pu3)" id="si-m-name"></div><div style="font-size:11px;color:var(--pu);margin-top:3px" id="si-m-meta"></div><div style="font-size:11px;color:var(--pu);margin-top:2px" id="si-m-bc"></div></div>
-    </div>
-    <div style="background:var(--sur2);border-radius:var(--r);padding:10px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--bdr)"><span style="color:var(--tx2)">Current stock</span><strong id="si-m-qty"></strong></div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0"><span style="color:var(--tx2)">Status</span><span id="si-m-stat"></span></div>
-    </div>
-    <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:5px">Quantity to add <span style="color:var(--rd)">*</span></label>
-    <div class="fx gap8 mb14">
-      <button class="qty-ctrl" onclick="adjQty(-1)">−</button>
-      <input type="number" id="si-qty" placeholder="0" min="1" style="text-align:center;font-size:20px;font-weight:700;border:2px solid var(--pu)"/>
-      <button class="qty-ctrl" onclick="adjQty(1)">+</button>
-    </div>
-    <div class="g2"><button class="btn" onclick="closeModal('m-si')">Cancel</button><button class="btn btn-gn" onclick="confirmSI()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Add to stock</button></div>
+    <div class="modal-handle"></div>
+    <div class="fx gap8 mb14"><div style="font-size:16px;font-weight:700;flex:1">Add category</div><button class="btn btn-sm" onclick="closeModal('m-addcat')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
+    <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:5px">Category name</label>
+    <input type="text" id="nc-name" placeholder="e.g. Organic" style="margin-bottom:16px"/>
+    <div class="g2"><button class="btn w100" style="justify-content:center" onclick="closeModal('m-addcat')">Cancel</button><button class="btn btn-pu w100" style="justify-content:center" onclick="saveNewCat()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Add</button></div>
   </div>
 </div>
 
-<!-- Toast -->
 <div id="toast"></div>
-
 <script>
 let categories = [{"id": "canned_myanmar", "name": "Myanmar Canned", "icon": "can", "subs": [{"id": "ready", "name": "READY"}, {"id": "best", "name": "BEST"}, {"id": "hmg", "name": "HMG"}, {"id": "eain_chat", "name": "EAIN CHAT"}, {"id": "tomo", "name": "TOMO"}, {"id": "win", "name": "WIN"}, {"id": "ma_toke_ma", "name": "MA TOKE MA"}]}, {"id": "dry_fish", "name": "Dry Fish", "icon": "fish", "subs": [{"id": "mtg", "name": "MTG"}]}, {"id": "pickled_tea", "name": "Pickled Tea", "icon": "leaf", "subs": [{"id": "phoe_htaung", "name": "PHOE HTAUNG"}, {"id": "pin_pyo_ywet", "name": "PIN PYO YWET"}]}, {"id": "gold_snacks", "name": "Snacks", "icon": "star", "subs": [{"id": "gold", "name": "GOLD"}]}, {"id": "hmwe_powder", "name": "HMWE Powder", "icon": "grain", "subs": [{"id": "hmwe", "name": "HMWE"}]}, {"id": "tea_coffee", "name": "Tea & Coffee", "icon": "coffee", "subs": [{"id": "happy", "name": "HAPPY"}, {"id": "premier", "name": "PREMIER"}]}, {"id": "a1_spice", "name": "Spices", "icon": "flame", "subs": [{"id": "a1", "name": "A1"}, {"id": "thar_lon_thu", "name": "THAR LON THU"}]}, {"id": "rice", "name": "Rice", "icon": "grain", "subs": [{"id": "shwebo", "name": "SHWEBO"}, {"id": "yadanar_toe", "name": "YADANAR TOE"}, {"id": "thai", "name": "THAI"}, {"id": "kandil", "name": "KANDIL"}]}];
-let products = [{"id": 2, "name": "FRIED MYEIK SHRIMP PASTE 160g", "sku": "DRY_-002", "cat": "dry_fish", "sub": "mtg", "qty": 2, "threshold": 10, "vendor": "MTG"}, {"id": 6, "name": "FRIED FISH SAUCE With TAMARIND 160g", "sku": "DRY_-006", "cat": "dry_fish", "sub": "mtg", "qty": 6, "threshold": 10, "vendor": "MTG"}, {"id": 7, "name": "DRIED HEADLESS ANCHOVY 160g", "sku": "DRY_-007", "cat": "dry_fish", "sub": "mtg", "qty": 147, "threshold": 20, "vendor": "MTG"}, {"id": 8, "name": "DRIED LOTIA CHOPPED 160g", "sku": "DRY_-008", "cat": "dry_fish", "sub": "mtg", "qty": 4, "threshold": 10, "vendor": "MTG"}, {"id": 10, "name": "DRIED SHOL (Roasted & Crispy) 160g", "sku": "DRY_-010", "cat": "dry_fish", "sub": "mtg", "qty": 35, "threshold": 15, "vendor": "MTG"}, {"id": 12, "name": "DRIED SHRIMP POWDER 160g", "sku": "DRY_-012", "cat": "dry_fish", "sub": "mtg", "qty": 31, "threshold": 15, "vendor": "MTG"}, {"id": 13, "name": "SPICY FRIED DRIED ANCHOVY 160g", "sku": "DRY_-013", "cat": "dry_fish", "sub": "mtg", "qty": 7, "threshold": 10, "vendor": "MTG"}, {"id": 17, "name": "SPICY FRIED DRIED LOTIA 160g", "sku": "DRY_-017", "cat": "dry_fish", "sub": "mtg", "qty": 21, "threshold": 10, "vendor": "MTG"}, {"id": 18, "name": "DRIED LOTIA (Roasted & Crispy) 160g", "sku": "DRY_-018", "cat": "dry_fish", "sub": "mtg", "qty": 36, "threshold": 15, "vendor": "MTG"}, {"id": 32, "name": "READY CHICKPEA CURRY 155g", "sku": "READ-032", "cat": "canned_myanmar", "sub": "ready", "qty": 30, "threshold": 20, "vendor": "READY"}, {"id": 33, "name": "READY SARDINES IN TOMATO SAUCE 190g", "sku": "READ-033", "cat": "canned_myanmar", "sub": "ready", "qty": 31, "threshold": 20, "vendor": "READY"}, {"id": 34, "name": "READY BEEF CURRY 425g", "sku": "READ-034", "cat": "canned_myanmar", "sub": "ready", "qty": 41, "threshold": 20, "vendor": "READY"}, {"id": 35, "name": "READY BEEF CURRY 150g", "sku": "READ-035", "cat": "canned_myanmar", "sub": "ready", "qty": 83, "threshold": 20, "vendor": "READY"}, {"id": 36, "name": "READY GOAT MEAT CURRY 150g", "sku": "READ-036", "cat": "canned_myanmar", "sub": "ready", "qty": 84, "threshold": 20, "vendor": "READY"}, {"id": 37, "name": "READY Stir-Fried Fish Curry 150g", "sku": "READ-037", "cat": "canned_myanmar", "sub": "ready", "qty": 9, "threshold": 20, "vendor": "READY"}, {"id": 38, "name": "READY Nga Gyin with Fermented Soybeans 145g", "sku": "READ-038", "cat": "canned_myanmar", "sub": "ready", "qty": 30, "threshold": 20, "vendor": "READY"}, {"id": 40, "name": "READY Sweet & Sour Fried Fish (ROHU) 155g", "sku": "READ-040", "cat": "canned_myanmar", "sub": "ready", "qty": 10, "threshold": 20, "vendor": "READY"}, {"id": 41, "name": "READY Fish Sauce Curry 155g", "sku": "READ-041", "cat": "canned_myanmar", "sub": "ready", "qty": 3, "threshold": 20, "vendor": "READY"}, {"id": 42, "name": "READY Fish Cakes In Curry 155g", "sku": "READ-042", "cat": "canned_myanmar", "sub": "ready", "qty": 89, "threshold": 20, "vendor": "READY"}, {"id": 43, "name": "READY Hot & Spicy Fried Fish (ROHU) 130g", "sku": "READ-043", "cat": "canned_myanmar", "sub": "ready", "qty": 95, "threshold": 20, "vendor": "READY"}, {"id": 44, "name": "READY STEAMED YELLOWPEA 340g", "sku": "READ-044", "cat": "canned_myanmar", "sub": "ready", "qty": 283, "threshold": 30, "vendor": "READY"}, {"id": 139, "name": "READY CHICKEN CURRY WITH CHICKPEA 425g", "sku": "READ-139", "cat": "canned_myanmar", "sub": "ready", "qty": 53, "threshold": 20, "vendor": "READY"}, {"id": 140, "name": "READY CHICKEN CURRY WITH BAMBOO SHOOT 425g", "sku": "READ-140", "cat": "canned_myanmar", "sub": "ready", "qty": 39, "threshold": 20, "vendor": "READY"}, {"id": 141, "name": "READY CHICKPEA CURRY 400g", "sku": "READ-141", "cat": "canned_myanmar", "sub": "ready", "qty": 105, "threshold": 20, "vendor": "READY"}, {"id": 142, "name": "READY GOAT MEAT CURRY 425g", "sku": "READ-142", "cat": "canned_myanmar", "sub": "ready", "qty": 14, "threshold": 20, "vendor": "READY"}, {"id": 143, "name": "READY Hot & Spicy Fried Fish 280g", "sku": "READ-143", "cat": "canned_myanmar", "sub": "ready", "qty": 17, "threshold": 20, "vendor": "READY"}, {"id": 144, "name": "READY STEAMED HILSHA 380g", "sku": "READ-144", "cat": "canned_myanmar", "sub": "ready", "qty": 104, "threshold": 20, "vendor": "READY"}, {"id": 145, "name": "READY STEAMED NGAGYIN 380g", "sku": "READ-145", "cat": "canned_myanmar", "sub": "ready", "qty": 52, "threshold": 20, "vendor": "READY"}, {"id": 146, "name": "READY Fish Cakes In Curry 400g", "sku": "READ-146", "cat": "canned_myanmar", "sub": "ready", "qty": 34, "threshold": 20, "vendor": "READY"}, {"id": 147, "name": "READY MACKEREL IN TOMATO SAUCE 425g", "sku": "READ-147", "cat": "canned_myanmar", "sub": "ready", "qty": 35, "threshold": 20, "vendor": "READY"}, {"id": 148, "name": "READY FRIED ACACIA CONCINNA LEAVES 400g", "sku": "READ-148", "cat": "canned_myanmar", "sub": "ready", "qty": 3, "threshold": 20, "vendor": "READY"}, {"id": 149, "name": "READY FRIED ROSELLE LEAF 400g", "sku": "READ-149", "cat": "canned_myanmar", "sub": "ready", "qty": 173, "threshold": 30, "vendor": "READY"}, {"id": 150, "name": "READY Fish Sauce Curry 400g", "sku": "READ-150", "cat": "canned_myanmar", "sub": "ready", "qty": 29, "threshold": 20, "vendor": "READY"}, {"id": 47, "name": "BEST BOILED JENGKOL BEAN 490g", "sku": "BEST-047", "cat": "canned_myanmar", "sub": "best", "qty": 162, "threshold": 20, "vendor": "BEST"}, {"id": 51, "name": "BEST ROASTED CATFISH CHILLI PASTE 460g", "sku": "BEST-051", "cat": "canned_myanmar", "sub": "best", "qty": 7, "threshold": 15, "vendor": "BEST"}, {"id": 52, "name": "BEST CATFISH SOUR BAMBOO SHOT CURRY 375g", "sku": "BEST-052", "cat": "canned_myanmar", "sub": "best", "qty": 50, "threshold": 15, "vendor": "BEST"}, {"id": 53, "name": "BEST COTTON MILK PLANT LEAVES 360g", "sku": "BEST-053", "cat": "canned_myanmar", "sub": "best", "qty": 4, "threshold": 10, "vendor": "BEST"}, {"id": 58, "name": "BEST TAMARIND LEAVES 125g", "sku": "BEST-058", "cat": "canned_myanmar", "sub": "best", "qty": 11, "threshold": 10, "vendor": "BEST"}, {"id": 59, "name": "BEST GOA BEAN ROOT 265g", "sku": "BEST-059", "cat": "canned_myanmar", "sub": "best", "qty": 1, "threshold": 10, "vendor": "BEST"}, {"id": 60, "name": "BEST GINGER WORT FLOWER 355g", "sku": "BEST-060", "cat": "canned_myanmar", "sub": "best", "qty": 29, "threshold": 15, "vendor": "BEST"}, {"id": 62, "name": "BEST FRIED PEA AND BAMBOO SHOOT 365g", "sku": "BEST-062", "cat": "canned_myanmar", "sub": "best", "qty": 19, "threshold": 15, "vendor": "BEST"}, {"id": 63, "name": "BEST BAKED FISH STICK 135g", "sku": "BEST-063", "cat": "canned_myanmar", "sub": "best", "qty": 10, "threshold": 10, "vendor": "BEST"}, {"id": 64, "name": "BEST FRIED JENGKOL BEAN 245g", "sku": "BEST-064", "cat": "canned_myanmar", "sub": "best", "qty": 193, "threshold": 20, "vendor": "BEST"}, {"id": 66, "name": "BEST MALAPHU 405g", "sku": "BEST-066", "cat": "canned_myanmar", "sub": "best", "qty": 36, "threshold": 15, "vendor": "BEST"}, {"id": 68, "name": "BEST ROSELLE LEAVES SOUP PASTE 430g", "sku": "BEST-068", "cat": "canned_myanmar", "sub": "best", "qty": 13, "threshold": 15, "vendor": "BEST"}, {"id": 138, "name": "BEST FISH PASTE CURRY 405g", "sku": "BEST-138", "cat": "canned_myanmar", "sub": "best", "qty": 175, "threshold": 20, "vendor": "BEST"}, {"id": 164, "name": "BEST DUCK EGGS OILY CURRY 375g", "sku": "BEST-164", "cat": "canned_myanmar", "sub": "best", "qty": 72, "threshold": 20, "vendor": "BEST"}, {"id": 165, "name": "BEST FERMENTED TOFU 405g", "sku": "BEST-165", "cat": "canned_myanmar", "sub": "best", "qty": 43, "threshold": 20, "vendor": "BEST"}, {"id": 166, "name": "BEST COCONUT MILK NOODLE SOUP 405g", "sku": "BEST-166", "cat": "canned_myanmar", "sub": "best", "qty": 26, "threshold": 20, "vendor": "BEST"}, {"id": 167, "name": "BEST VEGETARIAN MIXED FRUIT BEAN CURRY 360g", "sku": "BEST-167", "cat": "canned_myanmar", "sub": "best", "qty": 32, "threshold": 20, "vendor": "BEST"}, {"id": 168, "name": "BEST MOHINGAR PASTE 385g", "sku": "BEST-168", "cat": "canned_myanmar", "sub": "best", "qty": 4, "threshold": 15, "vendor": "BEST"}, {"id": 169, "name": "BEST TAMARIND LEAVES 405g", "sku": "BEST-169", "cat": "canned_myanmar", "sub": "best", "qty": 171, "threshold": 20, "vendor": "BEST"}, {"id": 171, "name": "EAIN CHAT ASSORTED VEGETABLE & BEAN CURRY 430g", "sku": "EAIN-171", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 75, "threshold": 20, "vendor": "EAIN CHAT"}, {"id": 173, "name": "EAIN CHAT FISH PASTE SAUCE 400g", "sku": "EAIN-173", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 45, "threshold": 20, "vendor": "EAIN CHAT"}, {"id": 174, "name": "EAIN CHAT FISH PASTE SAUCE (WITHOUT SHRIMP) 400g", "sku": "EAIN-174", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 72, "threshold": 20, "vendor": "EAIN CHAT"}, {"id": 170, "name": "EAIN CHAT COCONUT NOODLE SOUP 400g", "sku": "EAIN-170", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 22, "threshold": 20, "vendor": "EAIN CHAT"}, {"id": 70, "name": "HMG Green Chillies Fish Paste 350g", "sku": "HMG_-070", "cat": "canned_myanmar", "sub": "hmg", "qty": 316, "threshold": 30, "vendor": "HMG"}, {"id": 71, "name": "HMG Mawlamyaing Mohinga Paste 360g", "sku": "HMG_-071", "cat": "canned_myanmar", "sub": "hmg", "qty": 217, "threshold": 30, "vendor": "HMG"}, {"id": 72, "name": "HMG Stir Fried Roselle Leaves with Fish 400g", "sku": "HMG_-072", "cat": "canned_myanmar", "sub": "hmg", "qty": 270, "threshold": 30, "vendor": "HMG"}, {"id": 79, "name": "PHOE HTAUNG BRAND SHWE HTOO 320g", "sku": "PHOE-079", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 123, "threshold": 20, "vendor": "PHOE HTAUNG"}, {"id": 80, "name": "PHOE HTAUNG LAY YAUNG CHEL SPECIAL 320g", "sku": "PHOE-080", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 250, "threshold": 30, "vendor": "PHOE HTAUNG"}, {"id": 81, "name": "PHOE HTAUNG THAEDAW PAE KYI PU 320g", "sku": "PHOE-081", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 96, "threshold": 20, "vendor": "PHOE HTAUNG"}, {"id": 82, "name": "PHOE HTAUNG CHINESE FRIED BEANS 320g", "sku": "PHOE-082", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 49, "threshold": 20, "vendor": "PHOE HTAUNG"}, {"id": 83, "name": "PHOE HTAUNG PICKLE TEA SHU-SHAE 360g", "sku": "PHOE-083", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 348, "threshold": 30, "vendor": "PHOE HTAUNG"}, {"id": 84, "name": "PHOE HTAUNG PICKLED TEA (SWEET) 360g", "sku": "PHOE-084", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 105, "threshold": 20, "vendor": "PHOE HTAUNG"}, {"id": 85, "name": "PHOE HTAUNG PICKLED TEA (SPICY) 360g", "sku": "PHOE-085", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 128, "threshold": 20, "vendor": "PHOE HTAUNG"}, {"id": 86, "name": "PHOE HTAUNG PICKLED TEA (KYET CHAY NI) 360g", "sku": "PHOE-086", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 55, "threshold": 20, "vendor": "PHOE HTAUNG"}, {"id": 87, "name": "PT ZAYAM BOILED TEA LEAVES 400g", "sku": "PHOE-087", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 75, "threshold": 20, "vendor": "PHOE HTAUNG"}, {"id": 88, "name": "PT PICKLED TEA LEAVES (SWEET) 160g", "sku": "PHOE-088", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 2, "threshold": 10, "vendor": "PHOE HTAUNG"}, {"id": 89, "name": "PT PICKLED TEA LEAVES (SPICY) 160g", "sku": "PHOE-089", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 4, "threshold": 10, "vendor": "PHOE HTAUNG"}, {"id": 90, "name": "PT PICKLED TEA LEAVES (SHU-SHAE) 160g", "sku": "PHOE-090", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 17, "threshold": 10, "vendor": "PHOE HTAUNG"}, {"id": 183, "name": "PIN PYO YWET PICKLED TEA LEAF SWEET 360g", "sku": "PIN_-183", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 3, "threshold": 10, "vendor": "PIN PYO YWET"}, {"id": 184, "name": "PIN PYO YWET PICKLED TEA LEAF SPICY 360g", "sku": "PIN_-184", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 29, "threshold": 10, "vendor": "PIN PYO YWET"}, {"id": 185, "name": "PIN PYO YWET PICKLED TEA LEAF SHU-SHAE 360g", "sku": "PIN_-185", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 17, "threshold": 10, "vendor": "PIN PYO YWET"}, {"id": 186, "name": "MA TOKE MA SPECIAL PAE PU KYAW 400g", "sku": "WIN_-186", "cat": "canned_myanmar", "sub": "ma_toke_ma", "qty": 5, "threshold": 15, "vendor": "MA TOKE MA"}, {"id": 159, "name": "WIN SPECIAL PICKLED TEA & VARIOUS FRIED PEA 400g", "sku": "MT_O-159", "cat": "canned_myanmar", "sub": "win", "qty": 306, "threshold": 30, "vendor": "WIN"}, {"id": 160, "name": "WIN PICKLED TEA & VARIOUS FRIED PEA 400g", "sku": "MT_O-160", "cat": "canned_myanmar", "sub": "win", "qty": 79, "threshold": 20, "vendor": "WIN"}, {"id": 74, "name": "TOMO Rakhine Fried Fish Paste 320g", "sku": "TOMO-074", "cat": "canned_myanmar", "sub": "tomo", "qty": 36, "threshold": 15, "vendor": "TOMO"}, {"id": 75, "name": "TOMO Fried Fish Sauce With Prawn 320g", "sku": "TOMO-075", "cat": "canned_myanmar", "sub": "tomo", "qty": 24, "threshold": 15, "vendor": "TOMO"}, {"id": 178, "name": "TOMO Fried Fish Sauce With Marian 60g", "sku": "TOMO-178", "cat": "canned_myanmar", "sub": "tomo", "qty": 38, "threshold": 15, "vendor": "TOMO"}, {"id": 179, "name": "TOMO Fried Fish Sauce 60g", "sku": "TOMO-179", "cat": "canned_myanmar", "sub": "tomo", "qty": 34, "threshold": 15, "vendor": "TOMO"}, {"id": 180, "name": "TOMO Rakhine Fried Fish Paste 60g", "sku": "TOMO-180", "cat": "canned_myanmar", "sub": "tomo", "qty": 38, "threshold": 15, "vendor": "TOMO"}, {"id": 153, "name": "GOLD PEA & BEAN CRUNCHY STICK (SPICY)", "sku": "GOLD-153", "cat": "gold_snacks", "sub": "gold", "qty": 87, "threshold": 20, "vendor": "GOLD"}, {"id": 154, "name": "GOLD PEA & BEAN CRUNCHY STICK (Natural)", "sku": "GOLD-154", "cat": "gold_snacks", "sub": "gold", "qty": 46, "threshold": 20, "vendor": "GOLD"}, {"id": 155, "name": "GOLD BAYARKYAW", "sku": "GOLD-155", "cat": "gold_snacks", "sub": "gold", "qty": 161, "threshold": 20, "vendor": "GOLD"}, {"id": 156, "name": "GOLD CHICK PEA STICK", "sku": "GOLD-156", "cat": "gold_snacks", "sub": "gold", "qty": 44, "threshold": 20, "vendor": "GOLD"}, {"id": 21, "name": "HMWE MON HIN KHAR POWDER 150g", "sku": "HMWE-021", "cat": "hmwe_powder", "sub": "hmwe", "qty": 4, "threshold": 10, "vendor": "HMWE"}, {"id": 22, "name": "HMWE RICE NOODLE 350g", "sku": "HMWE-022", "cat": "hmwe_powder", "sub": "hmwe", "qty": 296, "threshold": 30, "vendor": "HMWE"}, {"id": 24, "name": "HMWE CHICKPEA POWDER (BAYA KYAW)", "sku": "HMWE-024", "cat": "hmwe_powder", "sub": "hmwe", "qty": 4, "threshold": 10, "vendor": "HMWE"}, {"id": 27, "name": "HMWE CHICKPEA POWDER", "sku": "HMWE-027", "cat": "hmwe_powder", "sub": "hmwe", "qty": 7, "threshold": 10, "vendor": "HMWE"}, {"id": 28, "name": "HMWE ROASTED CHICKPEA POWDER 150g", "sku": "HMWE-028", "cat": "hmwe_powder", "sub": "hmwe", "qty": 31, "threshold": 15, "vendor": "HMWE"}, {"id": 29, "name": "HMWE TOHU POWDER 150g", "sku": "HMWE-029", "cat": "hmwe_powder", "sub": "hmwe", "qty": 3, "threshold": 10, "vendor": "HMWE"}, {"id": 128, "name": "PREMIER NAMHSAN TEA MIX 20×400g", "sku": "TEA_-128", "cat": "tea_coffee", "sub": "premier", "qty": 114, "threshold": 20, "vendor": "PREMIER"}, {"id": 129, "name": "PREMIER INSTANT NUTRITIOUS CEREAL 20×500g", "sku": "TEA_-129", "cat": "tea_coffee", "sub": "premier", "qty": 68, "threshold": 20, "vendor": "PREMIER"}, {"id": 130, "name": "PREMIER INSTANT COFFEE MIX 3in1 32×540g", "sku": "TEA_-130", "cat": "tea_coffee", "sub": "premier", "qty": 76, "threshold": 20, "vendor": "PREMIER"}, {"id": 127, "name": "HAPPY 3in1 INSTANT COFFEE MIX 20×660g", "sku": "TEA_-127", "cat": "tea_coffee", "sub": "happy", "qty": 41, "threshold": 20, "vendor": "HAPPY"}, {"id": 161, "name": "HAPPY INSTANT TEA MIX (REGULAR) 20×660g", "sku": "TEA_-161", "cat": "tea_coffee", "sub": "happy", "qty": 201, "threshold": 30, "vendor": "HAPPY"}, {"id": 162, "name": "HAPPY INSTANT TEA MIX (PHAN SEINT) 20×660g", "sku": "TEA_-162", "cat": "tea_coffee", "sub": "happy", "qty": 16, "threshold": 20, "vendor": "HAPPY"}, {"id": 163, "name": "HAPPY INSTANT TEA MIX (CHO SEINT) 20×660g", "sku": "TEA_-163", "cat": "tea_coffee", "sub": "happy", "qty": 167, "threshold": 20, "vendor": "HAPPY"}, {"id": 133, "name": "A1 PREMIUM CHILI FLAKES 200g", "sku": "A1_S-133", "cat": "a1_spice", "sub": "a1", "qty": 29, "threshold": 15, "vendor": "A1"}, {"id": 134, "name": "A1 PREMIUM CHILI FLAKES 100g", "sku": "A1_S-134", "cat": "a1_spice", "sub": "a1", "qty": 93, "threshold": 20, "vendor": "A1"}, {"id": 135, "name": "A1 PREMIUM CHILI POWDER 100g", "sku": "A1_S-135", "cat": "a1_spice", "sub": "a1", "qty": 83, "threshold": 20, "vendor": "A1"}, {"id": 136, "name": "A1 ROASTED CHILI POWDER 100g", "sku": "A1_S-136", "cat": "a1_spice", "sub": "a1", "qty": 16, "threshold": 15, "vendor": "A1"}, {"id": 137, "name": "A1 PREMIUM PAPRIKA POWDER 100g", "sku": "A1_S-137", "cat": "a1_spice", "sub": "a1", "qty": 48, "threshold": 15, "vendor": "A1"}, {"id": 175, "name": "THAR LON THU ROASTED CHILI POWDER 85g", "sku": "A1_S-175", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 15, "threshold": 10, "vendor": "THAR LON THU"}, {"id": 176, "name": "THAR LON THU CHILI FLAKES 85g", "sku": "A1_S-176", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 110, "threshold": 20, "vendor": "THAR LON THU"}, {"id": 177, "name": "THAR LON THU CHILI POWDER 85g", "sku": "A1_S-177", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 20, "threshold": 10, "vendor": "THAR LON THU"}, {"id": 131, "name": "SHWEBO PEARL RICE 20kg (4bags × 5kg)", "sku": "RICE-131", "cat": "rice", "sub": "shwebo", "qty": 22, "threshold": 5, "vendor": "SHWEBO"}, {"id": 132, "name": "YADANAR TOE RICE 20kg (4bags × 5kg)", "sku": "RICE-132", "cat": "rice", "sub": "yadanar_toe", "qty": 60, "threshold": 5, "vendor": "YADANAR TOE"}, {"id": 187, "name": "THAI JASMINE RICE 20kg (4bags × 5kg)", "sku": "RICE-187", "cat": "rice", "sub": "thai", "qty": 13, "threshold": 5, "vendor": "THAI"}, {"id": 181, "name": "KANDIL CLASSIC BASMATI RICE", "sku": "RICE-181", "cat": "rice", "sub": "kandil", "qty": 0, "threshold": 5, "vendor": "KANDIL"}];
+let products = [{"id": 2, "name": "FRIED MYEIK SHRIMP PASTE 160g", "sku": "DRY_-002", "cat": "dry_fish", "sub": "mtg", "qty": 2, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-01"}, {"id": 6, "name": "FRIED FISH SAUCE With TAMARIND 160g", "sku": "DRY_-006", "cat": "dry_fish", "sub": "mtg", "qty": 6, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 7, "name": "DRIED HEADLESS ANCHOVY 160g", "sku": "DRY_-007", "cat": "dry_fish", "sub": "mtg", "qty": 147, "threshold": 20, "vendor": "MTG", "lastUpdated": "2026-04-28"}, {"id": 8, "name": "DRIED LOTIA CHOPPED 160g", "sku": "DRY_-008", "cat": "dry_fish", "sub": "mtg", "qty": 4, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-12"}, {"id": 10, "name": "DRIED SHOL (Roasted & Crispy) 160g", "sku": "DRY_-010", "cat": "dry_fish", "sub": "mtg", "qty": 35, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-08"}, {"id": 12, "name": "DRIED SHRIMP POWDER 160g", "sku": "DRY_-012", "cat": "dry_fish", "sub": "mtg", "qty": 31, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-14"}, {"id": 13, "name": "SPICY FRIED DRIED ANCHOVY 160g", "sku": "DRY_-013", "cat": "dry_fish", "sub": "mtg", "qty": 7, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-13"}, {"id": 17, "name": "SPICY FRIED DRIED LOTIA 160g", "sku": "DRY_-017", "cat": "dry_fish", "sub": "mtg", "qty": 21, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 18, "name": "DRIED LOTIA (Roasted & Crispy) 160g", "sku": "DRY_-018", "cat": "dry_fish", "sub": "mtg", "qty": 36, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 32, "name": "READY CHICKPEA CURRY 155g", "sku": "READ-032", "cat": "canned_myanmar", "sub": "ready", "qty": 30, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 33, "name": "READY SARDINES IN TOMATO SAUCE 190g", "sku": "READ-033", "cat": "canned_myanmar", "sub": "ready", "qty": 31, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 34, "name": "READY BEEF CURRY 425g", "sku": "READ-034", "cat": "canned_myanmar", "sub": "ready", "qty": 41, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 35, "name": "READY BEEF CURRY 150g", "sku": "READ-035", "cat": "canned_myanmar", "sub": "ready", "qty": 83, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 36, "name": "READY GOAT MEAT CURRY 150g", "sku": "READ-036", "cat": "canned_myanmar", "sub": "ready", "qty": 84, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 37, "name": "READY Stir-Fried Fish Curry 150g", "sku": "READ-037", "cat": "canned_myanmar", "sub": "ready", "qty": 9, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-08"}, {"id": 38, "name": "READY Nga Gyin with Fermented Soybeans 145g", "sku": "READ-038", "cat": "canned_myanmar", "sub": "ready", "qty": 30, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 40, "name": "READY Sweet & Sour Fried Fish (ROHU) 155g", "sku": "READ-040", "cat": "canned_myanmar", "sub": "ready", "qty": 10, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-04-20"}, {"id": 41, "name": "READY Fish Sauce Curry 155g", "sku": "READ-041", "cat": "canned_myanmar", "sub": "ready", "qty": 3, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 42, "name": "READY Fish Cakes In Curry 155g", "sku": "READ-042", "cat": "canned_myanmar", "sub": "ready", "qty": 89, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-12"}, {"id": 43, "name": "READY Hot & Spicy Fried Fish (ROHU) 130g", "sku": "READ-043", "cat": "canned_myanmar", "sub": "ready", "qty": 95, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-12"}, {"id": 44, "name": "READY STEAMED YELLOWPEA 340g", "sku": "READ-044", "cat": "canned_myanmar", "sub": "ready", "qty": 283, "threshold": 30, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 139, "name": "READY CHICKEN CURRY WITH CHICKPEA 425g", "sku": "READ-139", "cat": "canned_myanmar", "sub": "ready", "qty": 53, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 140, "name": "READY CHICKEN CURRY WITH BAMBOO SHOOT 425g", "sku": "READ-140", "cat": "canned_myanmar", "sub": "ready", "qty": 39, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-14"}, {"id": 141, "name": "READY CHICKPEA CURRY 400g", "sku": "READ-141", "cat": "canned_myanmar", "sub": "ready", "qty": 105, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 142, "name": "READY GOAT MEAT CURRY 425g", "sku": "READ-142", "cat": "canned_myanmar", "sub": "ready", "qty": 14, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 143, "name": "READY Hot & Spicy Fried Fish 280g", "sku": "READ-143", "cat": "canned_myanmar", "sub": "ready", "qty": 17, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-10"}, {"id": 144, "name": "READY STEAMED HILSHA 380g", "sku": "READ-144", "cat": "canned_myanmar", "sub": "ready", "qty": 104, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 145, "name": "READY STEAMED NGAGYIN 380g", "sku": "READ-145", "cat": "canned_myanmar", "sub": "ready", "qty": 52, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 146, "name": "READY Fish Cakes In Curry 400g", "sku": "READ-146", "cat": "canned_myanmar", "sub": "ready", "qty": 34, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 147, "name": "READY MACKEREL IN TOMATO SAUCE 425g", "sku": "READ-147", "cat": "canned_myanmar", "sub": "ready", "qty": 35, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 148, "name": "READY FRIED ACACIA CONCINNA LEAVES 400g", "sku": "READ-148", "cat": "canned_myanmar", "sub": "ready", "qty": 3, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 149, "name": "READY FRIED ROSELLE LEAF 400g", "sku": "READ-149", "cat": "canned_myanmar", "sub": "ready", "qty": 173, "threshold": 30, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 150, "name": "READY Fish Sauce Curry 400g", "sku": "READ-150", "cat": "canned_myanmar", "sub": "ready", "qty": 29, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-14"}, {"id": 47, "name": "BEST BOILED JENGKOL BEAN 490g", "sku": "BEST-047", "cat": "canned_myanmar", "sub": "best", "qty": 162, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 51, "name": "BEST ROASTED CATFISH CHILLI PASTE 460g", "sku": "BEST-051", "cat": "canned_myanmar", "sub": "best", "qty": 7, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 52, "name": "BEST CATFISH SOUR BAMBOO SHOT CURRY 375g", "sku": "BEST-052", "cat": "canned_myanmar", "sub": "best", "qty": 50, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-12"}, {"id": 53, "name": "BEST COTTON MILK PLANT LEAVES 360g", "sku": "BEST-053", "cat": "canned_myanmar", "sub": "best", "qty": 4, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 58, "name": "BEST TAMARIND LEAVES 125g", "sku": "BEST-058", "cat": "canned_myanmar", "sub": "best", "qty": 11, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-05-11"}, {"id": 59, "name": "BEST GOA BEAN ROOT 265g", "sku": "BEST-059", "cat": "canned_myanmar", "sub": "best", "qty": 1, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 60, "name": "BEST GINGER WORT FLOWER 355g", "sku": "BEST-060", "cat": "canned_myanmar", "sub": "best", "qty": 29, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-11"}, {"id": 62, "name": "BEST FRIED PEA AND BAMBOO SHOOT 365g", "sku": "BEST-062", "cat": "canned_myanmar", "sub": "best", "qty": 19, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-13"}, {"id": 63, "name": "BEST BAKED FISH STICK 135g", "sku": "BEST-063", "cat": "canned_myanmar", "sub": "best", "qty": 10, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 64, "name": "BEST FRIED JENGKOL BEAN 245g", "sku": "BEST-064", "cat": "canned_myanmar", "sub": "best", "qty": 193, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-10"}, {"id": 66, "name": "BEST MALAPHU 405g", "sku": "BEST-066", "cat": "canned_myanmar", "sub": "best", "qty": 36, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-04-20"}, {"id": 68, "name": "BEST ROSELLE LEAVES SOUP PASTE 430g", "sku": "BEST-068", "cat": "canned_myanmar", "sub": "best", "qty": 13, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-06"}, {"id": 138, "name": "BEST FISH PASTE CURRY 405g", "sku": "BEST-138", "cat": "canned_myanmar", "sub": "best", "qty": 175, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 164, "name": "BEST DUCK EGGS OILY CURRY 375g", "sku": "BEST-164", "cat": "canned_myanmar", "sub": "best", "qty": 72, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 165, "name": "BEST FERMENTED TOFU 405g", "sku": "BEST-165", "cat": "canned_myanmar", "sub": "best", "qty": 43, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-10"}, {"id": 166, "name": "BEST COCONUT MILK NOODLE SOUP 405g", "sku": "BEST-166", "cat": "canned_myanmar", "sub": "best", "qty": 26, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 167, "name": "BEST VEGETARIAN MIXED FRUIT BEAN CURRY 360g", "sku": "BEST-167", "cat": "canned_myanmar", "sub": "best", "qty": 32, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-14"}, {"id": 168, "name": "BEST MOHINGAR PASTE 385g", "sku": "BEST-168", "cat": "canned_myanmar", "sub": "best", "qty": 4, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-08"}, {"id": 169, "name": "BEST TAMARIND LEAVES 405g", "sku": "BEST-169", "cat": "canned_myanmar", "sub": "best", "qty": 171, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-14"}, {"id": 171, "name": "EAIN CHAT ASSORTED VEGETABLE & BEAN CURRY 430g", "sku": "EAIN-171", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 75, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-14"}, {"id": 173, "name": "EAIN CHAT FISH PASTE SAUCE 400g", "sku": "EAIN-173", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 45, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-14"}, {"id": 174, "name": "EAIN CHAT FISH PASTE SAUCE (WITHOUT SHRIMP) 400g", "sku": "EAIN-174", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 72, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-11"}, {"id": 170, "name": "EAIN CHAT COCONUT NOODLE SOUP 400g", "sku": "EAIN-170", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 22, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-13"}, {"id": 70, "name": "HMG Green Chillies Fish Paste 350g", "sku": "HMG_-070", "cat": "canned_myanmar", "sub": "hmg", "qty": 316, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-10"}, {"id": 71, "name": "HMG Mawlamyaing Mohinga Paste 360g", "sku": "HMG_-071", "cat": "canned_myanmar", "sub": "hmg", "qty": 217, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-08"}, {"id": 72, "name": "HMG Stir Fried Roselle Leaves with Fish 400g", "sku": "HMG_-072", "cat": "canned_myanmar", "sub": "hmg", "qty": 270, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-13"}, {"id": 79, "name": "PHOE HTAUNG BRAND SHWE HTOO 320g", "sku": "PHOE-079", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 123, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 80, "name": "PHOE HTAUNG LAY YAUNG CHEL SPECIAL 320g", "sku": "PHOE-080", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 250, "threshold": 30, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-06"}, {"id": 81, "name": "PHOE HTAUNG THAEDAW PAE KYI PU 320g", "sku": "PHOE-081", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 96, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-04-28"}, {"id": 82, "name": "PHOE HTAUNG CHINESE FRIED BEANS 320g", "sku": "PHOE-082", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 49, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 83, "name": "PHOE HTAUNG PICKLE TEA SHU-SHAE 360g", "sku": "PHOE-083", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 348, "threshold": 30, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-08"}, {"id": 84, "name": "PHOE HTAUNG PICKLED TEA (SWEET) 360g", "sku": "PHOE-084", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 105, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 85, "name": "PHOE HTAUNG PICKLED TEA (SPICY) 360g", "sku": "PHOE-085", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 128, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 86, "name": "PHOE HTAUNG PICKLED TEA (KYET CHAY NI) 360g", "sku": "PHOE-086", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 55, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 87, "name": "PT ZAYAM BOILED TEA LEAVES 400g", "sku": "PHOE-087", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 75, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-08"}, {"id": 88, "name": "PT PICKLED TEA LEAVES (SWEET) 160g", "sku": "PHOE-088", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 2, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-10"}, {"id": 89, "name": "PT PICKLED TEA LEAVES (SPICY) 160g", "sku": "PHOE-089", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 4, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-10"}, {"id": 90, "name": "PT PICKLED TEA LEAVES (SHU-SHAE) 160g", "sku": "PHOE-090", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 17, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-01"}, {"id": 183, "name": "PIN PYO YWET PICKLED TEA LEAF SWEET 360g", "sku": "PIN_-183", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 3, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-05-08"}, {"id": 184, "name": "PIN PYO YWET PICKLED TEA LEAF SPICY 360g", "sku": "PIN_-184", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 29, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-04-20"}, {"id": 185, "name": "PIN PYO YWET PICKLED TEA LEAF SHU-SHAE 360g", "sku": "PIN_-185", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 17, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-05-12"}, {"id": 186, "name": "MA TOKE MA SPECIAL PAE PU KYAW 400g", "sku": "WIN_-186", "cat": "canned_myanmar", "sub": "ma_toke_ma", "qty": 5, "threshold": 15, "vendor": "MA TOKE MA", "lastUpdated": "2026-05-06"}, {"id": 159, "name": "WIN SPECIAL PICKLED TEA & VARIOUS FRIED PEA 400g", "sku": "MT_O-159", "cat": "canned_myanmar", "sub": "win", "qty": 306, "threshold": 30, "vendor": "WIN", "lastUpdated": "2026-04-28"}, {"id": 160, "name": "WIN PICKLED TEA & VARIOUS FRIED PEA 400g", "sku": "MT_O-160", "cat": "canned_myanmar", "sub": "win", "qty": 79, "threshold": 20, "vendor": "WIN", "lastUpdated": "2026-05-11"}, {"id": 74, "name": "TOMO Rakhine Fried Fish Paste 320g", "sku": "TOMO-074", "cat": "canned_myanmar", "sub": "tomo", "qty": 36, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-04-28"}, {"id": 75, "name": "TOMO Fried Fish Sauce With Prawn 320g", "sku": "TOMO-075", "cat": "canned_myanmar", "sub": "tomo", "qty": 24, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-12"}, {"id": 178, "name": "TOMO Fried Fish Sauce With Marian 60g", "sku": "TOMO-178", "cat": "canned_myanmar", "sub": "tomo", "qty": 38, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-12"}, {"id": 179, "name": "TOMO Fried Fish Sauce 60g", "sku": "TOMO-179", "cat": "canned_myanmar", "sub": "tomo", "qty": 34, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-14"}, {"id": 180, "name": "TOMO Rakhine Fried Fish Paste 60g", "sku": "TOMO-180", "cat": "canned_myanmar", "sub": "tomo", "qty": 38, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-06"}, {"id": 153, "name": "GOLD PEA & BEAN CRUNCHY STICK (SPICY)", "sku": "GOLD-153", "cat": "gold_snacks", "sub": "gold", "qty": 87, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-13"}, {"id": 154, "name": "GOLD PEA & BEAN CRUNCHY STICK (Natural)", "sku": "GOLD-154", "cat": "gold_snacks", "sub": "gold", "qty": 46, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-08"}, {"id": 155, "name": "GOLD BAYARKYAW", "sku": "GOLD-155", "cat": "gold_snacks", "sub": "gold", "qty": 161, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-13"}, {"id": 156, "name": "GOLD CHICK PEA STICK", "sku": "GOLD-156", "cat": "gold_snacks", "sub": "gold", "qty": 44, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-12"}, {"id": 21, "name": "HMWE MON HIN KHAR POWDER 150g", "sku": "HMWE-021", "cat": "hmwe_powder", "sub": "hmwe", "qty": 4, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-12"}, {"id": 22, "name": "HMWE RICE NOODLE 350g", "sku": "HMWE-022", "cat": "hmwe_powder", "sub": "hmwe", "qty": 296, "threshold": 30, "vendor": "HMWE", "lastUpdated": "2026-05-11"}, {"id": 24, "name": "HMWE CHICKPEA POWDER (BAYA KYAW)", "sku": "HMWE-024", "cat": "hmwe_powder", "sub": "hmwe", "qty": 4, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-04-20"}, {"id": 27, "name": "HMWE CHICKPEA POWDER", "sku": "HMWE-027", "cat": "hmwe_powder", "sub": "hmwe", "qty": 7, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-10"}, {"id": 28, "name": "HMWE ROASTED CHICKPEA POWDER 150g", "sku": "HMWE-028", "cat": "hmwe_powder", "sub": "hmwe", "qty": 31, "threshold": 15, "vendor": "HMWE", "lastUpdated": "2026-05-01"}, {"id": 29, "name": "HMWE TOHU POWDER 150g", "sku": "HMWE-029", "cat": "hmwe_powder", "sub": "hmwe", "qty": 3, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-10"}, {"id": 128, "name": "PREMIER NAMHSAN TEA MIX 20×400g", "sku": "TEA_-128", "cat": "tea_coffee", "sub": "premier", "qty": 114, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-08"}, {"id": 129, "name": "PREMIER INSTANT NUTRITIOUS CEREAL 20×500g", "sku": "TEA_-129", "cat": "tea_coffee", "sub": "premier", "qty": 68, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-01"}, {"id": 130, "name": "PREMIER INSTANT COFFEE MIX 3in1 32×540g", "sku": "TEA_-130", "cat": "tea_coffee", "sub": "premier", "qty": 76, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-13"}, {"id": 127, "name": "HAPPY 3in1 INSTANT COFFEE MIX 20×660g", "sku": "TEA_-127", "cat": "tea_coffee", "sub": "happy", "qty": 41, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-04-20"}, {"id": 161, "name": "HAPPY INSTANT TEA MIX (REGULAR) 20×660g", "sku": "TEA_-161", "cat": "tea_coffee", "sub": "happy", "qty": 201, "threshold": 30, "vendor": "HAPPY", "lastUpdated": "2026-05-12"}, {"id": 162, "name": "HAPPY INSTANT TEA MIX (PHAN SEINT) 20×660g", "sku": "TEA_-162", "cat": "tea_coffee", "sub": "happy", "qty": 16, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-05-06"}, {"id": 163, "name": "HAPPY INSTANT TEA MIX (CHO SEINT) 20×660g", "sku": "TEA_-163", "cat": "tea_coffee", "sub": "happy", "qty": 167, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-04-28"}, {"id": 133, "name": "A1 PREMIUM CHILI FLAKES 200g", "sku": "A1_S-133", "cat": "a1_spice", "sub": "a1", "qty": 29, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-01"}, {"id": 134, "name": "A1 PREMIUM CHILI FLAKES 100g", "sku": "A1_S-134", "cat": "a1_spice", "sub": "a1", "qty": 93, "threshold": 20, "vendor": "A1", "lastUpdated": "2026-05-12"}, {"id": 135, "name": "A1 PREMIUM CHILI POWDER 100g", "sku": "A1_S-135", "cat": "a1_spice", "sub": "a1", "qty": 83, "threshold": 20, "vendor": "A1", "lastUpdated": "2026-05-13"}, {"id": 136, "name": "A1 ROASTED CHILI POWDER 100g", "sku": "A1_S-136", "cat": "a1_spice", "sub": "a1", "qty": 16, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-12"}, {"id": 137, "name": "A1 PREMIUM PAPRIKA POWDER 100g", "sku": "A1_S-137", "cat": "a1_spice", "sub": "a1", "qty": 48, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-11"}, {"id": 175, "name": "THAR LON THU ROASTED CHILI POWDER 85g", "sku": "A1_S-175", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 15, "threshold": 10, "vendor": "THAR LON THU", "lastUpdated": "2026-05-06"}, {"id": 176, "name": "THAR LON THU CHILI FLAKES 85g", "sku": "A1_S-176", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 110, "threshold": 20, "vendor": "THAR LON THU", "lastUpdated": "2026-04-20"}, {"id": 177, "name": "THAR LON THU CHILI POWDER 85g", "sku": "A1_S-177", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 20, "threshold": 10, "vendor": "THAR LON THU", "lastUpdated": "2026-05-06"}, {"id": 131, "name": "SHWEBO PEARL RICE 20kg (4bags × 5kg)", "sku": "RICE-131", "cat": "rice", "sub": "shwebo", "qty": 22, "threshold": 5, "vendor": "SHWEBO", "lastUpdated": "2026-05-01"}, {"id": 132, "name": "YADANAR TOE RICE 20kg (4bags × 5kg)", "sku": "RICE-132", "cat": "rice", "sub": "yadanar_toe", "qty": 60, "threshold": 5, "vendor": "YADANAR TOE", "lastUpdated": "2026-05-08"}, {"id": 187, "name": "THAI JASMINE RICE 20kg (4bags × 5kg)", "sku": "RICE-187", "cat": "rice", "sub": "thai", "qty": 13, "threshold": 5, "vendor": "THAI", "lastUpdated": "2026-05-14"}, {"id": 181, "name": "KANDIL CLASSIC BASMATI RICE", "sku": "RICE-181", "cat": "rice", "sub": "kandil", "qty": 0, "threshold": 5, "vendor": "KANDIL", "lastUpdated": "2026-05-01"}];
 // ===== HELPERS =====
 const gP = id => products.find(p => p.id === id);
 const gC = id => categories.find(c => c.id === id);
@@ -887,6 +974,8 @@ function openSI(pid) {
   document.getElementById('si-m-bc').textContent = p.barcode ? 'Barcode: ' + p.barcode + 'xxxx' : '';
   document.getElementById('si-m-qty').textContent = p.qty + ' boxes';
   document.getElementById('si-m-stat').innerHTML = statHtml;
+  let updEl = document.getElementById('si-m-upd');
+  if (updEl) { updEl.textContent = fmtDate(p.lastUpdated); updEl.className = 'lu-chip ' + dateAge(p.lastUpdated); }
   document.getElementById('si-qty').value = '';
   openModal('m-si');
   setTimeout(() => { let qi = document.getElementById('si-qty'); if (qi) qi.focus(); }, 120);
@@ -897,7 +986,7 @@ function adjQty(d) { let i = document.getElementById('si-qty'); i.value = Math.m
 function confirmSI() {
   let qty = parseInt(document.getElementById('si-qty').value);
   if (!qty || qty < 1) { toast('Enter a valid quantity', 'rd'); return; }
-  let p = gP(siProdId); p.qty += qty;
+  let p = gP(siProdId); p.qty += qty; p.lastUpdated = new Date().toISOString().slice(0,10);
   activity.unshift({ type: 'in', prod: p.name, qty, time: nowT() });
   closeModal('m-si'); siClear(); siRenderList();
   toast('+' + qty + ' added to ' + p.name);
@@ -953,7 +1042,7 @@ function doSO() {
   let p = gP(soProdId);
   if (!qty || qty < 1) { toast('Enter a valid quantity', 'rd'); return; }
   if (qty > p.qty) { toast('Only ' + p.qty + ' in stock', 'rd'); return; }
-  p.qty -= qty; activity.unshift({ type: 'out', prod: p.name, qty, time: nowT() });
+  p.qty -= qty; p.lastUpdated = new Date().toISOString().slice(0,10); activity.unshift({ type: 'out', prod: p.name, qty, time: nowT() });
   document.getElementById('so-inp').value = ''; soRender(); selectSO(soProdId);
   toast('-' + qty + ' removed from ' + p.name);
 }
@@ -1166,6 +1255,31 @@ function renderOH() {
   document.getElementById('oh-tbl').innerHTML = rows || '<tr><td colspan="6" style="text-align:center;color:var(--tx3);padding:16px">No requests yet</td></tr>';
 }
 
+// ===== DATE HELPERS =====
+function fmtDate(d) {
+  if (!d) return 'Never';
+  let dt = new Date(d + 'T00:00:00');
+  let today = new Date(); today.setHours(0,0,0,0);
+  let diff = Math.round((today - dt) / 86400000);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  if (diff < 7) return diff + 'd ago';
+  if (diff < 30) return Math.round(diff/7) + 'w ago';
+  return d.slice(5).replace('-', '/');
+}
+function dateAge(d) {
+  if (!d) return '';
+  let dt = new Date(d + 'T00:00:00');
+  let today = new Date(); today.setHours(0,0,0,0);
+  let diff = Math.round((today - dt) / 86400000);
+  if (diff <= 1) return 'today';
+  if (diff > 14) return 'old';
+  return '';
+}
+function luChip(d) {
+  return '<span class="lu-chip ' + dateAge(d) + '">' + fmtDate(d) + '</span>';
+}
+
 // ===== INIT =====
 refreshDash();
 window.addEventListener('resize', () => {
@@ -1174,6 +1288,44 @@ window.addEventListener('resize', () => {
     drawChart(mvHistory.slice(-7)); drawDonut(tot - low - out, low, out);
   }
 });
+
+// ===== MOBILE NAV =====
+function toggleSidebar() {
+  let sb = document.getElementById('sidebar');
+  let ov = document.getElementById('sb-overlay');
+  let open = sb.classList.contains('open');
+  sb.classList.toggle('open', !open);
+  ov.style.opacity = open ? '0' : '1';
+  ov.style.pointerEvents = open ? 'none' : 'auto';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  let ov = document.getElementById('sb-overlay');
+  ov.style.opacity = '0';
+  ov.style.pointerEvents = 'none';
+}
+function toggleMoreMenu(btn) {
+  let m = document.getElementById('bn-more');
+  m.classList.toggle('open');
+}
+function closeBnMore() {
+  document.getElementById('bn-more').classList.remove('open');
+}
+function setBnActive(btn) {
+  document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  closeSidebar();
+  closeBnMore();
+}
+
+// Close more menu when clicking outside
+document.addEventListener('click', function(e) {
+  let menu = document.getElementById('bn-more');
+  if (menu && menu.classList.contains('open') && !menu.contains(e.target) && !e.target.closest('.bn-item')) {
+    menu.classList.remove('open');
+  }
+});
+
 
 </script>
 </body>
