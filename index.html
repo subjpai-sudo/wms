@@ -170,7 +170,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
 /* ── CAMERA OVERLAY ── */
-#cam-overlay{display:none;position:fixed;inset:0;background:#000;z-index:400;flex-direction:column}
+/* cam-overlay handled by inline style */
 #cam-ov-container{position:relative;flex:1;overflow:hidden;background:#000}
 #cam-ov-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .cam-frame-box{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
@@ -219,18 +219,31 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   #sidebar.open{transform:translateX(0)}
   #sb-ov{display:block}
   #bottom-nav{display:block}
-  #main{padding:12px 12px 80px}
+  #main{padding:10px 10px 80px}
   #toast{bottom:72px}
+  /* metrics */
   .mgrid{grid-template-columns:1fr 1fr}
   .mgrid .metric:last-child{grid-column:span 2}
+  /* dashboard stacking */
   #dash-r2{grid-template-columns:1fr !important}
   #dash-r3{grid-template-columns:1fr !important}
   #dash-r4{grid-template-columns:1fr !important}
-  .si-layout{grid-template-columns:1fr !important}
-  .modal{max-height:90vh}
+  /* stock in/out — single column, hide right panel on mobile (modal handles it) */
+  .si-layout{display:block !important}
+  #si-right{display:none !important}
+  #so-detail{display:none !important}
+  /* modal */
+  .modal{max-height:92vh}
+  /* hide non-essential table cols */
   .hm{display:none}
-  /* product table action buttons always visible */
-  .act-btns .btn-sm{padding:5px 7px}
+  /* action buttons */
+  .act-btns{flex-wrap:nowrap}
+  .act-btns .btn-sm{padding:5px 7px;min-width:32px}
+  /* scan bar full width */
+  .scan-bar{gap:6px}
+  .scan-wrap input{font-size:15px}
+  /* dest tracker donut */
+  #dash-r4 canvas{display:block;margin:0 auto}
 }
 @media(min-width:769px){
   #bottom-nav,.bn-more-menu{display:none !important}
@@ -514,21 +527,30 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 </div>
 
 <!-- CAMERA OVERLAY (full screen) -->
-<div id="cam-overlay" style="display:none;position:fixed;inset:0;background:#000;z-index:400;flex-direction:column">
-  <div id="cam-ov-container" style="position:relative;flex:1;overflow:hidden;background:#000">
-    <video id="cam-ov-video" autoplay playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>
-    <div class="cam-frame-box">
-      <div class="cam-frame">
-        <div class="cam-shade"></div>
-        <div class="cam-frame-tr"></div>
-        <div class="cam-frame-bl"></div>
-        <div class="cam-line"></div>
+<div id="cam-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;flex-direction:column">
+  <div id="cam-ov-container" style="position:relative;flex:1;overflow:hidden;background:#000;min-height:0">
+    <video id="cam-ov-video" autoplay playsinline muted webkit-playsinline style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block"></video>
+    <!-- scan frame overlay -->
+    <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+      <!-- dark mask with hole -->
+      <div style="position:relative;width:280px;height:120px">
+        <div style="position:absolute;top:-9999px;left:-9999px;right:-9999px;bottom:-9999px;box-shadow:0 0 0 9999px rgba(0,0,0,.6)"></div>
+        <!-- corners -->
+        <div style="position:absolute;top:0;left:0;width:30px;height:30px;border-top:3px solid #25d366;border-left:3px solid #25d366;border-radius:4px 0 0 0"></div>
+        <div style="position:absolute;top:0;right:0;width:30px;height:30px;border-top:3px solid #25d366;border-right:3px solid #25d366;border-radius:0 4px 0 0"></div>
+        <div style="position:absolute;bottom:0;left:0;width:30px;height:30px;border-bottom:3px solid #25d366;border-left:3px solid #25d366;border-radius:0 0 0 4px"></div>
+        <div style="position:absolute;bottom:0;right:0;width:30px;height:30px;border-bottom:3px solid #25d366;border-right:3px solid #25d366;border-radius:0 0 4px 0"></div>
+        <!-- scan line -->
+        <div style="position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#25d366,transparent);animation:scanline 1.8s ease-in-out infinite"></div>
       </div>
     </div>
   </div>
-  <div class="cam-bar">
-    <div style="flex:1"><div class="cam-status" id="cam-ov-status">Starting…</div><div style="font-size:11px;color:#888;margin-top:2px">Hold barcode inside the frame</div></div>
-    <button class="cam-close" onclick="closeCamera()">✕ Close</button>
+  <div style="background:rgba(0,0,0,.9);padding:18px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.1)">
+    <div style="flex:1">
+      <div id="cam-ov-status" style="font-size:14px;color:#fff;font-weight:600">Starting camera…</div>
+      <div style="font-size:11px;color:#888;margin-top:3px">Hold barcode steady inside the green frame</div>
+    </div>
+    <button onclick="closeCamera()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0">✕ Close</button>
   </div>
 </div>
 
@@ -1177,8 +1199,10 @@ function openCamera(onResult){
   _camCb=onResult; _camLocked=false;
   let ov=document.getElementById('cam-overlay');
   ov.style.display='flex';
+  // Force layout so container has dimensions before camera starts
+  ov.getBoundingClientRect();
   document.getElementById('cam-ov-status').textContent='Starting camera…';
-  _camStart();
+  setTimeout(_camStart, 100); // small delay lets overlay render first
 }
 
 function closeCamera(){
@@ -1190,65 +1214,127 @@ async function _camStart(){
   let statusEl=document.getElementById('cam-ov-status');
   let v=document.getElementById('cam-ov-video');
   let container=document.getElementById('cam-ov-container');
+
+  // Reset video element
+  v.style.display='block';
+  v.srcObject=null;
+
+  // Get camera stream
+  let constraints={
+    video:{
+      facingMode:{ideal:'environment'},
+      width:{min:640,ideal:1280,max:1920},
+      height:{min:480,ideal:720,max:1080}
+    },
+    audio:false
+  };
+
   try{
-    _camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
-    v.srcObject=_camStream;
-    try{await v.play();}catch(e){}
-    statusEl.textContent='Point at barcode — hold steady';
-  }catch(e){
-    closeCamera();
-    toast(e.name==='NotAllowedError'?'Allow camera access and try again':'Camera not available on this device','rd');
-    return;
+    _camStream=await navigator.mediaDevices.getUserMedia(constraints);
+  } catch(e1) {
+    // Retry with simpler constraints for older devices
+    try{
+      _camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    } catch(e2){
+      closeCamera();
+      if(e2.name==='NotAllowedError'||e2.name==='PermissionDeniedError'){
+        toast('Allow camera access in browser settings','rd');
+      } else {
+        toast('Camera not available on this device','rd');
+      }
+      return;
+    }
   }
 
-  // Try native BarcodeDetector (Chrome Android/desktop)
+  v.srcObject=_camStream;
+  // iOS Safari requires explicit play()
+  try{ await v.play(); }catch(e){}
+
+  statusEl.textContent='Point at barcode — hold steady';
+
+  // Try native BarcodeDetector first (Chrome Android, Chrome desktop)
   if('BarcodeDetector' in window){
     try{
-      let det=new BarcodeDetector({formats:['ean_13','ean_8','code_128','code_39','upc_a','upc_e','itf']});
+      let supported = await BarcodeDetector.getSupportedFormats();
+      let formats=['ean_13','ean_8','code_128','code_39','upc_a','upc_e','itf'].filter(f=>supported.includes(f));
+      if(!formats.length) formats=['ean_13','ean_8','code_128','code_39'];
+      let det=new BarcodeDetector({formats});
       let tick=async()=>{
         if(_camLocked)return;
-        try{let codes=await det.detect(v);if(codes.length&&!_camLocked){_onBarcode(codes[0].rawValue);return;}}catch(e){}
+        try{
+          let codes=await det.detect(v);
+          if(codes.length&&!_camLocked){_onBarcode(codes[0].rawValue);return;}
+        }catch(e){}
         _camRaf=requestAnimationFrame(tick);
       };
       _camRaf=requestAnimationFrame(tick);
-      return;
-    }catch(e){/* fall through */}
+      return; // native path running
+    }catch(e){ /* fall through to Quagga */ }
   }
 
-  // Quagga fallback (iOS Safari, Firefox, all others)
-  statusEl.textContent='Loading scanner…';
+  // Quagga fallback — works on iOS Safari, Firefox, Samsung Browser
+  statusEl.textContent='Loading scanner library…';
   let loaded=await new Promise(res=>{
     if(window.Quagga){res(true);return;}
     let s=document.createElement('script');
     s.src='https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js';
-    s.onload=()=>res(true); s.onerror=()=>res(false);
+    s.onload=()=>res(true);
+    s.onerror=()=>{ s.src='https://unpkg.com/quagga@0.12.1/dist/quagga.min.js'; document.head.appendChild(s); s.onload=()=>res(true); s.onerror=()=>res(false); };
     document.head.appendChild(s);
   });
 
-  if(!loaded){statusEl.textContent='Type barcode manually below';return;}
+  if(!loaded){ statusEl.textContent='Scanner unavailable — type barcode manually'; return; }
 
-  // Quagga needs a div container — stop our raw stream
-  if(_camStream){_camStream.getTracks().forEach(t=>t.stop());_camStream=null;}
-  v.srcObject=null; v.style.display='none'; // Quagga creates its own video
+  // Stop our raw stream — Quagga manages its own
+  if(_camStream){try{_camStream.getTracks().forEach(t=>t.stop());}catch(e){} _camStream=null;}
+  v.srcObject=null; v.style.display='none';
 
-  statusEl.textContent='Point at barcode — hold steady';
+  statusEl.textContent='Point at barcode…';
+
+  // Give the container explicit dimensions if needed
+  if(!container.offsetHeight){container.style.height='70vh';}
+
   Quagga.init({
-    inputStream:{type:'LiveStream',target:container,constraints:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}},
-    decoder:{readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader'],multiple:false},
-    locate:true, numOfWorkers:0, frequency:8
-  },err=>{
-    if(err){statusEl.textContent='Scanner error — type manually';return;}
-    Quagga.start(); _quaggaOn=true;
-    Quagga.onDetected(data=>{if(_camLocked||!_quaggaOn)return;_onBarcode(data.codeResult.code);});
+    inputStream:{
+      name:'Live',
+      type:'LiveStream',
+      target:container,
+      constraints:{facingMode:'environment',aspectRatio:{min:1,max:2}},
+      area:{top:'10%',right:'10%',left:'10%',bottom:'10%'}
+    },
+    decoder:{
+      readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader'],
+      multiple:false
+    },
+    locate:true,
+    numOfWorkers:0,
+    frequency:10
+  }, err=>{
+    if(err){
+      console.error('Quagga init error:',err);
+      statusEl.textContent='Scanner error — please type barcode manually';
+      return;
+    }
+    Quagga.start();
+    _quaggaOn=true;
+    statusEl.textContent='Point at barcode — hold steady';
+    // Style Quagga's injected video to fill the container
+    let qv=container.querySelector('video');
+    if(qv){qv.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover';}
+    Quagga.onDetected(data=>{
+      if(_camLocked||!_quaggaOn)return;
+      let code=data.codeResult.code;
+      if(code&&code.length>3) _onBarcode(code);
+    });
   });
 }
 
 function _onBarcode(raw){
   if(_camLocked||!raw)return;
   _camLocked=true;
-  if(navigator.vibrate)navigator.vibrate(80);
+  if(navigator.vibrate)navigator.vibrate([80]);
   document.getElementById('cam-ov-status').innerHTML='✓ <strong>'+raw+'</strong>';
-  setTimeout(()=>{closeCamera();if(_camCb)_camCb(raw);},300);
+  setTimeout(()=>{ closeCamera(); if(_camCb)_camCb(raw); }, 350);
 }
 
 function stopCamera(){
