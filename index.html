@@ -1620,9 +1620,10 @@ function renderProds(){
 
   let rows='';
   let anyMatch=false;
+  let validCatIds = new Set(categories.map(c => c.id));
   for(let cat of categories){
-    // Only include products in this category that match search
-    let cp=products.filter(p=>(!catF||p.cat===cat.id)&&matchesSrch(p));
+    // Only include products that EXACTLY belong to this category
+    let cp=products.filter(p=>p.cat===cat.id&&(!catF||catF===cat.id)&&matchesSrch(p));
     if(!cp.length)continue;
     anyMatch=true;
     rows+='<tr><td colspan="8" style="background:var(--sur2);padding:7px 10px;font-weight:700;font-size:11px;text-transform:uppercase;color:var(--tx2)">'+cat.name+' <span style="font-weight:400;color:var(--tx3)">'+cp.length+'</span></td></tr>';
@@ -1901,16 +1902,21 @@ async function sbInit() {
 async function sbPull() {
   if (!sbClient) return;
   try {
-    // Pull products
+    // Pull products — only replace local data if Supabase has valid records
     let { data: prods, error: pe } = await sbClient.from('products').select('*');
-    if (!pe && prods && prods.length) {
-      products = prods.map(r => ({
-        id: r.id, name: r.name, sku: r.sku || '', cat: r.cat, sub: r.sub,
-        qty: r.qty || 0, threshold: r.threshold || 20, vendor: r.vendor || '',
-        barcode: r.barcode || undefined, lastUpdated: r.last_updated, photo: r.photo || undefined
-      }));
-      refreshDash();
-      if (document.getElementById('page-products').classList.contains('on')) renderProds();
+    if (!pe && prods && prods.length >= 10) {
+      // Validate: every product must have a valid cat matching our categories
+      let validCatIds = new Set(categories.map(c => c.id));
+      let valid = prods.filter(r => r.id && r.name && validCatIds.has(r.cat));
+      if (valid.length >= 10) {
+        products = valid.map(r => ({
+          id: r.id, name: r.name, sku: r.sku || '', cat: r.cat, sub: r.sub,
+          qty: r.qty || 0, threshold: r.threshold || 20, vendor: r.vendor || '',
+          barcode: r.barcode || undefined, lastUpdated: r.last_updated, photo: r.photo || undefined
+        }));
+        refreshDash();
+        if (document.getElementById('page-products').classList.contains('on')) renderProds();
+      }
     }
 
     // Pull activity
@@ -1926,13 +1932,13 @@ async function sbPull() {
       orderHistory = orders.map(r => ({id:r.id, desc:r.description, type:r.type, items:r.items, time:r.time, waOk:r.wa_ok, status:r.status}));
     }
 
-    // Pull categories
+    // Pull categories — only replace if Supabase has valid ones
     let { data: cats, error: ce } = await sbClient.from('categories').select('*');
-    if (!ce && cats && cats.length) {
+    if (!ce && cats && cats.length >= 5) {
       categories = cats.map(r => ({id:r.id, name:r.name, subs:r.subs||[]}));
     }
 
-    // Pull settings (WA config etc)
+    // Pull settings
     let { data: setts, error: se } = await sbClient.from('settings').select('*');
     if (!se && setts) {
       setts.forEach(row => {
@@ -1982,6 +1988,9 @@ function sbSubscribe() {
       if (payload.eventType === 'DELETE') {
         products = products.filter(p => p.id !== r.id);
       } else {
+        // Only accept if cat is valid
+        let validCatIds = new Set(categories.map(c => c.id));
+        if (!r.cat || !validCatIds.has(r.cat)) return;
         let mapped = { id:r.id, name:r.name, sku:r.sku||'', cat:r.cat, sub:r.sub, qty:r.qty||0, threshold:r.threshold||20, vendor:r.vendor||'', barcode:r.barcode||undefined, lastUpdated:r.last_updated, photo:r.photo||undefined };
         let idx = products.findIndex(p => p.id === r.id);
         if (idx >= 0) products[idx] = mapped; else products.push(mapped);
