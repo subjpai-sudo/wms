@@ -52,7 +52,7 @@ button{cursor:pointer;-webkit-appearance:none}
 #main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;min-height:0}
 
 /* ── BOTTOM NAV (mobile) — FIXED ── */
-#bottom-nav{display:none;height:var(--bn);background:var(--sur);border-top:1px solid var(--bdr);flex-shrink:0;z-index:100;position:fixed;bottom:0;left:0;right:0;width:100%}
+#bottom-nav{display:none;height:var(--bn);background:var(--sur);border-top:1px solid var(--bdr);flex-shrink:0;z-index:200;position:fixed;bottom:0;left:0;right:0;width:100%;-webkit-transform:translateZ(0);transform:translateZ(0)}
 .bn-inner{display:flex;height:var(--bn)}
 .bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;color:var(--tx3);font-size:9px;font-weight:500;cursor:pointer;padding:0;transition:color .12s;height:100%}
 .bn-item.on{color:var(--pu3)}
@@ -222,31 +222,18 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   #sidebar.open{transform:translateX(0)}
   #sb-overlay{display:block}
   #bottom-nav{display:block}
-  #main{padding:12px 12px calc(var(--bn) + 12px) 12px}
-  #layout{padding-bottom:0}
-  #toast{bottom:calc(var(--bn) + 10px)}
+  /* give every page bottom room so content clears the fixed nav */
+  #main{padding:12px 12px 80px 12px}
+  #toast{bottom:72px}
 
-  /* Metrics 2 col on mobile */
   .metrics-grid{grid-template-columns:1fr 1fr;gap:8px}
   .metrics-grid .metric:last-child{grid-column:span 2}
-
-  /* Dashboard charts stack */
   #dash-row2{grid-template-columns:1fr !important}
   #dash-row3{grid-template-columns:1fr !important}
-
-  /* Stock in full width */
   .si-layout{grid-template-columns:1fr}
-
-  /* Tables scroll horizontally */
   .tbl-wrap{border-radius:var(--r)}
-
-  /* Modal full bottom sheet */
-  .modal{max-height:90vh;padding-bottom:calc(env(safe-area-inset-bottom) + 16px)}
-
-  /* Hide less important table cols on mobile */
+  .modal{max-height:90vh;padding-bottom:24px}
   .hide-mob{display:none}
-
-  /* Bigger touch targets */
   .prow{padding:12px}
   .btn{min-height:40px}
 }
@@ -367,7 +354,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
         <div class="tb-pane on" id="tab-act"><div id="act-feed"></div></div>
         <div class="tb-pane" id="tab-low">
           <div class="fx mb10"><span style="font-size:12px;color:var(--tx2);flex:1" id="ls-count"></span><button class="btn btn-sm" onclick="nav('orders');setOType('low')" style="background:var(--am2);color:var(--am3);border-color:transparent;font-size:11px"><svg width="11" height="11"><use href="#ic-send"/></svg> Reorder</button></div>
-          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th class="hide-mob">Brand</th><th>Qty</th><th class="hide-mob">Short</th><th>Status</th><th>Updated</th></tr></thead><tbody id="ls-tbl"></tbody></table></div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th class="hide-mob">Brand</th><th>Qty left</th><th>Threshold</th><th class="hide-mob">Short</th><th>Status</th></tr></thead><tbody id="ls-tbl"></tbody></table></div>
         </div>
         <div class="tb-pane" id="tab-prods">
           <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th class="hide-mob">Category</th><th>Qty</th><th>Status</th><th>Updated</th></tr></thead><tbody id="all-tbl"></tbody></table></div>
@@ -765,42 +752,87 @@ function swTab(btn, id) {
 }
 
 function renderActFeed() {
-  let h = activity.slice(0, 20).map(a => {
-    let isIn = a.type === 'in', isOut = a.type === 'out', isAlert = a.type === 'alert';
-    let iconBg = isIn ? 'var(--gn2)' : isOut ? 'var(--rd2)' : 'var(--am2)';
-    let iconColor = isIn ? 'var(--gn3)' : isOut ? 'var(--rd3)' : 'var(--am3)';
-    let qtyText = isIn ? '+' + a.qty : isOut ? '−' + a.qty : '!';
-    let qtyColor = isIn ? 'var(--gn)' : isOut ? 'var(--rd)' : 'var(--am)';
-    let badge = isIn ? '<span class="badge bdg-g">Stock in</span>' : isOut ? '<span class="badge bdg-r">Stock out</span>' : '<span class="badge bdg-a">Alert</span>';
-    let userChip = (a.user && !isAlert) ? '<span style="font-size:10px;background:var(--pu2);color:var(--pu3);border-radius:20px;padding:1px 6px;font-weight:600;margin-left:4px">' + a.user + '</span>' : '';
-    return '<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr);align-items:flex-start">' +
-      '<div style="width:36px;height:36px;border-radius:10px;background:' + iconBg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;font-weight:800;color:' + iconColor + '">' + qtyText + '</div>' +
+  // Only show stock-in and stock-out — alerts go to Low Stock tab
+  let items = activity.filter(a => a.type === 'in' || a.type === 'out').slice(0, 30);
+  let h = items.map(a => {
+    let isIn = a.type === 'in';
+    let arrowSvg = isIn
+      ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/></svg>'
+      : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9m0 0l-4 4m4-4l4 4M3 7V5a2 2 0 012-2h14a2 2 0 012 2v2"/></svg>';
+    let bg = isIn ? 'var(--gn)' : 'var(--rd)';
+    let qtyColor = isIn ? 'var(--gn)' : 'var(--rd)';
+    let qtySign = isIn ? '+' : '−';
+    let userChip = a.user ? '<span style="font-size:10px;background:var(--pu2);color:var(--pu3);border-radius:20px;padding:1px 7px;font-weight:600">' + a.user + '</span>' : '';
+    return '<div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--bdr);align-items:center">' +
+      '<div style="width:38px;height:38px;border-radius:10px;background:' + bg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff">' + arrowSvg + '</div>' +
       '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:13px;font-weight:500;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + a.prod + '</div>' +
-        '<div style="display:flex;align-items:center;gap:4px;margin-top:3px;flex-wrap:wrap">' +
+        '<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + a.prod + '</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap">' +
           '<span style="font-size:11px;color:var(--tx3)">' + a.time + '</span>' +
           userChip +
         '</div>' +
       '</div>' +
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">' +
-        badge +
-        (isIn || isOut ? '<span style="font-size:13px;font-weight:700;color:' + qtyColor + '">' + (isIn ? '+' : '−') + a.qty + ' boxes</span>' : '') +
+      '<div style="text-align:right;flex-shrink:0">' +
+        '<div style="font-size:16px;font-weight:800;color:' + qtyColor + ';line-height:1">' + qtySign + a.qty + '</div>' +
+        '<div style="font-size:10px;color:var(--tx3);margin-top:1px">boxes</div>' +
       '</div>' +
     '</div>';
   }).join('');
-  document.getElementById('act-feed').innerHTML = h || '<div style="color:var(--tx3);padding:20px;text-align:center;font-size:13px">No recent activity</div>';
+  document.getElementById('act-feed').innerHTML = h || '<div style="color:var(--tx3);padding:20px;text-align:center;font-size:13px">No stock movements yet</div>';
 }
 
 function renderLS() {
   let low = products.filter(p => gS(p) !== 'ok').sort((a, b) => a.qty - b.qty);
-  document.getElementById('ls-count').textContent = low.length + ' products below threshold — ' + low.filter(p => p.qty === 0).length + ' out of stock';
+  let out = low.filter(p => p.qty === 0).length;
+  document.getElementById('ls-count').textContent = low.length + ' below threshold · ' + out + ' out of stock';
+
+  if (!low.length) {
+    document.getElementById('ls-tbl').innerHTML =
+      '<tr><td colspan="7" style="text-align:center;color:var(--tx3);padding:24px;font-size:13px">✓ All products well stocked</td></tr>';
+    return;
+  }
+
   let rows = low.map(p => {
-    let sh = Math.max(0, p.threshold - p.qty);
     let pct = p.threshold > 0 ? Math.round(p.qty / p.threshold * 100) : 0;
-    let bc = p.qty === 0 ? 'var(--rd)' : 'var(--am)';
-    return '<tr><td><div style="font-size:12px;font-weight:600">' + p.name + '</div><div style="height:3px;border-radius:2px;background:var(--sur2);margin-top:4px;width:90px;overflow:hidden"><div style="height:100%;width:' + Math.min(pct, 100) + '%;background:' + bc + ';border-radius:2px"></div></div></td><td style="font-size:11px">' + (p.vendor || sN(p.cat, p.sub)) + '</td><td style="font-size:11px">' + cN(p.cat) + '</td><td><strong style="color:' + bc + '">' + p.qty + '</strong></td><td style="color:var(--tx2)">' + p.threshold + '</td><td style="color:var(--rd3);font-weight:600">-' + sh + '</td><td>' + sBadge(p) + '</td></tr>';
+    let qc = p.qty === 0 ? 'var(--rd)' : 'var(--am)';
+    let sh = Math.max(0, p.threshold - p.qty);
+    return '<tr>' +
+      '<td>' +
+        '<div style="font-size:12px;font-weight:600;margin-bottom:5px">' + p.name + '</div>' +
+        '<div style="height:4px;border-radius:2px;background:var(--sur2);overflow:hidden;width:100%;max-width:120px">' +
+          '<div style="height:100%;width:' + Math.min(pct,100) + '%;background:' + qc + ';border-radius:2px"></div>' +
+        '</div>' +
+      '</td>' +
+      '<td class="hide-mob" style="font-size:11px;color:var(--tx2)">' + (p.vendor || sN(p.cat, p.sub)) + '</td>' +
+      '<td>' +
+        '<div style="font-size:20px;font-weight:800;color:' + qc + ';line-height:1">' + p.qty + '</div>' +
+        '<div style="font-size:10px;color:var(--tx3)">boxes left</div>' +
+      '</td>' +
+      '<td>' +
+        '<div style="font-size:10px;color:var(--tx3);margin-bottom:3px">Threshold</div>' +
+        '<div style="display:flex;align-items:center;gap:4px">' +
+          '<input type="number" value="' + p.threshold + '" min="0" ' +
+            'onchange="updateThreshold(' + p.id + ',this.value)" ' +
+            'style="width:60px;padding:4px 6px;font-size:13px;font-weight:600;border:1.5px solid var(--bdr2);border-radius:6px;text-align:center" ' +
+            'title="Tap to edit threshold"/>' +
+        '</div>' +
+      '</td>' +
+      '<td class="hide-mob" style="color:var(--rd3);font-weight:700;font-size:13px">' + (sh > 0 ? '−' + sh : '—') + '</td>' +
+      '<td>' + sBadge(p) + '</td>' +
+    '</tr>';
   }).join('');
-  document.getElementById('ls-tbl').innerHTML = rows || '<tr><td colspan="7" style="text-align:center;color:var(--tx3);padding:20px">All products well stocked</td></tr>';
+  document.getElementById('ls-tbl').innerHTML = rows;
+}
+
+function updateThreshold(id, val) {
+  let p = gP(id);
+  let n = parseInt(val);
+  if (!p || isNaN(n) || n < 0) return;
+  p.threshold = n;
+  // re-render so status badge and progress bar update
+  renderLS();
+  refreshDash();
+  toast('Threshold updated to ' + n + ' for ' + p.name.split(' ').slice(0,3).join(' '));
 }
 
 function renderAllTbl() {
