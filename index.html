@@ -717,13 +717,34 @@ function closeModal(id) { document.getElementById(id).classList.add('h'); }
 
 // Barcode
 const STRIP = 4;
-function bcPrefix(raw) { let d = raw.replace(/\D/g, ''); return d.length > STRIP ? d.slice(0, -STRIP) : d; }
-function isBcLike(v) { let d = v.replace(/\D/g, ''); return d.length >= 6 && d.length / Math.max(v.length, 1) > 0.75; }
+
+// Normalize any barcode input to digits only
+function bcDigits(raw) { return String(raw).replace(/\D/g, ''); }
+
+// Prefix = strip last 4 digits (for camera scans where last 4 = batch/lot)
+function bcPrefix(raw) { let d = bcDigits(raw); return d.length > STRIP ? d.slice(0, -STRIP) : d; }
+
+function isBcLike(v) { let d = bcDigits(v); return d.length >= 6 && d.length / Math.max(v.length, 1) > 0.6; }
+
 function findByBc(raw) {
-  let d = raw.replace(/\D/g, ''); if (d.length < 6) return null;
-  let pfx = bcPrefix(d);
-  let h = products.find(p => p.barcode && p.barcode === pfx); if (h) return { p: h };
-  h = products.find(p => p.barcode && (pfx.startsWith(p.barcode) || p.barcode.startsWith(pfx)));
+  let d = bcDigits(raw);
+  if (d.length < 4) return null;
+  let pfx = bcPrefix(d); // strip last 4 for batch-code tolerance
+
+  // 1. Exact full match (stored as full barcode digits)
+  let h = products.find(p => p.barcode && bcDigits(p.barcode) === d);
+  if (h) return { p: h };
+
+  // 2. Exact prefix match
+  h = products.find(p => p.barcode && bcDigits(p.barcode) === pfx);
+  if (h) return { p: h };
+
+  // 3. Stored barcode starts with scanned prefix OR scanned starts with stored
+  h = products.find(p => {
+    if (!p.barcode) return false;
+    let sb = bcDigits(p.barcode);
+    return pfx.startsWith(sb) || sb.startsWith(pfx) || d.startsWith(sb) || sb.startsWith(d);
+  });
   return h ? { p: h } : null;
 }
 function fuzzyScore(q, name) {
@@ -1112,8 +1133,8 @@ function _siLookNow() {
 }
 
 function linkBc(raw, pid) {
-  let p = gP(pid); p.barcode = bcPrefix(raw);
-  toast('Barcode linked to ' + p.name);
+  let p = gP(pid); p.barcode = bcDigits(raw);
+  toast('Barcode linked to ' + p.name.split(' ').slice(0,3).join(' '));
   document.getElementById('si-inp').value = '';
   document.getElementById('si-fuzzy').style.display = 'none';
   document.getElementById('si-tip').style.display = 'none';
@@ -1175,28 +1196,17 @@ function confirmSI() {
   toast('+' + qty + ' added to ' + p.name);
 }
 
-// ===== CAMERA — UNIVERSAL SCAN (ZXing — works Safari/Chrome/Firefox) =====
+// ===== CAMERA — UNIVERSAL SCAN =====
+// Strategy: native BarcodeDetector (Android Chrome) → QuaggaJS fallback (iOS Safari + all others)
 let camLocked = false;
-let zxingReader = null;
+let quaggaRunning = false;
 
 async function toggleCam() {
   let area = document.getElementById('cam-area'), btn = document.getElementById('cam-btn');
   if (area.style.display === 'block') {
-    stopCam(); area.style.display = 'none'; btn.classList.remove('act');
-    return;
+    stopCam(); area.style.display = 'none'; btn.classList.remove('act'); return;
   }
   await startCam();
-}
-
-async function loadZXing() {
-  if (window.ZXing) return true;
-  return new Promise((resolve) => {
-    let s = document.createElement('script');
-    s.src = 'https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js';
-    s.onload = () => resolve(true);
-    s.onerror = () => resolve(false);
-    document.head.appendChild(s);
-  });
 }
 
 async function startCam() {
@@ -1204,82 +1214,126 @@ async function startCam() {
   area.style.display = 'block'; btn.classList.add('act');
   camLocked = false;
   let statusEl = document.getElementById('cam-status');
-  statusEl.innerHTML = '<span class="spin">↻</span> Loading scanner…';
+  statusEl.innerHTML = '<span class="spin">↻</span> Starting camera…';
 
-  // Load ZXing
-  let ok = await loadZXing();
-  if (!ok) {
-    statusEl.textContent = '✗ Could not load scanner library — check connection';
+  // Check camera permission first
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } }, audio: false
+    });
+  } catch(e) {
     area.style.display = 'none'; btn.classList.remove('act');
+    if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+      toast('Camera permission denied — allow camera in browser settings', 'rd');
+    } else {
+      toast('Camera not available on this device', 'rd');
+    }
+    statusEl.textContent = 'Camera unavailable';
     return;
   }
 
-  statusEl.textContent = 'Starting camera…';
+  let v = document.getElementById('cam-vid');
+  v.srcObject = camStream;
+  try { await v.play(); } catch(e) {}
+  camScanning = true;
 
-  try {
-    let v = document.getElementById('cam-vid');
-    let hints = new Map();
-    // ZXing: scan common formats
-    let formats = [
-      ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
-      ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39,
-      ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.UPC_E,
-      ZXing.BarcodeFormat.ITF, ZXing.BarcodeFormat.QR_CODE,
-    ];
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-
-    zxingReader = new ZXing.BrowserMultiFormatReader(hints, 400); // scan every 400ms
-
-    // Get rear camera
-    let devices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
-    // prefer back camera
-    let device = devices.find(d => /back|rear|environment/i.test(d.label)) || devices[devices.length - 1] || null;
-    let deviceId = device ? device.deviceId : undefined;
-
+  // Try native BarcodeDetector first (Chrome Android, Chrome desktop)
+  if ('BarcodeDetector' in window) {
     statusEl.textContent = 'Point camera at barcode';
-    camScanning = true;
+    try {
+      let det = new BarcodeDetector({ formats: ['ean_13','ean_8','code_128','code_39','upc_a','upc_e','itf'] });
+      let tick = async () => {
+        if (!camScanning || camLocked) return;
+        try {
+          let codes = await det.detect(v);
+          if (codes.length && !camLocked) {
+            let raw = codes[0].rawValue;
+            camLocked = true;
+            statusEl.innerHTML = '✓ <strong>' + raw + '</strong>';
+            if (navigator.vibrate) navigator.vibrate(80);
+            let handled = processBarcodeInstant(raw);
+            if (handled) { stopCam(); area.style.display = 'none'; btn.classList.remove('act'); }
+            else { openNotFoundModal(raw); stopCam(); area.style.display = 'none'; btn.classList.remove('act'); }
+            return;
+          }
+        } catch(e) {}
+        if (camScanning) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+      return; // native detector running
+    } catch(e) {
+      // fall through to Quagga
+    }
+  }
 
-    await zxingReader.decodeFromVideoDevice(deviceId, v, (result, err) => {
-      if (!result || camLocked) return;
-      let raw = result.getText();
+  // Fallback: QuaggaJS (iOS Safari, Firefox, older browsers)
+  statusEl.innerHTML = '<span class="spin">↻</span> Loading scanner…';
+  let loaded = await new Promise(resolve => {
+    if (window.Quagga) { resolve(true); return; }
+    let s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js';
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.head.appendChild(s);
+  });
+
+  if (!loaded) {
+    statusEl.textContent = 'Scanner library failed to load — type barcode manually';
+    return;
+  }
+
+  // Stop the raw stream — Quagga manages its own stream
+  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+
+  statusEl.textContent = 'Point camera at barcode';
+
+  // Make sure video element is visible and sized
+  v.style.display = 'block';
+
+  Quagga.init({
+    inputStream: {
+      name: 'Live',
+      type: 'LiveStream',
+      target: v,
+      constraints: {
+        width: { min: 640, ideal: 1280 },
+        height: { min: 480, ideal: 720 },
+        facingMode: 'environment'
+      }
+    },
+    decoder: {
+      readers: ['ean_reader','ean_8_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader']
+    },
+    locate: true,
+    numOfWorkers: 0, // 0 = use inline worker (works in Safari)
+    frequency: 10,
+  }, err => {
+    if (err) {
+      statusEl.textContent = 'Scanner error — type barcode manually';
+      return;
+    }
+    Quagga.start();
+    quaggaRunning = true;
+    statusEl.textContent = 'Point camera at barcode — hold steady';
+
+    Quagga.onDetected(data => {
+      if (camLocked || !quaggaRunning) return;
+      let raw = data.codeResult.code;
       if (!raw) return;
-
       camLocked = true;
       statusEl.innerHTML = '✓ <strong>' + raw + '</strong>';
       if (navigator.vibrate) navigator.vibrate(80);
-
       let handled = processBarcodeInstant(raw);
-      if (handled) {
-        stopCam();
-        area.style.display = 'none';
-        btn.classList.remove('act');
-      } else {
-        // not found — stop cam, show not-found modal
-        stopCam();
-        area.style.display = 'none';
-        btn.classList.remove('act');
-        openNotFoundModal(raw);
-      }
+      stopCam();
+      area.style.display = 'none'; btn.classList.remove('act');
+      if (!handled) openNotFoundModal(raw);
     });
-
-    camStream = v.srcObject;
-
-  } catch (e) {
-    area.style.display = 'none'; btn.classList.remove('act');
-    if (e && e.name === 'NotAllowedError') {
-      toast('Camera permission denied — tap Allow when browser asks', 'rd');
-      statusEl.textContent = 'Camera permission denied';
-    } else {
-      statusEl.textContent = 'Camera error — type barcode manually';
-      toast('Camera unavailable — type barcode in the input above', 'rd');
-    }
-  }
+  });
 }
 
 function stopCam() {
   camScanning = false; camLocked = false;
-  if (zxingReader) { try { zxingReader.reset(); } catch(e){} zxingReader = null; }
+  if (quaggaRunning) { try { Quagga.stop(); } catch(e){} quaggaRunning = false; }
   if (camStream) { try { camStream.getTracks().forEach(t => t.stop()); } catch(e){} camStream = null; }
   let v = document.getElementById('cam-vid'); if (v) { try { v.srcObject = null; } catch(e){} }
 }
@@ -1291,7 +1345,7 @@ function processBarcodeInstant(raw) {
   if (isBcLike(raw)) {
     let res = findByBc(raw);
     if (res) {
-      if (!res.p.barcode) res.p.barcode = bcPrefix(raw);
+      if (!res.p.barcode) res.p.barcode = bcDigits(raw);
       openSI(res.p.id);
       return true;
     }
@@ -1329,7 +1383,7 @@ function renderNfList(q) {
 
 function nfLinkAndOpen(pid) {
   let p = gP(pid);
-  p.barcode = bcPrefix(_nfRaw);
+  p.barcode = bcDigits(_nfRaw);
   toast('Barcode linked to ' + p.name.split(' ').slice(0,3).join(' '));
   closeModal('m-nf');
   openSI(pid);
@@ -1466,13 +1520,14 @@ function saveRegisterBc() {
   let raw = document.getElementById('rbc-input').value.trim();
   if (!raw) { toast('Enter a barcode', 'rd'); return; }
   let p = gP(id);
-  // strip last 4 digits if full barcode entered
-  let prefix = raw.replace(/\D/g, '');
-  if (prefix.length > 4) prefix = prefix.slice(0, -4);
-  p.barcode = prefix;
+  // Store digits only — keep full barcode as registered
+  // findByBc will match it even when camera scans include different last-4 batch digits
+  let digits = bcDigits(raw);
+  if (!digits) { toast('Enter a valid barcode number', 'rd'); return; }
+  p.barcode = digits;
   closeModal('m-rbc');
   renderProds();
-  toast('Barcode registered for ' + p.name.split(' ').slice(0, 3).join(' '));
+  toast('Barcode ' + digits + ' registered for ' + p.name.split(' ').slice(0, 3).join(' '));
 }
 function openAddProd() {
   let sel = document.getElementById('np-cat');
