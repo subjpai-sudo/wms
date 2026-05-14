@@ -150,10 +150,17 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .scan-btn{width:44px;height:44px;border-radius:var(--r);border:1px solid var(--bdr2);background:var(--sur);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .1s}
 .scan-btn:active{background:var(--sur2)}
 .scan-btn.act{background:var(--pu2);border-color:var(--pu)}
-.cam-area{background:#000;border-radius:var(--rl);overflow:hidden;margin-bottom:10px;position:relative}
-.cam-area video{width:100%;max-height:200px;display:block}
+.cam-area{background:#000;border-radius:var(--rl);overflow:hidden;margin-bottom:8px;position:relative}
+.cam-area video{width:100%;max-height:240px;display:block;object-fit:cover}
 .cam-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.cam-frame{width:200px;height:70px;border:2.5px solid #25d366;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
+.cam-frame{width:220px;height:90px;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.5)}
+.cam-frame::before,.cam-frame::after{content:'';position:absolute;border-color:#25d366;border-style:solid;width:24px;height:24px}
+.cam-frame::before{top:0;left:0;border-width:3px 0 0 3px;border-radius:3px 0 0 0}
+.cam-frame::after{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 3px 0}
+@keyframes scanline{0%{top:0}100%{top:calc(100% - 2px)}}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#25d366,transparent);animation:scanline 1.8s ease-in-out infinite;opacity:.8}
+@keyframes scanPulse{0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,.5)}50%{box-shadow:0 0 0 9999px rgba(0,0,0,.35)}}
+.cam-frame.scanning{animation:scanPulse 1.8s ease-in-out infinite}
 .tip-bar{border-radius:var(--r);padding:8px 11px;font-size:12px;display:flex;align-items:flex-start;gap:7px;margin-bottom:8px;line-height:1.4}
 .tip-am{background:var(--am2);color:var(--am3)}
 .tip-gn{background:var(--gn2);color:var(--gn3)}
@@ -379,7 +386,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
               <button class="scan-btn" onclick="siClear()" aria-label="Clear"><svg width="16" height="16"><use href="#ic-x"/></svg></button>
             </div>
             <div id="cam-area" style="display:none">
-              <div class="cam-area"><video id="cam-vid" autoplay playsinline muted></video><div class="cam-overlay"><div class="cam-frame"></div></div></div>
+              <div class="cam-area"><video id="cam-vid" autoplay playsinline muted></video><div class="cam-overlay"><div class="cam-frame scanning"><div class="scan-line"></div></div></div></div>
               <div style="font-size:11px;color:var(--tx3);text-align:center;margin-top:5px" id="cam-status">Starting…</div>
             </div>
             <div id="si-tip" style="display:none"></div>
@@ -537,27 +544,48 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 <!-- MODALS -->
 <!-- Stock-in confirm -->
 <div class="modal-bg h" id="m-si">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="fx gap8 mb14"><div style="font-size:16px;font-weight:700;flex:1">Confirm stock in</div><button class="btn btn-sm" onclick="closeModal('m-si')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
-    <div class="pd-card mb14">
-      <div class="pd-header">
-        <div class="pd-photo"><svg width="28" height="28" style="color:var(--pu3);opacity:.5"><use href="#ic-pkg"/></svg></div>
-        <div style="min-width:0"><div style="font-size:14px;font-weight:700;color:var(--pu3);line-height:1.3" id="si-m-name"></div><div style="font-size:11px;color:var(--pu);margin-top:3px" id="si-m-meta"></div><div style="font-size:11px;color:var(--pu);margin-top:2px;font-family:monospace" id="si-m-bc"></div></div>
+  <div class="modal" style="padding:0;overflow:hidden;border-radius:var(--rx) var(--rx) 0 0;max-width:420px">
+    <!-- Photo area — filled by JS -->
+    <div id="si-m-photo"></div>
+    <!-- Content -->
+    <div style="padding:16px 18px 20px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:16px;font-weight:700;line-height:1.3;margin-bottom:3px" id="si-m-name"></div>
+          <div style="font-size:12px;color:var(--tx2)" id="si-m-meta"></div>
+          <div style="font-size:11px;color:var(--am3);margin-top:2px" id="si-m-bc"></div>
+        </div>
+        <button class="btn btn-sm" onclick="closeModal('m-si')" style="flex-shrink:0;margin-left:8px;margin-top:2px"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
       </div>
-      <div class="pd-body">
-        <div class="pd-row"><span class="pd-lbl">Current stock</span><strong class="pd-val" id="si-m-qty"></strong></div>
-        <div class="pd-row"><span class="pd-lbl">Status</span><span id="si-m-stat"></span></div>
-        <div class="pd-row"><span class="pd-lbl">Last updated</span><span id="si-m-upd" class="lu-chip"></span></div>
+      <!-- Stats row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+        <div style="background:var(--sur2);border-radius:var(--r);padding:8px;text-align:center">
+          <div style="font-size:18px;font-weight:800;line-height:1" id="si-m-qty">0</div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:2px">in stock</div>
+        </div>
+        <div style="background:var(--sur2);border-radius:var(--r);padding:8px;text-align:center">
+          <div style="font-size:13px;font-weight:500;line-height:1.2" id="si-m-stat"></div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:2px">status</div>
+        </div>
+        <div style="background:var(--sur2);border-radius:var(--r);padding:8px;text-align:center">
+          <div style="font-size:12px;font-weight:500;line-height:1.2" id="si-m-upd"></div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:2px">last update</div>
+        </div>
+      </div>
+      <!-- Qty input -->
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">How many boxes to add? <span style="color:var(--rd)">*</span></div>
+      <div class="qty-row">
+        <button class="qty-ctrl" onclick="adjQty(-1)">−</button>
+        <input type="number" id="si-qty" class="qty-num" placeholder="0" min="1" inputmode="numeric"/>
+        <button class="qty-ctrl" onclick="adjQty(1)">+</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button class="btn w100" style="justify-content:center" onclick="closeModal('m-si')">Cancel</button>
+        <button class="btn btn-gn w100" style="justify-content:center;font-size:15px;font-weight:700;padding:12px" onclick="confirmSI()">
+          <svg width="16" height="16"><use href="#ic-chk"/></svg> Confirm
+        </button>
       </div>
     </div>
-    <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:8px;font-weight:500">Quantity to add <span style="color:var(--rd)">*</span></label>
-    <div class="qty-row">
-      <button class="qty-ctrl" onclick="adjQty(-1)">−</button>
-      <input type="number" id="si-qty" class="qty-num" placeholder="0" min="1" inputmode="numeric"/>
-      <button class="qty-ctrl" onclick="adjQty(1)">+</button>
-    </div>
-    <div class="g2"><button class="btn w100" style="justify-content:center" onclick="closeModal('m-si')">Cancel</button><button class="btn btn-gn w100" style="justify-content:center" onclick="confirmSI()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Add to stock</button></div>
   </div>
 </div>
 <!-- Add product -->
@@ -662,6 +690,8 @@ let orderHistory = [];
 
 // ===== NAV =====
 function nav(page) {
+  // stop camera if leaving stock-in
+  if (page !== 'stockin') stopCam();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
   document.querySelectorAll('.ni[data-page]').forEach(n => n.classList.remove('on'));
   let pg = document.getElementById('page-' + page);
@@ -943,8 +973,13 @@ function siInit() {
   let sel = document.getElementById('si-cat-sel');
   sel.innerHTML = '<option value="">All categories</option>' + categories.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
   siRenderList();
-  document.getElementById('si-right').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:300px;color:var(--tx3);text-align:center;gap:10px"><svg width="52" height="52" style="opacity:.25"><use href="#ic-barcode"/></svg><div style="font-size:14px;font-weight:500">Ready to scan</div><div style="font-size:12px">Scan barcode or select from list</div></div>';
-  setTimeout(() => { let inp = document.getElementById('si-inp'); if (inp) inp.focus(); }, 100);
+  document.getElementById('si-right').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:300px;color:var(--tx3);text-align:center;gap:10px"><svg width="52" height="52" style="opacity:.25"><use href="#ic-barcode"/></svg><div style="font-size:14px;font-weight:500">Ready to scan</div><div style="font-size:12px">Tap camera button or select from list</div></div>';
+  // auto-start camera on mobile
+  if (window.innerWidth <= 768) {
+    setTimeout(() => { let area = document.getElementById('cam-area'); if (area && area.style.display !== 'block') startCam(); }, 400);
+  } else {
+    setTimeout(() => { let inp = document.getElementById('si-inp'); if (inp) inp.focus(); }, 100);
+  }
 }
 
 function siRenderList() {
@@ -1019,16 +1054,37 @@ function openSI(pid) {
   let p = gP(pid);
   let stat = gS(p);
   let statHtml = stat === 'out' ? '<span class="badge bdg-r">Out of stock</span>' : stat === 'low' ? '<span class="badge bdg-a">Low stock</span>' : '<span class="badge bdg-g">In stock</span>';
+
+  // Category-based photo color
+  let catColors = {
+    canned_myanmar:'#e8f4ea,#1a7a4a', dry_fish:'#fff3e0,#b85c00',
+    pickled_tea:'#e8f5e9,#2e7d32', gold_snacks:'#fffde7,#f57f17',
+    hmwe_powder:'#fce4ec,#c62828', tea_coffee:'#efebe9,#5d4037',
+    a1_spice:'#fbe9e7,#bf360c', rice:'#f3e5f5,#6a1b9a'
+  };
+  let colors = (catColors[p.cat] || '#eeecff,#2a1fff').split(',');
+  let photoHtml =
+    '<div style="width:100%;height:140px;background:linear-gradient(135deg,' + colors[0] + ' 0%,' + colors[0] + '99 100%);display:flex;align-items:center;justify-content:center;position:relative;border-radius:var(--rl) var(--rl) 0 0">' +
+      '<div style="text-align:center">' +
+        '<div style="width:72px;height:72px;border-radius:16px;background:#fff;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.12)">' +
+          '<svg width="36" height="36" style="color:' + colors[1] + ';opacity:.7"><use href="#ic-pkg"/></svg>' +
+        '</div>' +
+        '<span class="badge" style="background:#fff;color:' + colors[1] + ';font-size:11px">' + cN(p.cat) + '</span>' +
+      '</div>' +
+      (p.barcode ? '<div style="position:absolute;bottom:8px;right:10px;font-size:10px;color:' + colors[1] + ';opacity:.7;font-family:monospace">' + p.barcode + 'xxxx</div>' : '') +
+    '</div>';
+
+  document.getElementById('si-m-photo').innerHTML = photoHtml;
   document.getElementById('si-m-name').textContent = p.name;
-  document.getElementById('si-m-meta').textContent = cN(p.cat) + ' › ' + sN(p.cat, p.sub) + ' · ' + p.sku;
-  document.getElementById('si-m-bc').textContent = p.barcode ? 'Barcode: ' + p.barcode + 'xxxx' : '';
+  document.getElementById('si-m-meta').textContent = sN(p.cat, p.sub) + ' · ' + p.sku;
+  document.getElementById('si-m-bc').textContent = p.barcode ? '' : '⚠ No barcode registered';
   document.getElementById('si-m-qty').textContent = p.qty + ' boxes';
   document.getElementById('si-m-stat').innerHTML = statHtml;
   let updEl = document.getElementById('si-m-upd');
   if (updEl) { updEl.textContent = fmtDate(p.lastUpdated); updEl.className = 'lu-chip ' + dateAge(p.lastUpdated); }
   document.getElementById('si-qty').value = '';
   openModal('m-si');
-  setTimeout(() => { let qi = document.getElementById('si-qty'); if (qi) qi.focus(); }, 120);
+  setTimeout(() => { let qi = document.getElementById('si-qty'); if (qi) qi.focus(); }, 180);
 }
 
 function adjQty(d) { let i = document.getElementById('si-qty'); i.value = Math.max(1, (parseInt(i.value) || 0) + d); }
@@ -1042,29 +1098,122 @@ function confirmSI() {
   toast('+' + qty + ' added to ' + p.name);
 }
 
-// Camera
+// ===== CAMERA — AUTO SCAN =====
+let camLocked = false; // prevent double-fires during modal open
+
 async function toggleCam() {
   let area = document.getElementById('cam-area'), btn = document.getElementById('cam-btn');
-  if (area.style.display === 'block') { stopCam(); area.style.display = 'none'; btn.classList.remove('act'); return; }
-  area.style.display = 'block'; btn.classList.add('act');
-  document.getElementById('cam-status').textContent = 'Starting camera…';
-  try {
-    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-    let v = document.getElementById('cam-vid'); v.srcObject = camStream; await v.play();
-    document.getElementById('cam-status').textContent = 'Point at barcode';
-    camScanning = true;
-    if ('BarcodeDetector' in window) {
-      let det = new BarcodeDetector({ formats: ['ean_13','ean_8','code_128','code_39','upc_a','upc_e'] });
-      let tick = async () => {
-        if (!camScanning) return;
-        try { let codes = await det.detect(v); if (codes.length) { document.getElementById('si-inp').value = codes[0].rawValue; _siLookNow(); await new Promise(r => setTimeout(r, 2200)); } } catch (e) {}
-        if (camScanning) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    } else { document.getElementById('cam-status').textContent = 'Auto-detect not supported — type manually'; }
-  } catch (e) { area.style.display = 'none'; btn.classList.remove('act'); toast('Camera not available', 'rd'); }
+  if (area.style.display === 'block') {
+    stopCam(); area.style.display = 'none'; btn.classList.remove('act');
+    document.getElementById('cam-status').textContent = 'Starting…';
+    return;
+  }
+  await startCam();
 }
-function stopCam() { camScanning = false; if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; } let v = document.getElementById('cam-vid'); if (v) v.srcObject = null; }
+
+async function startCam() {
+  let area = document.getElementById('cam-area'), btn = document.getElementById('cam-btn');
+  area.style.display = 'block'; btn.classList.add('act');
+  camLocked = false;
+  let statusEl = document.getElementById('cam-status');
+  statusEl.textContent = 'Starting camera…';
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    let v = document.getElementById('cam-vid');
+    v.srcObject = camStream; await v.play();
+    statusEl.textContent = 'Point camera at barcode — hold steady';
+    camScanning = true;
+
+    if (!('BarcodeDetector' in window)) {
+      statusEl.innerHTML = '⚠ Camera scanning not supported in this browser — <strong>use USB scanner or type barcode</strong>';
+      return;
+    }
+
+    let det = new BarcodeDetector({
+      formats: ['ean_13','ean_8','code_128','code_39','code_93','upc_a','upc_e','itf','qr_code']
+    });
+
+    let tick = async () => {
+      if (!camScanning || camLocked) return;
+      try {
+        let codes = await det.detect(v);
+        if (codes.length && !camLocked) {
+          let raw = codes[0].rawValue;
+          camLocked = true; // lock immediately to prevent double-fire
+          statusEl.innerHTML = '✓ Scanned: <strong>' + raw + '</strong>';
+
+          // vibrate on mobile if supported
+          if (navigator.vibrate) navigator.vibrate(80);
+
+          // process the barcode — this opens modal or shows register panel
+          let handled = processBarcodeInstant(raw);
+
+          if (handled) {
+            // product found — stop camera, modal is open
+            stopCam();
+            area.style.display = 'none';
+            btn.classList.remove('act');
+          } else {
+            // not found — keep camera open, show register UI, unlock after 2s
+            setTimeout(() => { camLocked = false; }, 2000);
+            if (camScanning) requestAnimationFrame(tick);
+          }
+          return;
+        }
+      } catch (e) {}
+      if (camScanning) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+
+  } catch (e) {
+    area.style.display = 'none'; btn.classList.remove('act');
+    if (e.name === 'NotAllowedError') {
+      toast('Camera permission denied — allow camera access in browser settings', 'rd');
+    } else {
+      toast('Camera not available', 'rd');
+    }
+  }
+}
+
+// Returns true if product was found and modal opened
+function processBarcodeInstant(raw) {
+  let inp = document.getElementById('si-inp');
+  if (inp) inp.value = raw;
+
+  if (isBcLike(raw)) {
+    let res = findByBc(raw);
+    if (res) {
+      if (!res.p.barcode) res.p.barcode = bcPrefix(raw);
+      openSI(res.p.id); // opens modal immediately
+      return true;
+    }
+    // not found — show register UI
+    let pfx = bcPrefix(raw);
+    let tip = document.getElementById('si-tip');
+    tip.className = 'tip-bar tip-am';
+    tip.innerHTML = '⚠ Barcode <strong>' + pfx + 'xxxx</strong> not in system — tap a product below to link it';
+    tip.style.display = 'flex';
+    let fl = document.getElementById('si-fuz-list');
+    let flbl = document.getElementById('si-fuz-lbl');
+    flbl.textContent = 'Tap product to register this barcode:';
+    fl.innerHTML = products.slice(0, 30).map(p => pRow(p, 'linkBc("' + raw + '",' + p.id + ')')).join('');
+    document.getElementById('si-fuzzy').style.display = 'block';
+    return false;
+  }
+
+  // not barcode-like — treat as text search
+  _siLookNow();
+  return false;
+}
+
+function stopCam() {
+  camScanning = false; camLocked = false;
+  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  let v = document.getElementById('cam-vid'); if (v) v.srcObject = null;
+}
 
 // ===== STOCK OUT =====
 function soEmptyHTML() {
