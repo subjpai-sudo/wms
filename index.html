@@ -1203,7 +1203,7 @@ function siRenderList() {
 }
 
 function pRow(p, onclick, hl) {
-  let bc=p.barcode?'<span style="font-size:9px;color:var(--tx3);font-family:monospace"> '+p.barcode+'xxxx</span>':'';
+  let bc=p.barcode?'<span style="font-size:9px;color:var(--tx3);font-family:monospace"> '+p.barcode+'</span>':'';
   let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
   let nm=p.name;
   if(hl){try{let re=new RegExp(hl.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');nm=p.name.replace(re,m=>'<mark style="background:var(--am2);border-radius:2px">'+m+'</mark>');}catch(e){}}
@@ -1255,7 +1255,7 @@ function openSI(pid){
   else{photoEl.innerHTML='<div style="height:120px;background:linear-gradient(135deg,'+cl[0]+','+cl[0]+'99);border-radius:var(--rx) var(--rx) 0 0;display:flex;align-items:center;justify-content:center"><div style="width:68px;height:68px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.12)"><svg width="34" height="34" style="color:'+cl[1]+';opacity:.7"><use href="#ic-pkg"/></svg></div></div>';}
   document.getElementById('si-m-name').textContent=p.name;
   document.getElementById('si-m-meta').textContent=cN(p.cat)+' › '+sN(p.cat,p.sub)+' · '+p.sku;
-  document.getElementById('si-m-bc').textContent=p.barcode?'':'⚠ No barcode registered';
+  document.getElementById('si-m-bc').textContent=p.barcode?'Barcode: '+p.barcode:'⚠ No barcode registered';
   document.getElementById('si-m-qty').textContent=p.qty+' boxes';
   document.getElementById('si-m-stat').innerHTML=statHtml;
   let updEl=document.getElementById('si-m-upd'); if(updEl){updEl.textContent=fmtDate(p.lastUpdated);updEl.className='lu '+dateAge(p.lastUpdated);}
@@ -1281,7 +1281,7 @@ function soRender(){
   else if(isBcLike(raw)){let r=findByBc(raw);prods=r?[r]:fuzzy(raw,products,10);}
   else{prods=fuzzy(raw,products,10);if(!prods.length)prods=products.filter(p=>p.name.toLowerCase().includes(raw.toLowerCase())).slice(0,10);}
   document.getElementById('so-list').innerHTML=prods.map(p=>'<div class="prow" onclick="selectSO('+p.id+')">'
-    +'<div style="flex:1;min-width:0"><div class="pname">'+p.name+'</div><div class="psub">'+cN(p.cat)+' › '+sN(p.cat,p.sub)+(p.barcode?' · <span style="font-family:monospace">'+p.barcode+'xxxx</span>':'')+'</div></div>'
+    +'<div style="flex:1;min-width:0"><div class="pname">'+p.name+'</div><div class="psub">'+cN(p.cat)+' › '+sN(p.cat,p.sub)+(p.barcode?' · <span style="font-family:monospace">'+p.barcode+'</span>':'')+'</div></div>'
     +'<div class="pqty" style="color:'+(p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)')+'">'+p.qty+'</div>'
     +'</div>').join('')||'<div style="padding:14px;text-align:center;color:var(--tx3)">No products found</div>';
 }
@@ -1594,7 +1594,7 @@ function renderNfList(q){
   let pool=q.length>1?fuzzy(q,products,20):products.slice(0,30);
   document.getElementById('nf-prod-list').innerHTML=pool.map(p=>{
     let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
-    let bc=p.barcode?'<span style="font-family:monospace;font-size:10px;color:var(--gn3)">'+p.barcode+'xxxx</span>':'<span style="font-size:10px;color:var(--am3)">no barcode</span>';
+    let bc=p.barcode?'<span style="font-family:monospace;font-size:10px;color:var(--gn3)">'+p.barcode+'</span>':'<span style="font-size:10px;color:var(--am3)">no barcode</span>';
     return '<div class="prow" onclick="nfLink('+p.id+')">'
       +'<div class="picon"><svg width="15" height="15" style="color:var(--pu3)"><use href="#ic-pkg"/></svg></div>'
       +'<div style="flex:1;min-width:0"><div class="pname">'+p.name+'</div><div class="psub">'+cN(p.cat)+' › '+sN(p.cat,p.sub)+'  '+bc+'</div></div>'
@@ -1606,15 +1606,25 @@ function nfLink(pid){let p=gP(pid);p.barcode=bcNorm(_nfRaw);toast('Barcode linke
 
 // ── Products page ─────────────────────────────────────────────────────────────
 function renderProds(){
-  let srch=document.getElementById('prod-srch').value.toLowerCase();
+  let srch=document.getElementById('prod-srch').value.trim().toLowerCase();
   let catF=document.getElementById('prod-cat-f').value;
   let sel=document.getElementById('prod-cat-f');
   sel.innerHTML='<option value="">All categories</option>'+categories.map(c=>'<option value="'+c.id+'"'+(catF===c.id?' selected':'')+'>'+c.name+'</option>').join('');
   if(catF)sel.value=catF;
+
+  // Search only in name and SKU — not vendor/category (avoids GOLD showing in all cats)
+  function matchesSrch(p){
+    if(!srch)return true;
+    return p.name.toLowerCase().includes(srch)||p.sku.toLowerCase().includes(srch);
+  }
+
   let rows='';
+  let anyMatch=false;
   for(let cat of categories){
-    let cp=products.filter(p=>(!catF||p.cat===cat.id)&&(!srch||p.name.toLowerCase().includes(srch)||p.sku.toLowerCase().includes(srch)||(p.vendor||'').toLowerCase().includes(srch)));
+    // Only include products in this category that match search
+    let cp=products.filter(p=>(!catF||p.cat===cat.id)&&matchesSrch(p));
     if(!cp.length)continue;
+    anyMatch=true;
     rows+='<tr><td colspan="8" style="background:var(--sur2);padding:7px 10px;font-weight:700;font-size:11px;text-transform:uppercase;color:var(--tx2)">'+cat.name+' <span style="font-weight:400;color:var(--tx3)">'+cp.length+'</span></td></tr>';
     let subs=[...new Set(cp.map(p=>p.sub))];
     for(let sid of subs){
@@ -1622,9 +1632,15 @@ function renderProds(){
       rows+='<tr><td colspan="8" style="padding:3px 10px 3px 20px;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase">'+brand+' · '+sp.length+'</td></tr>';
       rows+=sp.map(p=>{
         let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
-        let bc=p.barcode?'<span style="font-family:monospace;font-size:11px;color:var(--gn3)">'+p.barcode+'xxxx</span>':'<button class="btn btn-sm btn-am" onclick="openRegisterBc('+p.id+')" style="font-size:10px;padding:2px 7px">Register</button>';
+        // Show exact stored barcode (no xxxx — we store full barcode now)
+        let bc=p.barcode
+          ?'<span style="font-family:monospace;font-size:11px;color:var(--gn3)">'+p.barcode+'</span>'
+          :'<button class="btn btn-sm btn-am" onclick="openRegisterBc('+p.id+')" style="font-size:10px;padding:2px 7px">Register</button>';
+        // Highlight search term in name
+        let nameHtml=p.name;
+        if(srch){try{let re=new RegExp(srch.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');nameHtml=p.name.replace(re,m=>'<mark style="background:var(--am2);border-radius:2px">'+m+'</mark>');}catch(e){}}
         return '<tr>'
-          +'<td style="padding-left:24px;font-size:12px;font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</td>'
+          +'<td style="padding-left:24px;font-size:12px;font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nameHtml+'</td>'
           +'<td class="hm" style="font-size:11px;color:var(--tx2)">'+brand+'</td>'
           +'<td class="hm" style="font-family:monospace;font-size:10px;color:var(--tx3)">'+p.sku+'</td>'
           +'<td>'+bc+'</td>'
@@ -1670,8 +1686,11 @@ function openRegisterBc(id){
   let p=gP(id);
   document.getElementById('rbc-prod-name').textContent=p.name;
   document.getElementById('rbc-prod-meta').textContent=cN(p.cat)+' › '+sN(p.cat,p.sub);
-  document.getElementById('rbc-current').textContent=p.barcode?'Current: '+p.barcode+'xxxx':'No barcode registered yet';
-  document.getElementById('rbc-input').value='';
+  document.getElementById('rbc-current').textContent=p.barcode
+    ?'Current barcode: '+p.barcode
+    :'No barcode registered yet';
+  document.getElementById('rbc-current').style.color=p.barcode?'var(--gn3)':'var(--tx3)';
+  document.getElementById('rbc-input').value=p.barcode||'';
   document.getElementById('rbc-preview').style.display='none';
   document.getElementById('rbc-prod-id').value=id;
   openModal('m-rbc');
