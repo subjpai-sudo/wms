@@ -448,7 +448,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
           <select id="prod-cat-f" onchange="renderProds()" style="width:auto;min-width:130px;font-size:12px"></select>
         </div>
         <div class="tbl-wrap">
-          <table class="tbl"><thead><tr><th>Product</th><th class="hide-mob">Brand</th><th>Barcode</th><th>Qty</th><th class="hide-mob">Threshold</th><th>Status</th><th>Updated</th><th></th></tr></thead><tbody id="prod-tbl"></tbody></table>
+          <table class="tbl"><thead><tr><th>Product</th><th class="hide-mob">Brand</th><th class="hide-mob">SKU</th><th>Barcode</th><th>Qty</th><th>Status</th><th>Updated</th><th></th></tr></thead><tbody id="prod-tbl"></tbody></table>
         </div>
       </div>
     </div>
@@ -617,6 +617,32 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
     <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:5px">Category name</label>
     <input type="text" id="nc-name" placeholder="e.g. Organic" style="margin-bottom:16px"/>
     <div class="g2"><button class="btn w100" style="justify-content:center" onclick="closeModal('m-addcat')">Cancel</button><button class="btn btn-pu w100" style="justify-content:center" onclick="saveNewCat()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Add</button></div>
+  </div>
+</div>
+
+<!-- Register barcode modal -->
+<div class="modal-bg h" id="m-rbc">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="fx gap8 mb14">
+      <div style="font-size:16px;font-weight:700;flex:1">Register barcode</div>
+      <button class="btn btn-sm" onclick="closeModal('m-rbc')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
+    </div>
+    <div style="background:var(--sur2);border-radius:var(--r);padding:10px 12px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600" id="rbc-prod-name"></div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:2px" id="rbc-prod-meta"></div>
+      <div style="font-size:11px;margin-top:6px;font-family:monospace" id="rbc-current"></div>
+    </div>
+    <input type="hidden" id="rbc-prod-id"/>
+    <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:5px">Scan or type the product barcode</label>
+    <input type="text" id="rbc-input" placeholder="Scan barcode or type prefix…" inputmode="numeric" style="margin-bottom:6px" autocomplete="off"/>
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:14px">Last 4 digits are stripped automatically — same product matches every shipment</div>
+    <div class="g2">
+      <button class="btn w100" style="justify-content:center" onclick="closeModal('m-rbc')">Cancel</button>
+      <button class="btn btn-pu w100" style="justify-content:center" onclick="saveRegisterBc()">
+        <svg width="14" height="14"><use href="#ic-barcode"/></svg> Save barcode
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1255,19 +1281,67 @@ function renderProds() {
   if (catF) sel.value = catF;
   let rows = '';
   for (let cat of categories) {
-    let cp = products.filter(p => (!catF || p.cat === cat.id) && (!srch || p.name.toLowerCase().includes(srch) || p.sku.toLowerCase().includes(srch)));
+    let cp = products.filter(p => (!catF || p.cat === cat.id) && (!srch || p.name.toLowerCase().includes(srch) || p.sku.toLowerCase().includes(srch) || (p.vendor || '').toLowerCase().includes(srch)));
     if (!cp.length) continue;
-    rows += '<tr><td colspan="9" style="background:var(--sur2);padding:7px 10px;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--tx2)">' + cat.name + ' <span style="font-weight:400;color:var(--tx3)">' + cp.length + '</span></td></tr>';
+    // Category header
+    rows += '<tr><td colspan="8" style="background:var(--sur2);padding:7px 10px;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--tx2)">' + cat.name + ' <span style="font-weight:400;color:var(--tx3)">' + cp.length + '</span></td></tr>';
     let subs = [...new Set(cp.map(p => p.sub))];
     for (let sid of subs) {
       let sp = cp.filter(p => p.sub === sid);
-      rows += '<tr><td colspan="9" style="padding:4px 10px 3px 20px;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em">' + sN(cat.id, sid) + ' · ' + sp.length + '</td></tr>';
-      rows += sp.map(p => '<tr><td style="padding-left:24px;font-size:12px;font-weight:500">' + p.name + '</td><td style="font-family:monospace;font-size:10px;color:var(--tx3)">' + p.sku + '</td><td style="font-size:11px">' + cN(p.cat) + '</td><td style="font-size:11px">' + sN(p.cat, p.sub) + '</td><td style="font-family:monospace;font-size:11px;color:var(--gn3)">' + (p.barcode ? p.barcode + 'xxxx' : '<span style="color:var(--tx3)">—</span>') + '</td><td><strong style="color:' + (p.qty === 0 ? 'var(--rd)' : p.qty <= p.threshold ? 'var(--am)' : 'var(--gn)') + '">' + p.qty + '</strong></td><td style="color:var(--tx2)">' + p.threshold + '</td><td>' + sBadge(p) + '</td><td><button class="btn btn-sm" onclick="openSI(' + p.id + ')" title="Stock in"><svg width="13" height="13"><use href="#ic-in"/></svg></button> <button class="btn btn-sm btn-rd" onclick="delProd(' + p.id + ')" title="Delete"><svg width="13" height="13"><use href="#ic-trash"/></svg></button></td></tr>').join('');
+      let brand = sN(cat.id, sid);
+      // Brand sub-header
+      rows += '<tr><td colspan="8" style="padding:4px 10px 3px 20px;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em">' + brand + ' · ' + sp.length + '</td></tr>';
+      rows += sp.map(p => {
+        let qc = p.qty === 0 ? 'var(--rd)' : p.qty <= p.threshold ? 'var(--am)' : 'var(--gn)';
+        let bcCell = p.barcode
+          ? '<span style="font-family:monospace;font-size:11px;color:var(--gn3)">' + p.barcode + 'xxxx</span>'
+          : '<button class="btn btn-sm" onclick="openRegisterBc(' + p.id + ')" style="font-size:11px;background:var(--am2);color:var(--am3);border-color:transparent;padding:3px 8px">Register</button>';
+        let actionBtns =
+          '<button class="btn btn-sm" onclick="openSI(' + p.id + ')" title="Stock in" style="padding:4px 7px"><svg width="13" height="13"><use href="#ic-in"/></svg></button> ' +
+          '<button class="btn btn-sm" onclick="openRegisterBc(' + p.id + ')" title="Register barcode" style="padding:4px 7px;background:var(--pu2);color:var(--pu3);border-color:transparent"><svg width="13" height="13"><use href="#ic-barcode"/></svg></button> ' +
+          '<button class="btn btn-sm btn-rd" onclick="delProd(' + p.id + ')" title="Delete" style="padding:4px 7px"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>';
+        return '<tr>' +
+          '<td style="padding-left:24px;font-size:12px;font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + p.name + '</td>' +
+          '<td class="hide-mob" style="font-size:11px;color:var(--tx2)">' + brand + '</td>' +
+          '<td class="hide-mob" style="font-family:monospace;font-size:10px;color:var(--tx3)">' + p.sku + '</td>' +
+          '<td>' + bcCell + '</td>' +
+          '<td><strong style="color:' + qc + '">' + p.qty + '</strong></td>' +
+          '<td>' + sBadge(p) + '</td>' +
+          '<td>' + luChip(p.lastUpdated) + '</td>' +
+          '<td style="white-space:nowrap">' + actionBtns + '</td>' +
+        '</tr>';
+      }).join('');
     }
   }
-  document.getElementById('prod-tbl').innerHTML = rows || '<tr><td colspan="9" style="text-align:center;color:var(--tx3);padding:20px">No products found</td></tr>';
+  document.getElementById('prod-tbl').innerHTML = rows || '<tr><td colspan="8" style="text-align:center;color:var(--tx3);padding:20px">No products found</td></tr>';
 }
 function delProd(id) { if (!confirm('Delete this product?')) return; products = products.filter(p => p.id !== id); renderProds(); toast('Product deleted'); }
+
+function openRegisterBc(id) {
+  let p = gP(id);
+  document.getElementById('rbc-prod-name').textContent = p.name;
+  document.getElementById('rbc-prod-meta').textContent = cN(p.cat) + ' › ' + sN(p.cat, p.sub);
+  document.getElementById('rbc-current').textContent = p.barcode ? p.barcode + 'xxxx (tap to replace)' : 'No barcode registered yet';
+  document.getElementById('rbc-current').style.color = p.barcode ? 'var(--gn3)' : 'var(--tx3)';
+  document.getElementById('rbc-input').value = p.barcode || '';
+  document.getElementById('rbc-prod-id').value = id;
+  openModal('m-rbc');
+  setTimeout(() => document.getElementById('rbc-input').focus(), 150);
+}
+
+function saveRegisterBc() {
+  let id = parseInt(document.getElementById('rbc-prod-id').value);
+  let raw = document.getElementById('rbc-input').value.trim();
+  if (!raw) { toast('Enter a barcode', 'rd'); return; }
+  let p = gP(id);
+  // strip last 4 digits if full barcode entered
+  let prefix = raw.replace(/\D/g, '');
+  if (prefix.length > 4) prefix = prefix.slice(0, -4);
+  p.barcode = prefix;
+  closeModal('m-rbc');
+  renderProds();
+  toast('Barcode registered for ' + p.name.split(' ').slice(0, 3).join(' '));
+}
 function openAddProd() {
   let sel = document.getElementById('np-cat');
   sel.innerHTML = '<option value="">Select…</option>' + categories.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
@@ -1300,9 +1374,28 @@ function renderCatTree() {
       let cnt = products.filter(p => p.cat === c.id && p.sub === s.id).length;
       let low = products.filter(p => p.cat === c.id && p.sub === s.id && gS(p) !== 'ok').length;
       let lowBadge = low ? '<span class="badge bdg-a" style="font-size:9px;margin-left:4px">' + low + ' low</span>' : '';
-      return '<div class="sub-item"><span style="flex:1;font-weight:500">' + s.name + '</span><span style="font-size:11px;color:var(--tx3)">' + cnt + ' products</span>' + lowBadge + '<button class="btn btn-sm" onclick="renSub(\'' + c.id + '\',\'' + s.id + '\')"><svg width="12" height="12"><use href="#ic-edit"/></svg></button><button class="btn btn-sm btn-rd" onclick="delSub(\'' + c.id + '\',\'' + s.id + '\')"><svg width="12" height="12"><use href="#ic-trash"/></svg></button></div>';
+      return '<div class="sub-item">' +
+        '<div style="flex:1;min-width:0">' +
+          '<span style="font-weight:600;font-size:13px">' + s.name + '</span>' +
+          '<span style="font-size:11px;color:var(--tx3);margin-left:8px">' + cnt + ' products</span>' +
+          lowBadge +
+        '</div>' +
+        '<button class="btn btn-sm" onclick="renSub(\'' + c.id + '\',\'' + s.id + '\')" title="Rename"><svg width="12" height="12"><use href="#ic-edit"/></svg></button>' +
+        '<button class="btn btn-sm btn-rd" onclick="delSub(\'' + c.id + '\',\'' + s.id + '\')" title="Delete"><svg width="12" height="12"><use href="#ic-trash"/></svg></button>' +
+      '</div>';
     }).join('');
-    return '<div class="cat-root"><div class="cat-hdr"><div class="cat-hdr-title">' + c.name + ' <span style="font-size:11px;font-weight:400;color:var(--tx3)">' + tot + ' products</span></div><button class="btn btn-sm" onclick="renCat(\'' + c.id + '\')"><svg width="13" height="13"><use href="#ic-edit"/></svg></button><button class="btn btn-sm btn-rd" onclick="delCat(\'' + c.id + '\')"><svg width="13" height="13"><use href="#ic-trash"/></svg></button></div>' + subsHtml + '<div style="display:flex;gap:6px;padding:8px"><input type="text" placeholder="New brand name…" id="ns-' + c.id + '" style="flex:1;font-size:12px"/><button class="btn btn-sm btn-pu" onclick="addSub(\'' + c.id + '\')"><svg width="12" height="12"><use href="#ic-plus"/></svg> Add</button></div></div>';
+    return '<div class="cat-root">' +
+      '<div class="cat-hdr">' +
+        '<div class="cat-hdr-title">' + c.name + ' <span style="font-size:11px;font-weight:400;color:var(--tx3)">' + tot + ' products</span></div>' +
+        '<button class="btn btn-sm" onclick="renCat(\'' + c.id + '\')" title="Rename category"><svg width="13" height="13"><use href="#ic-edit"/></svg></button>' +
+        '<button class="btn btn-sm btn-rd" onclick="delCat(\'' + c.id + '\')" title="Delete category"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>' +
+      '</div>' +
+      (subsHtml || '<div style="padding:10px 14px;font-size:12px;color:var(--tx3)">No brands yet</div>') +
+      '<div style="display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--bdr)">' +
+        '<input type="text" placeholder="Add new brand…" id="ns-' + c.id + '" style="flex:1;font-size:12px"/>' +
+        '<button class="btn btn-sm btn-pu" onclick="addSub(\'' + c.id + '\')"><svg width="12" height="12"><use href="#ic-plus"/></svg> Add brand</button>' +
+      '</div>' +
+    '</div>';
   }).join('');
   document.getElementById('cat-tree').innerHTML = html;
 }
