@@ -301,6 +301,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   <button class="ni" id="ni-cats" data-page="cats" onclick="nav('cats')"><svg width="16" height="16"><use href="#ic-folder"/></svg> Categories</button>
   <div class="sep"></div>
   <button class="ni" id="ni-orders" data-page="orders" onclick="nav('orders')"><svg width="16" height="16"><use href="#ic-send"/></svg> Order request</button>
+  <button class="ni" id="ni-containers" data-page="containers" onclick="nav('containers')"><svg width="16" height="16"><use href="#ic-pkg"/></svg> Containers</button>
   <div class="sep"></div>
   <button class="ni" data-page="settings" onclick="nav('settings')"><svg width="16" height="16"><use href="#ic-settings"/></svg> Settings</button>
   <div class="sep"></div>
@@ -508,6 +509,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   <div id="bn-more-menu">
     <button class="bn-mi" onclick="nav('cats');closeBnMore()"><svg width="15" height="15"><use href="#ic-folder"/></svg> Categories</button>
     <button class="bn-mi" onclick="nav('orders');closeBnMore()"><svg width="15" height="15"><use href="#ic-send"/></svg> Order request</button>
+    <button class="bn-mi" onclick="nav('containers');closeBnMore()"><svg width="15" height="15"><use href="#ic-pkg"/></svg> Containers</button>
     <button class="bn-mi" onclick="nav('settings');closeBnMore()"><svg width="15" height="15"><use href="#ic-settings"/></svg> Settings</button>
     <button class="bn-mi" onclick="switchRole();closeBnMore()"><svg width="15" height="15"><use href="#ic-users"/></svg> Lock / Switch user</button>
   </div>
@@ -669,6 +671,72 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   </div>
 </div>
 
+<!-- Add/Edit Container modal -->
+<div class="modal-bg h" id="m-addcont">
+  <div class="modal"><div class="mhandle"></div><div class="modal-body">
+    <div class="fx gap8 mb14">
+      <div style="font-size:16px;font-weight:700;flex:1" id="cont-modal-title">New container</div>
+      <button class="btn btn-sm" onclick="closeModal('m-addcont')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
+    </div>
+    <input type="hidden" id="cont-edit-id"/>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Container / Shipment name</label>
+        <input type="text" id="cont-name" placeholder="e.g. CNT-001, May Shipment"/>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Expected arrival date</label>
+        <input type="date" id="cont-date"/>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Supplier / Origin (optional)</label>
+        <input type="text" id="cont-supplier" placeholder="e.g. Yangon Supplier Co."/>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:6px;font-weight:500">Products in this container</label>
+        <div id="cont-items-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+        <button class="btn btn-sm w100" style="justify-content:center" onclick="addContItem()">
+          <svg width="13" height="13"><use href="#ic-plus"/></svg> Add product line
+        </button>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Notes (optional)</label>
+        <textarea id="cont-notes" rows="2" placeholder="Any additional info…" style="resize:none"></textarea>
+      </div>
+    </div>
+    <div class="g2 mt14">
+      <button class="btn w100" onclick="closeModal('m-addcont')">Cancel</button>
+      <button class="btn btn-pu w100" onclick="saveContainer()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Save</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Mark Delivered modal -->
+<div class="modal-bg h" id="m-deliver">
+  <div class="modal"><div class="mhandle"></div><div class="modal-body">
+    <div class="fx gap8 mb12">
+      <div style="font-size:16px;font-weight:700;flex:1">Mark as delivered</div>
+      <button class="btn btn-sm" onclick="closeModal('m-deliver')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
+    </div>
+    <div style="background:var(--gn2);border-radius:var(--r);padding:10px 12px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600;color:var(--gn3)" id="del-cont-name"></div>
+      <div style="font-size:11px;color:var(--gn);margin-top:3px">Stock will be added to each product automatically</div>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">Confirm quantities received:</div>
+    <div id="del-items-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+    <div>
+      <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px">Actual arrival date</label>
+      <input type="date" id="del-date" style="margin-bottom:12px"/>
+    </div>
+    <div class="g2">
+      <button class="btn w100" onclick="closeModal('m-deliver')">Cancel</button>
+      <button class="btn btn-gn w100" style="font-size:14px;font-weight:700" onclick="confirmDeliver()">
+        <svg width="15" height="15"><use href="#ic-chk"/></svg> Confirm &amp; add stock
+      </button>
+    </div>
+  </div></div>
+</div>
+
 <div id="toast"></div>
 <!-- PIN LOGIN SCREEN -->
 <div id="pin-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
@@ -706,60 +774,234 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   </div>
 </div>
 
+<!-- CONTAINER TRACKING -->
+<div class="page" id="page-containers">
+  <div class="fx gap8 mb12">
+    <div style="flex:1"><div class="pt">Containers</div><div class="ps" style="margin-bottom:0">Incoming shipment tracking</div></div>
+    <button class="btn btn-pu btn-sm" id="btn-add-container" onclick="openAddContainer()"><svg width="13" height="13"><use href="#ic-plus"/></svg> New container</button>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tabs" id="cont-tabs">
+    <button class="tb on" onclick="swContTab(this,'ctab-pending')">Pending <span id="ct-pending-cnt" class="badge ba" style="font-size:10px;margin-left:4px">0</span></button>
+    <button class="tb" onclick="swContTab(this,'ctab-delivered')">Delivered <span id="ct-delivered-cnt" class="badge bg" style="font-size:10px;margin-left:4px">0</span></button>
+  </div>
+
+  <!-- PENDING containers -->
+  <div id="ctab-pending">
+    <div id="cont-pending-list"></div>
+    <div id="cont-pending-empty" style="display:none;text-align:center;padding:40px 20px;color:var(--tx3)">
+      <svg width="40" height="40" style="opacity:.2;margin-bottom:10px;display:block;margin-inline:auto"><use href="#ic-pkg"/></svg>
+      <div style="font-size:14px">No pending containers</div>
+      <div style="font-size:12px;margin-top:4px">Add a new incoming shipment</div>
+    </div>
+  </div>
+
+  <!-- DELIVERED containers -->
+  <div id="ctab-delivered" style="display:none">
+    <div id="cont-delivered-list"></div>
+    <div id="cont-delivered-empty" style="display:none;text-align:center;padding:40px 20px;color:var(--tx3)">
+      <svg width="40" height="40" style="opacity:.2;margin-bottom:10px;display:block;margin-inline:auto"><use href="#ic-chk"/></svg>
+      <div style="font-size:14px">No delivered containers yet</div>
+    </div>
+  </div>
+</div>
+
 <!-- SETTINGS PAGE -->
 <div class="page" id="page-settings">
-  <div class="pt">Settings</div>
-  <div class="tabs">
-    <button class="tb on" onclick="swTab(this,'stab-users')">Users &amp; Access</button>
-    <button class="tb" onclick="swTab(this,'stab-supabase')">Supabase</button>
-    <button class="tb" onclick="swTab(this,'stab-info')">App info</button>
+  <div class="fx gap8 mb12">
+    <div class="pt" style="flex:1">Settings</div>
   </div>
+  <div class="tabs mb12">
+    <button class="tb on" onclick="swTab(this,'stab-users')">Users</button>
+    <button class="tb" onclick="swTab(this,'stab-supabase')">Supabase</button>
+    <button class="tb" onclick="swTab(this,'stab-info')">Info</button>
+  </div>
+
+  <!-- USERS TAB -->
   <div class="tbp on" id="stab-users">
     <div class="card mb10">
       <div class="fx gap8 mb12">
-        <div style="flex:1"><div style="font-size:14px;font-weight:700">Team members</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">Each user gets a 4-digit PIN to log in</div></div>
-        <button class="btn btn-pu btn-sm" onclick="openAddUser()"><svg width="13" height="13"><use href="#ic-plus"/></svg> Add user</button>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700">Team members</div>
+          <div style="font-size:12px;color:var(--tx2);margin-top:2px">Each user logs in with a 4-digit PIN</div>
+        </div>
+        <button class="btn btn-pu btn-sm" onclick="openAddUser()">
+          <svg width="13" height="13"><use href="#ic-plus"/></svg> Add user
+        </button>
       </div>
       <div id="users-list"></div>
     </div>
-    <div class="card" style="background:var(--pu2);border-color:var(--pu)">
-      <div style="font-size:12px;color:var(--pu3);line-height:1.7">
+    <div class="card mb10" style="background:var(--pu2);border-color:var(--pu)">
+      <div style="font-size:12px;color:var(--pu3);line-height:1.8">
         <strong>Role permissions</strong><br>
-        🔴 <strong>Owner</strong> — full access + user management<br>
-        🟠 <strong>Admin</strong> — full access, no user management<br>
+        🔴 <strong>Owner</strong> — full access + manage users + containers<br>
+        🟠 <strong>Admin</strong> — full access + containers (no user mgmt)<br>
         🟢 <strong>Operator</strong> — stock in/out only
       </div>
     </div>
+    <button class="btn w100" style="justify-content:center;padding:14px;font-size:14px;color:var(--rd3);border-color:var(--rd)" onclick="switchRole()">
+      🔒 Lock app &amp; switch user
+    </button>
   </div>
+
+  <!-- SUPABASE TAB -->
   <div class="tbp" id="stab-supabase">
     <div class="card mb10" style="border:1.5px solid #3ecf8e">
       <div class="fx gap10 mb12">
-        <div style="width:36px;height:36px;border-radius:var(--r);background:#e8fdf5;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 3L4.5 13.5M21 3l-6.5 18L4.5 13.5M21 3L9 15" stroke="#3ecf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div style="flex:1"><div style="font-size:13px;font-weight:700">Supabase real-time sync</div><div style="font-size:11px;color:var(--tx2);margin-top:1px">Connected to ilyaqubsrpjrfgekwonw.supabase.co</div></div>
-        <div style="display:flex;align-items:center;gap:5px"><div id="sb-status-dot" style="width:9px;height:9px;border-radius:50%;background:var(--rd)"></div><span id="sb-status-lbl" style="font-size:12px;color:var(--tx2)">Not connected</span></div>
+        <div style="width:36px;height:36px;border-radius:var(--r);background:#e8fdf5;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 3L4.5 13.5M21 3l-6.5 18L4.5 13.5M21 3L9 15" stroke="#3ecf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700">Supabase real-time sync</div>
+          <div style="font-size:11px;color:var(--tx2);margin-top:2px">ilyaqubsrpjrfgekwonw.supabase.co</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <div id="sb-status-dot" style="width:9px;height:9px;border-radius:50%;background:var(--rd)"></div>
+          <span id="sb-status-lbl" style="font-size:12px;color:var(--tx2)">Not connected</span>
+        </div>
       </div>
-      <!-- Hidden input for sb-url so JS can reference it -->
       <input type="hidden" id="sb-url-inp" value="https://ilyaqubsrpjrfgekwonw.supabase.co"/>
-      <div class="fx gap8">
-        <button class="btn btn-sm btn-pu" style="flex:1;justify-content:center" onclick="sbPushAll()">Push all data to Supabase</button>
-        <button class="btn btn-sm" style="flex:1;justify-content:center" onclick="sbPull()">Pull from Supabase</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-pu w100" style="justify-content:center;font-size:13px" onclick="sbPushAll()">
+          <svg width="13" height="13"><use href="#ic-in"/></svg> Push all data
+        </button>
+        <button class="btn w100" style="justify-content:center;font-size:13px" onclick="sbPull()">
+          <svg width="13" height="13"><use href="#ic-out"/></svg> Pull from DB
+        </button>
       </div>
     </div>
+    <div class="card" style="font-size:12px;color:var(--tx2);line-height:1.7">
+      <strong style="color:var(--tx)">First time setup:</strong><br>
+      1. Run the SQL schema in Supabase SQL Editor<br>
+      2. Enable Replication for all 5 tables<br>
+      3. Tap "Push all data" to upload your 111 products
+    </div>
   </div>
+
+  <!-- INFO TAB -->
   <div class="tbp" id="stab-info">
     <div class="card">
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px">App info</div>
-      <div style="font-size:12px;color:var(--tx2);line-height:1.8">
-        <div>Products: <strong id="info-prods">111</strong></div>
-        <div>Categories: <strong>8</strong></div>
-        <div>Activity logs: <strong id="info-acts">0</strong></div>
-        <div style="margin-top:8px;color:var(--tx3)">StockFlow WMS v3.0 — Myanmar Grocery Warehouse</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">App info</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span style="color:var(--tx2)">Products</span><strong id="info-prods">111</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span style="color:var(--tx2)">Categories</span><strong>8</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span style="color:var(--tx2)">Activity logs</span><strong id="info-acts">0</strong>
+        </div>
+        <div style="height:1px;background:var(--bdr);margin:4px 0"></div>
+        <div style="font-size:11px;color:var(--tx3)">StockFlow WMS v3.0 — Myanmar Grocery Warehouse</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Add/Edit User modal -->
+<!-- CONTAINER TRACKING -->
+<div class="page" id="page-containers">
+  <div class="fx gap8 mb14">
+    <div style="flex:1"><div class="pt">Container tracking</div><div class="ps">Incoming shipments — mark as delivered to update stock</div></div>
+    <button class="btn btn-pu btn-sm" onclick="openAddContainer()"><svg width="13" height="13"><use href="#ic-plus"/></svg> Add shipment</button>
+  </div>
+
+  <!-- Summary cards -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+    <div class="card" style="text-align:center">
+      <div style="font-size:22px;font-weight:800;color:var(--bl)" id="ct-pending-cnt">0</div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:2px">Pending</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:22px;font-weight:800;color:var(--am)" id="ct-transit-cnt">0</div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:2px">In transit</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:22px;font-weight:800;color:var(--gn)" id="ct-delivered-cnt">0</div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:2px">Delivered</div>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="tabs mb10">
+    <button class="tb on" onclick="swContainerTab('all',this)">All</button>
+    <button class="tb" onclick="swContainerTab('pending',this)">Pending</button>
+    <button class="tb" onclick="swContainerTab('transit',this)">In transit</button>
+    <button class="tb" onclick="swContainerTab('delivered',this)">Delivered</button>
+  </div>
+
+  <div id="container-list"></div>
+</div>
+
+<!-- Add/Edit container modal -->
+<div class="modal-bg h" id="m-container">
+  <div class="modal" style="max-width:480px"><div class="mhandle"></div><div class="modal-body">
+    <div class="fx gap8 mb14">
+      <div style="font-size:16px;font-weight:700;flex:1" id="ct-modal-title">Add shipment</div>
+      <button class="btn btn-sm" onclick="closeModal('m-container')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
+    </div>
+    <input type="hidden" id="ct-edit-id"/>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Container / shipment name</label>
+        <input type="text" id="ct-name" placeholder="e.g. Container #12, May Shipment"/>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Supplier / vendor</label>
+        <input type="text" id="ct-supplier" placeholder="e.g. MTG Supplier"/>
+      </div>
+      <div class="g2">
+        <div>
+          <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Expected arrival date</label>
+          <input type="date" id="ct-eta"/>
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Status</label>
+          <select id="ct-status">
+            <option value="pending">Pending</option>
+            <option value="transit">In transit</option>
+            <option value="delivered">Delivered</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div class="fx gap8 mb8">
+          <label style="font-size:12px;color:var(--tx2);font-weight:500;flex:1">Products in this shipment</label>
+          <button class="btn btn-sm btn-pu" onclick="addCtItem()"><svg width="11" height="11"><use href="#ic-plus"/></svg> Add product</button>
+        </div>
+        <div id="ct-items-wrap" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+    </div>
+    <div class="g2 mt16">
+      <button class="btn w100" onclick="closeModal('m-container')">Cancel</button>
+      <button class="btn btn-pu w100" onclick="saveContainer()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Save</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Deliver confirmation modal -->
+<div class="modal-bg h" id="m-deliver">
+  <div class="modal" style="max-width:440px"><div class="mhandle"></div><div class="modal-body">
+    <div class="fx gap8 mb12">
+      <div style="font-size:16px;font-weight:700;flex:1">Mark as delivered</div>
+      <button class="btn btn-sm" onclick="closeModal('m-deliver')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
+    </div>
+    <div style="background:var(--gn2);border-radius:var(--r);padding:10px 12px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;color:var(--gn3)" id="dlv-name"></div>
+      <div style="font-size:11px;color:var(--gn3);margin-top:2px" id="dlv-supplier"></div>
+    </div>
+    <div style="font-size:13px;font-weight:500;margin-bottom:8px">The following quantities will be added to stock:</div>
+    <div id="dlv-items" style="margin-bottom:14px"></div>
+    <div style="font-size:12px;color:var(--tx3);margin-bottom:14px">You can adjust quantities before confirming delivery.</div>
+    <div class="g2">
+      <button class="btn w100" onclick="closeModal('m-deliver')">Cancel</button>
+      <button class="btn btn-gn w100" style="font-size:14px;font-weight:700" onclick="confirmDeliver()">
+        <svg width="15" height="15"><use href="#ic-chk"/></svg> Confirm delivery &amp; add stock
+      </button>
+    </div>
+  </div></div>
+</div>
 <div class="modal-bg h" id="m-adduser">
   <div class="modal"><div class="mhandle"></div><div class="modal-body">
     <div class="fx gap8 mb14"><div style="font-size:16px;font-weight:700;flex:1" id="adduser-title">Add user</div><button class="btn btn-sm" onclick="closeModal('m-adduser')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
@@ -943,7 +1185,12 @@ function checkPin() {
     let avEl = document.getElementById('av-txt');
     avEl.textContent = ini; avEl.style.background = col;
     document.getElementById('dash-title').textContent = currentRole === 'owner' ? 'Owner Dashboard' : 'Dashboard';
-    document.getElementById('pin-screen').classList.add('hidden');
+    let ps = document.getElementById('pin-screen');
+    if (ps) { ps.style.display = 'none'; ps.classList.add('hidden'); }
+    // Restore visibility (in case lock set it)
+    ['topbar','layout','bottom-nav'].forEach(id => {
+      let el = document.getElementById(id); if (el) el.style.visibility = '';
+    });
     // restrict nav for operator
     let opOnly = currentRole === 'operator';
     ['ni-cats','ni-orders'].forEach(id => {
@@ -965,11 +1212,15 @@ function checkPin() {
 }
 function lockApp() {
   _pinEntry = ''; _pinTarget = null;
-  renderPinUserList();
-  document.getElementById('pin-user-list').style.display = 'flex';
-  document.getElementById('pin-pad-wrap').style.display = 'none';
-  document.getElementById('pin-screen').classList.remove('hidden');
   currentRole = ''; currentUser = ''; currentUserId = '';
+  renderPinUserList();
+  let ul = document.getElementById('pin-user-list');
+  let pw = document.getElementById('pin-pad-wrap');
+  if (ul) { ul.style.display = 'flex'; }
+  if (pw) { pw.style.display = 'none'; }
+  let pe = document.getElementById('pin-err'); if (pe) pe.textContent = '';
+  let ps = document.getElementById('pin-screen');
+  if (ps) { ps.style.display = 'flex'; ps.classList.remove('hidden'); }
 }
 function switchRole() { if (confirm('Lock app and switch user?')) lockApp(); }
 
@@ -1056,7 +1307,8 @@ function nav(page) {
   if (page === 'stockout') { soRender(); document.getElementById('so-detail').innerHTML = soEmptyHtml(); }
   if (page === 'products') renderProds();
   if (page === 'cats')     renderCatTree();
-  if (page === 'orders')   renderRS();
+  if (page === 'orders')     renderRS();
+  if (page === 'containers') nav_containers();
   if (page === 'settings') {
     document.getElementById('info-prods').textContent = products.length;
     document.getElementById('info-acts').textContent  = activity.length;
@@ -1844,6 +2096,346 @@ function renderOH(){
   document.getElementById('oh-tbl').innerHTML=orderHistory.map(o=>'<tr><td style="font-size:12px">'+o.desc+'</td><td class="hm">'+(tm[o.type]||o.type)+'</td><td class="hm" style="text-align:center">'+o.items+'</td><td style="font-size:11px;color:var(--tx2)">'+o.time+'</td><td>'+(wm[String(o.waOk)]||wm['null'])+'</td><td>'+(sm[o.status]||o.status)+'</td></tr>').join('')||'<tr><td colspan="6" style="text-align:center;color:var(--tx3);padding:16px">No requests yet</td></tr>';
 }
 
+// ── Container Tracking ────────────────────────────────────────────
+let containers = []; // [{id, name, date, supplier, notes, status:'pending'|'delivered', items:[{catId,subId,prodId,prodName,qty,receivedQty}], deliveredDate, deliveredBy}]
+let _contEditId = null;
+let _contItems = []; // current modal items
+let _deliverContId = null;
+
+function nav_containers() {
+  renderContainers();
+  // Hide add button for operators
+  let btn = document.getElementById('btn-add-container');
+  if (btn) btn.style.display = (currentRole === 'operator') ? 'none' : '';
+}
+
+function swContTab(btn, id) {
+  document.querySelectorAll('#cont-tabs .tb').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('ctab-pending').style.display   = id === 'ctab-pending'   ? 'block' : 'none';
+  document.getElementById('ctab-delivered').style.display = id === 'ctab-delivered' ? 'block' : 'none';
+}
+
+function renderContainers() {
+  let pending   = containers.filter(c => c.status === 'pending');
+  let delivered = containers.filter(c => c.status === 'delivered');
+
+  document.getElementById('ct-pending-cnt').textContent   = pending.length;
+  document.getElementById('ct-delivered-cnt').textContent = delivered.length;
+
+  // ── Pending list ──
+  let pendEl = document.getElementById('cont-pending-list');
+  let pendEmpty = document.getElementById('cont-pending-empty');
+  if (!pending.length) {
+    pendEl.innerHTML = ''; pendEmpty.style.display = 'block';
+  } else {
+    pendEmpty.style.display = 'none';
+    pendEl.innerHTML = pending.map(c => contCard(c)).join('');
+  }
+
+  // ── Delivered list ──
+  let delEl = document.getElementById('cont-delivered-list');
+  let delEmpty = document.getElementById('cont-delivered-empty');
+  if (!delivered.length) {
+    delEl.innerHTML = ''; delEmpty.style.display = 'block';
+  } else {
+    delEmpty.style.display = 'none';
+    delEl.innerHTML = delivered.map(c => contCard(c)).join('');
+  }
+}
+
+function contCard(c) {
+  let totalQty = c.items.reduce((s,it) => s + (it.qty||0), 0);
+  let totalProds = c.items.length;
+  let isDelivered = c.status === 'delivered';
+  let dateLabel = isDelivered
+    ? 'Arrived: ' + (c.deliveredDate || c.date)
+    : 'Expected: ' + (c.date || 'TBD');
+  let dateDiff = '';
+  if (!isDelivered && c.date) {
+    let diff = Math.round((new Date(c.date) - new Date()) / 86400000);
+    dateDiff = diff < 0
+      ? '<span class="badge br" style="font-size:10px">Overdue ' + Math.abs(diff) + 'd</span>'
+      : diff === 0
+      ? '<span class="badge ba" style="font-size:10px">Today</span>'
+      : '<span class="badge bb" style="font-size:10px">In ' + diff + 'd</span>';
+  }
+
+  // Items grouped by category
+  let grouped = {};
+  c.items.forEach(it => {
+    let catName = cN(it.catId) || it.catId || 'General';
+    if (!grouped[catName]) grouped[catName] = [];
+    grouped[catName].push(it);
+  });
+  let itemsHtml = Object.entries(grouped).map(([catName, items]) =>
+    '<div style="margin-bottom:8px">'
+    + '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">' + catName + '</div>'
+    + items.map(it => {
+        let qty = isDelivered ? (it.receivedQty || it.qty) : it.qty;
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--sur2);border-radius:6px;margin-bottom:3px;font-size:12px">'
+          + '<span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + it.prodName + '</span>'
+          + '<span style="font-weight:700;color:' + (isDelivered?'var(--gn)':'var(--tx)') + ';margin-left:8px;flex-shrink:0">' + qty + ' boxes</span>'
+          + '</div>';
+      }).join('')
+    + '</div>'
+  ).join('');
+
+  let canEdit = currentRole === 'owner' || currentRole === 'admin';
+  let actionBtns = '';
+  if (!isDelivered && canEdit) {
+    actionBtns = '<div style="display:flex;gap:8px;margin-top:10px">'
+      + '<button class="btn btn-sm" onclick="editContainer(\'' + c.id + '\')" style="flex:1;justify-content:center"><svg width="13" height="13"><use href="#ic-edit"/></svg> Edit</button>'
+      + '<button class="btn btn-gn" onclick="openDeliver(\'' + c.id + '\')" style="flex:1;justify-content:center;font-weight:600"><svg width="13" height="13"><use href="#ic-chk"/></svg> Mark delivered</button>'
+      + '<button class="btn btn-sm btn-rd" onclick="deleteContainer(\'' + c.id + '\')" style="padding:6px 9px"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>'
+      + '</div>';
+  } else if (isDelivered) {
+    actionBtns = '<div style="font-size:11px;color:var(--gn3);margin-top:8px">✓ Delivered by ' + (c.deliveredBy || 'Unknown') + ' · Stock added to inventory</div>';
+  }
+
+  return '<div class="card mb10" style="' + (isDelivered ? 'border-color:var(--gn2)' : '') + '">'
+    + '<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">'
+      + '<div style="width:40px;height:40px;border-radius:10px;background:' + (isDelivered?'var(--gn2)':'var(--bl2)') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+        + '<svg width="20" height="20" style="color:' + (isDelivered?'var(--gn3)':'var(--bl3)') + '"><use href="#ic-pkg"/></svg>'
+      + '</div>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:14px;font-weight:700">' + c.name + '</div>'
+        + '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap">'
+          + '<span style="font-size:11px;color:var(--tx3)">' + dateLabel + '</span>'
+          + dateDiff
+          + (c.supplier ? '<span style="font-size:11px;color:var(--tx3)">· ' + c.supplier + '</span>' : '')
+        + '</div>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+        + '<div style="font-size:16px;font-weight:800">' + totalQty + '</div>'
+        + '<div style="font-size:10px;color:var(--tx3)">boxes</div>'
+        + '<div style="font-size:10px;color:var(--tx3)">' + totalProds + ' products</div>'
+      + '</div>'
+    + '</div>'
+    + (c.notes ? '<div style="font-size:12px;color:var(--tx2);margin-bottom:8px;padding:6px 8px;background:var(--sur2);border-radius:6px">' + c.notes + '</div>' : '')
+    + itemsHtml
+    + actionBtns
+    + '</div>';
+}
+
+// ── Add container item row ────────────────────────────────────────
+function addContItem(item) {
+  let rowId = 'ci-' + Date.now() + Math.random().toString(36).slice(2,5);
+  let row = {id: rowId, catId:'', subId:'', prodId:'', prodName:'', qty:0};
+  if (item) { Object.assign(row, item); }
+  _contItems.push(row);
+  renderContItems();
+}
+
+function renderContItems() {
+  let el = document.getElementById('cont-items-list');
+  el.innerHTML = _contItems.map((row, idx) => {
+    let catSel = '<select onchange="contItemCatChange(\'' + row.id + '\',this.value)" style="flex:1;min-width:0;font-size:12px">'
+      + '<option value="">Category…</option>'
+      + categories.map(c => '<option value="' + c.id + '"' + (row.catId===c.id?' selected':'') + '>' + c.name + '</option>').join('')
+      + '</select>';
+
+    // Sub (brand) dropdown
+    let cat = gC(row.catId);
+    let subSel = '<select onchange="contItemSubChange(\'' + row.id + '\',this.value)" style="flex:1;min-width:0;font-size:12px"' + (!cat?' disabled':'') + '>'
+      + '<option value="">Brand…</option>'
+      + (cat ? cat.subs.map(s => '<option value="' + s.id + '"' + (row.subId===s.id?' selected':'') + '>' + s.name + '</option>').join('') : '')
+      + '</select>';
+
+    // Product dropdown
+    let subProds = products.filter(p => p.cat === row.catId && p.sub === row.subId);
+    let prodSel = '<select onchange="contItemProdChange(\'' + row.id + '\',this.value)" style="flex:1;min-width:0;font-size:12px"' + (!row.subId?' disabled':'') + '>'
+      + '<option value="">Product…</option>'
+      + subProds.map(p => '<option value="' + p.id + '"' + (row.prodId===p.id?' selected':'') + '>' + p.name + '</option>').join('')
+      + '</select>';
+
+    return '<div style="border:1px solid var(--bdr);border-radius:var(--r);padding:8px;background:var(--sur2)">'
+      + '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">'
+        + catSel + subSel
+      + '</div>'
+      + '<div style="display:flex;gap:6px;align-items:center">'
+        + prodSel
+        + '<input type="number" value="' + (row.qty||'') + '" placeholder="Qty" min="1" onchange="contItemQtyChange(\'' + row.id + '\',this.value)" style="width:70px;font-size:13px;font-weight:600;text-align:center;flex-shrink:0"/>'
+        + '<button onclick="removeContItem(\'' + row.id + '\')" style="background:var(--rd2);color:var(--rd3);border:none;border-radius:var(--r);width:32px;height:32px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function contItemCatChange(rowId, catId) {
+  let row = _contItems.find(r => r.id === rowId); if (!row) return;
+  row.catId = catId; row.subId = ''; row.prodId = ''; row.prodName = '';
+  renderContItems();
+}
+function contItemSubChange(rowId, subId) {
+  let row = _contItems.find(r => r.id === rowId); if (!row) return;
+  row.subId = subId; row.prodId = ''; row.prodName = '';
+  renderContItems();
+}
+function contItemProdChange(rowId, prodId) {
+  let row = _contItems.find(r => r.id === rowId); if (!row) return;
+  let p = gP(parseInt(prodId));
+  row.prodId = parseInt(prodId); row.prodName = p ? p.name : '';
+  renderContItems();
+}
+function contItemQtyChange(rowId, val) {
+  let row = _contItems.find(r => r.id === rowId); if (!row) return;
+  row.qty = parseInt(val) || 0;
+}
+function removeContItem(rowId) {
+  _contItems = _contItems.filter(r => r.id !== rowId);
+  renderContItems();
+}
+
+// ── Open add container ────────────────────────────────────────────
+function openAddContainer() {
+  _contEditId = null; _contItems = [];
+  document.getElementById('cont-modal-title').textContent = 'New container';
+  document.getElementById('cont-name').value = '';
+  document.getElementById('cont-date').value = '';
+  document.getElementById('cont-supplier').value = '';
+  document.getElementById('cont-notes').value = '';
+  renderContItems();
+  openModal('m-addcont');
+}
+
+function editContainer(id) {
+  let c = containers.find(c => c.id === id); if (!c) return;
+  _contEditId = id;
+  _contItems = c.items.map(it => ({...it, id: 'ci-' + Date.now() + Math.random().toString(36).slice(2,5)}));
+  document.getElementById('cont-modal-title').textContent = 'Edit container';
+  document.getElementById('cont-name').value = c.name;
+  document.getElementById('cont-date').value = c.date || '';
+  document.getElementById('cont-supplier').value = c.supplier || '';
+  document.getElementById('cont-notes').value = c.notes || '';
+  renderContItems();
+  openModal('m-addcont');
+}
+
+function saveContainer() {
+  let name = document.getElementById('cont-name').value.trim();
+  let date = document.getElementById('cont-date').value;
+  if (!name) { toast('Enter a container name', 'rd'); return; }
+  if (!_contItems.length) { toast('Add at least one product', 'rd'); return; }
+  let invalid = _contItems.find(it => !it.prodId || !it.qty || it.qty < 1);
+  if (invalid) { toast('Fill in all product lines completely', 'rd'); return; }
+
+  let items = _contItems.map(it => ({
+    catId: it.catId, subId: it.subId,
+    prodId: it.prodId, prodName: it.prodName,
+    qty: it.qty
+  }));
+
+  if (_contEditId) {
+    let c = containers.find(c => c.id === _contEditId);
+    if (c) { c.name = name; c.date = date; c.supplier = document.getElementById('cont-supplier').value.trim(); c.notes = document.getElementById('cont-notes').value.trim(); c.items = items; }
+  } else {
+    containers.unshift({
+      id: 'cont-' + Date.now(),
+      name, date,
+      supplier: document.getElementById('cont-supplier').value.trim(),
+      notes: document.getElementById('cont-notes').value.trim(),
+      status: 'pending', items,
+      createdBy: currentUser
+    });
+  }
+  closeModal('m-addcont');
+  renderContainers();
+  sbPushContainers();
+  toast(_contEditId ? 'Container updated' : 'Container "' + name + '" added');
+}
+
+function deleteContainer(id) {
+  let c = containers.find(c => c.id === id);
+  if (!c || !confirm('Delete "' + c.name + '"?')) return;
+  containers = containers.filter(c => c.id !== id);
+  renderContainers(); sbPushContainers(); toast('Deleted');
+}
+
+// ── Deliver ───────────────────────────────────────────────────────
+function openDeliver(id) {
+  _deliverContId = id;
+  let c = containers.find(c => c.id === id); if (!c) return;
+  document.getElementById('del-cont-name').textContent = c.name + ' — ' + c.items.length + ' products · ' + c.items.reduce((s,it)=>s+it.qty,0) + ' boxes';
+  document.getElementById('del-date').value = new Date().toISOString().slice(0,10);
+
+  // Build editable qty list
+  let grouped = {};
+  c.items.forEach(it => {
+    let catName = cN(it.catId) || 'General';
+    if (!grouped[catName]) grouped[catName] = [];
+    grouped[catName].push(it);
+  });
+
+  document.getElementById('del-items-list').innerHTML = Object.entries(grouped).map(([catName, items]) =>
+    '<div style="margin-bottom:10px">'
+    + '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;margin-bottom:5px">' + catName + '</div>'
+    + items.map(it =>
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+        + '<div style="flex:1;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + it.prodName + '</div>'
+        + '<div style="font-size:11px;color:var(--tx3);flex-shrink:0">Ordered: ' + it.qty + '</div>'
+        + '<input type="number" value="' + it.qty + '" min="0" data-prodid="' + it.prodId + '" class="del-qty-inp" style="width:72px;font-size:13px;font-weight:700;text-align:center;padding:5px"/>'
+        + '</div>'
+      ).join('')
+    + '</div>'
+  ).join('');
+  openModal('m-deliver');
+}
+
+function confirmDeliver() {
+  let c = containers.find(c => c.id === _deliverContId); if (!c) return;
+  let delivDate = document.getElementById('del-date').value || new Date().toISOString().slice(0,10);
+  let added = [];
+
+  // Read actual quantities from inputs
+  document.querySelectorAll('.del-qty-inp').forEach(inp => {
+    let prodId = parseInt(inp.dataset.prodid);
+    let receivedQty = parseInt(inp.value) || 0;
+    if (receivedQty > 0) {
+      let p = gP(prodId);
+      if (p) {
+        p.qty += receivedQty;
+        p.lastUpdated = delivDate;
+        added.push({prod: p.name, qty: receivedQty, prodId});
+        sbPushProduct(p);
+        let act = {type:'in', prod:p.name, qty:receivedQty, time:nowT(), user:currentUser, dest:null, destName:'Container: '+c.name};
+        activity.unshift(act);
+        sbPushActivity(act);
+      }
+      // Store received qty on the item
+      let item = c.items.find(it => it.prodId === prodId);
+      if (item) item.receivedQty = receivedQty;
+    }
+  });
+
+  c.status = 'delivered';
+  c.deliveredDate = delivDate;
+  c.deliveredBy = currentUser;
+
+  closeModal('m-deliver');
+  renderContainers();
+  refreshDash();
+  sbPushContainers();
+  toast('✓ Delivered! ' + added.length + ' products · stock updated');
+}
+
+async function sbPushContainers() {
+  if (!sbClient) return;
+  try {
+    await sbClient.from('settings').upsert({key:'containers', value: JSON.stringify(containers)});
+  } catch(e) { console.error('sbPushContainers:', e); }
+}
+async function sbPullContainers() {
+  if (!sbClient) return;
+  try {
+    let {data, error} = await sbClient.from('settings').select('value').eq('key','containers').single();
+    if (!error && data && data.value) {
+      let parsed = JSON.parse(data.value);
+      if (Array.isArray(parsed)) containers = parsed;
+    }
+  } catch(e) {}
+}
+
 // ── Supabase ──────────────────────────────────────────────────────
 const SB_URL = 'https://ilyaqubsrpjrfgekwonw.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseWFxdWJzcnBqcmZnZWt3b253Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NTczNzMsImV4cCI6MjA5NDMzMzM3M30.EMp_EDJwzfbYgNEOeiXdjiB-GFjAEsAkRgTWb5ixF5M';
@@ -1857,6 +2449,7 @@ async function sbInit() {
   sbConnected = true;
   updateSbStatus(true);
   await sbPullUsers();
+  await sbPullContainers();
   await sbPull();
   sbSubscribe();
 }
@@ -1956,7 +2549,7 @@ async function sbPushAll(){
   try{
     await sbClient.from('products').upsert(products.map(p=>({id:p.id,name:p.name,sku:p.sku||'',cat:p.cat,sub:p.sub,qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',barcode:p.barcode||null,last_updated:p.lastUpdated||null,photo:p.photo||null})));
     await sbClient.from('categories').upsert(categories.map(c=>({id:c.id,name:c.name,subs:c.subs})));
-    await sbPushSettings();await sbPushUsers();
+    await sbPushSettings();await sbPushUsers();await sbPushContainers();
     toast('✓ All data pushed ('+products.length+' products)');
   }catch(e){toast('Push failed: '+(e.message||String(e)),'rd');}
 }
