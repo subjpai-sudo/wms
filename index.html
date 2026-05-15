@@ -216,7 +216,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .pin-urole{font-size:11px;color:var(--tx3)}
 .pin-key{height:64px;border-radius:var(--rl);border:1.5px solid var(--bdr);background:var(--sur);font-size:24px;font-weight:600;color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;user-select:none;transition:background .1s}
 .pin-key:active{background:var(--pu2);border-color:var(--pu);color:var(--pu3)}
-#pin-screen.hidden{display:none !important}
+#pin-screen.hidden{display:none}
 @keyframes shake{0%,100%{transform:translateX(0)}25%,75%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
 
 /* ════ MOBILE ════ */
@@ -226,17 +226,27 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   #sidebar.open{transform:translateX(0)}
   #sb-ov{display:block}
   #bottom-nav{display:block}
-  #main{padding:12px 12px 80px}
+  #main{padding:10px 10px 80px}
   #toast{bottom:72px}
+  /* metrics */
   .mgrid{grid-template-columns:1fr 1fr}
   .mgrid .metric:last-child{grid-column:span 2}
-  #dash-r2{grid-template-columns:1fr !important}
-  #dash-r3{grid-template-columns:1fr !important}
-  .si-layout{grid-template-columns:1fr !important}
-  .modal{max-height:90vh}
+  /* dashboard */
+  #dash-r2,#dash-r3{grid-template-columns:1fr !important}
+  /* stock in/out single column */
+  .si-layout{display:block !important}
+  #si-right,#so-detail{display:none !important}
+  /* modals */
+  .modal{max-height:92vh}
+  /* tables */
   .hm{display:none}
-  /* product table action buttons always visible */
-  .act-btns .btn-sm{padding:5px 7px}
+  /* action buttons */
+  .act-btns{flex-wrap:nowrap}
+  .act-btns .btn-sm{padding:5px 6px;min-width:30px}
+  /* grids stack on mobile - but NOT g2 in modals */
+  .g3,.g4,.g5{grid-template-columns:1fr}
+  /* settings/containers tabs content */
+  .tbp .card{margin-bottom:10px}
 }
 @media(min-width:769px){
   #bottom-nav,.bn-more-menu{display:none !important}
@@ -862,7 +872,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
         </div>
       </div>
       <input type="hidden" id="sb-url-inp" value="https://ilyaqubsrpjrfgekwonw.supabase.co"/>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="display:flex;gap:8px">
         <button class="btn btn-pu w100" style="justify-content:center;font-size:13px" onclick="sbPushAll()">
           <svg width="13" height="13"><use href="#ic-in"/></svg> Push all data
         </button>
@@ -1186,8 +1196,7 @@ function checkPin() {
     avEl.textContent = ini; avEl.style.background = col;
     document.getElementById('dash-title').textContent = currentRole === 'owner' ? 'Owner Dashboard' : 'Dashboard';
     let ps = document.getElementById('pin-screen');
-    if (ps) { ps.style.display = 'none'; ps.classList.add('hidden'); }
-    // Restore visibility (in case lock set it)
+    if (ps) { ps.classList.add('hidden'); ps.style.display = 'none'; }
     ['topbar','layout','bottom-nav'].forEach(id => {
       let el = document.getElementById(id); if (el) el.style.visibility = '';
     });
@@ -1213,16 +1222,23 @@ function checkPin() {
 function lockApp() {
   _pinEntry = ''; _pinTarget = null;
   currentRole = ''; currentUser = ''; currentUserId = '';
-  renderPinUserList();
+  // Reset PIN screen to user list view
   let ul = document.getElementById('pin-user-list');
   let pw = document.getElementById('pin-pad-wrap');
-  if (ul) { ul.style.display = 'flex'; }
-  if (pw) { pw.style.display = 'none'; }
-  let pe = document.getElementById('pin-err'); if (pe) pe.textContent = '';
+  let pe = document.getElementById('pin-err');
+  if (ul) ul.style.display = 'flex';
+  if (pw) pw.style.display = 'none';
+  if (pe) pe.textContent = '';
+  updatePinDots();
+  renderPinUserList();
+  // Show PIN screen - use both inline style and class removal for reliability
   let ps = document.getElementById('pin-screen');
-  if (ps) { ps.style.display = 'flex'; ps.classList.remove('hidden'); }
+  if (ps) {
+    ps.classList.remove('hidden');
+    ps.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px';
+  }
 }
-function switchRole() { if (confirm('Lock app and switch user?')) lockApp(); }
+function switchRole() { lockApp(); }
 
 // ── User Management ───────────────────────────────────────────────
 function renderUsersList() {
@@ -2249,14 +2265,15 @@ function renderContItems() {
       + subProds.map(p => '<option value="' + p.id + '"' + (row.prodId===p.id?' selected':'') + '>' + p.name + '</option>').join('')
       + '</select>';
 
-    return '<div style="border:1px solid var(--bdr);border-radius:var(--r);padding:8px;background:var(--sur2)">'
-      + '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">'
-        + catSel + subSel
+    return '<div style="border:1px solid var(--bdr);border-radius:var(--r);padding:8px;background:var(--sur2);margin-bottom:4px">'
+      + '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;flex-wrap:wrap">'
+        + '<div style="flex:1;min-width:120px">' + catSel + '</div>'
+        + '<div style="flex:1;min-width:120px">' + subSel + '</div>'
       + '</div>'
       + '<div style="display:flex;gap:6px;align-items:center">'
-        + prodSel
-        + '<input type="number" value="' + (row.qty||'') + '" placeholder="Qty" min="1" onchange="contItemQtyChange(\'' + row.id + '\',this.value)" style="width:70px;font-size:13px;font-weight:600;text-align:center;flex-shrink:0"/>'
-        + '<button onclick="removeContItem(\'' + row.id + '\')" style="background:var(--rd2);color:var(--rd3);border:none;border-radius:var(--r);width:32px;height:32px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>'
+        + '<div style="flex:1;min-width:0">' + prodSel + '</div>'
+        + '<input type="number" value="' + (row.qty||'') + '" placeholder="Qty" min="1" onchange="contItemQtyChange(\'' + row.id + '\',this.value)" style="width:68px;font-size:13px;font-weight:600;text-align:center;flex-shrink:0;padding:7px 4px"/>'
+        + '<button onclick="removeContItem(\'' + row.id + '\')" style="background:var(--rd2);color:var(--rd3);border:none;border-radius:var(--r);width:34px;height:34px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>'
       + '</div>'
       + '</div>';
   }).join('');
