@@ -470,7 +470,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
       <input type="search" id="prod-srch" placeholder="Search…" oninput="renderProds()" style="flex:1;min-width:120px"/>
       <select id="prod-cat-f" onchange="renderProds()" style="width:auto;min-width:130px;font-size:12px"></select>
     </div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th class="hm">Brand</th><th class="hm">SKU</th><th>Barcode</th><th>Qty</th><th>Status</th><th class="hm">Updated</th><th>Actions</th></tr></thead><tbody id="prod-tbl"></tbody></table></div>
+    <div id="prod-list" style="border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;background:var(--sur)"></div>
   </div>
 </div>
 
@@ -782,7 +782,8 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 <!-- Add product -->
 <div class="modal-bg h" id="m-addprod">
   <div class="modal"><div class="mhandle"></div><div class="modal-body">
-    <div class="fx gap8 mb14"><div style="font-size:16px;font-weight:700;flex:1">Add product</div><button class="btn btn-sm" onclick="closeModal('m-addprod')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
+    <div class="fx gap8 mb14"><div style="font-size:16px;font-weight:700;flex:1" id="addprod-title">Add product</div><button class="btn btn-sm" onclick="closeModal('m-addprod')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
+    <input type="hidden" id="np-edit-id"/>
     <div style="display:flex;flex-direction:column;gap:10px">
       <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Product name</label><input type="text" id="np-name" placeholder="e.g. READY Beef Curry 425g"/></div>
       <div class="g2"><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Category</label><select id="np-cat" onchange="npSubcats()"><option value="">Select…</option></select></div><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Brand</label><select id="np-sub"><option value="">Select…</option></select></div></div>
@@ -2424,38 +2425,118 @@ function renderProds(){
   for(let cat of categories){
     let cp=products.filter(p=>p.cat===cat.id&&(!catF||catF===cat.id)&&match(p));
     if(!cp.length)continue;
-    rows+='<tr><td colspan="8" style="background:var(--sur2);padding:7px 10px;font-weight:700;font-size:11px;text-transform:uppercase;color:var(--tx2)">'+cat.name+' <span style="font-weight:400;color:var(--tx3)">'+cp.length+'</span></td></tr>';
+    // Category header
+    rows+='<div style="background:var(--sur2);padding:8px 12px;font-weight:700;font-size:11px;text-transform:uppercase;color:var(--tx2);letter-spacing:.05em;position:sticky;top:0;z-index:1">'+cat.name+' <span style="font-weight:400;color:var(--tx3)">'+cp.length+'</span></div>';
     let subs=[...new Set(cp.map(p=>p.sub))];
     for(let sid of subs){
       let sp=cp.filter(p=>p.sub===sid),brand=sN(cat.id,sid);
-      rows+='<tr><td colspan="8" style="padding:3px 10px 3px 20px;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase">'+brand+' · '+sp.length+'</td></tr>';
+      rows+='<div style="padding:4px 12px 2px;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;background:var(--sur)">'+brand+'</div>';
       rows+=sp.map(p=>{
         let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
         let nm=p.name;
         if(srch){try{let re=new RegExp(srch.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');nm=p.name.replace(re,m=>'<mark style="background:var(--am2);border-radius:2px">'+m+'</mark>');}catch(e){}}
-        let bc=p.barcode?'<span style="font-family:monospace;font-size:11px;color:var(--gn3)">'+p.barcode+'</span>':'<button class="btn btn-sm btn-am" onclick="openRegisterBc('+p.id+')" style="font-size:10px;padding:2px 7px">Register</button>';
-        return '<tr>'
-          +'<td style="padding-left:20px;font-size:12px;font-weight:500;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nm+'</td>'
-          +'<td class="hm" style="font-size:11px;color:var(--tx2)">'+brand+'</td>'
-          +'<td class="hm" style="font-family:monospace;font-size:10px;color:var(--tx3)">'+p.sku+'</td>'
-          +'<td>'+bc+'</td>'
-          +'<td><strong style="color:'+qc+'">'+p.qty+'</strong></td>'
-          +'<td>'+sBadge(p)+'</td>'
-          +'<td class="hm">'+luChip(p.lastUpdated)+'</td>'
-          +'<td><div class="act-btns">'
-            +'<button class="btn btn-sm" onclick="openSI('+p.id+')" title="Stock in" style="padding:5px 7px"><svg width="13" height="13"><use href="#ic-in"/></svg></button>'
-            +'<button class="btn btn-sm" onclick="openPhotoModal('+p.id+')" title="Photo" style="padding:5px 7px;background:var(--bl2);color:var(--bl3);border-color:transparent"><svg width="13" height="13"><use href="#ic-cam"/></svg></button>'
-            +'<button class="btn btn-sm" onclick="openRegisterBc('+p.id+')" title="Barcode" style="padding:5px 7px;background:var(--pu2);color:var(--pu3);border-color:transparent"><svg width="13" height="13"><use href="#ic-barcode"/></svg></button>'
-            +'<button class="btn btn-sm btn-rd" onclick="delProd('+p.id+')" title="Delete" style="padding:5px 7px"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>'
-          +'</div></td>'
-          +'</tr>';
+        let photoThumb=p.photo?'<img src="'+p.photo+'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0" onerror="this.style.display=\'none\'">'
+          :'<div style="width:36px;height:36px;border-radius:6px;background:var(--sur2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="14" height="14" style="opacity:.3"><use href="#ic-pkg"/></svg></div>';
+        // Expanded action panel (hidden by default)
+        let bcLabel=p.barcode?'<span style="font-family:monospace;font-size:10px;color:var(--gn3)">'+p.barcode+'</span>':'<span style="font-size:10px;color:var(--tx3)">No barcode</span>';
+        let expandPanel='<div id="pexp-'+p.id+'" style="display:none;border-top:1px solid var(--bdr);background:var(--sur2);padding:12px">'
+          +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--bdr)">'
+            +(p.photo?'<img src="'+p.photo+'" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display=\'none\'">'
+              :'<div style="width:56px;height:56px;border-radius:8px;background:var(--sur);border:2px dashed var(--bdr2);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer" onclick="document.getElementById(\'photo-inp-'+p.id+'\').click()"><svg width="20" height="20" style="opacity:.3"><use href="#ic-cam"/></svg></div>')
+            +'<input type="file" id="photo-inp-'+p.id+'" accept="image/*" style="display:none" onchange="uploadPhotoInline('+p.id+',this)">'
+            +'<div style="flex:1;min-width:0">'
+              +'<div style="font-size:12px;font-weight:600;margin-bottom:2px">'+p.name+'</div>'
+              +'<div style="font-size:11px;color:var(--tx3);margin-bottom:6px">SKU: '+p.sku+' · '+bcLabel+'</div>'
+              +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+                +'<button class="btn btn-sm" onclick="document.getElementById(\'photo-inp-'+p.id+'\').click()" style="font-size:11px;padding:4px 9px;background:var(--bl2);color:var(--bl3);border-color:transparent">📷 '+(p.photo?'Change photo':'Upload photo')+'</button>'
+                +(p.photo?'<button class="btn btn-sm" onclick="removePhotoInline('+p.id+')" style="font-size:11px;padding:4px 9px;background:var(--rd2);color:var(--rd3);border-color:transparent">✕ Remove</button>':'')
+              +'</div>'
+            +'</div>'
+          +'</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+            +'<button class="btn btn-sm w100" onclick="openSI('+p.id+')" style="justify-content:center;padding:9px"><svg width="13" height="13"><use href="#ic-in"/></svg> Stock in</button>'
+            +'<button class="btn btn-sm w100" onclick="openRegisterBc('+p.id+')" style="justify-content:center;padding:9px;background:var(--pu2);color:var(--pu3);border-color:transparent">🔳 '+(p.barcode?'Edit barcode':'Register barcode')+'</button>'
+            +'<button class="btn btn-sm w100" onclick="openEditProd('+p.id+')" style="justify-content:center;padding:9px;background:var(--am2);color:var(--am3);border-color:transparent"><svg width="13" height="13"><use href="#ic-edit"/></svg> Edit</button>'
+            +'<button class="btn btn-sm w100 btn-rd" onclick="delProd('+p.id+')" style="justify-content:center;padding:9px"><svg width="13" height="13"><use href="#ic-trash"/></svg> Delete</button>'
+          +'</div>'
+          +'</div>';
+        return '<div style="border-bottom:1px solid var(--bdr)">'
+          +'<div onclick="toggleProdRow('+p.id+')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;background:var(--sur);-webkit-tap-highlight-color:transparent">'
+            +photoThumb
+            +'<div style="flex:1;min-width:0">'
+              +'<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nm+'</div>'
+              +'<div style="font-size:11px;color:var(--tx3);margin-top:1px">'+p.sku+'</div>'
+            +'</div>'
+            +'<div style="text-align:right;flex-shrink:0">'
+              +'<div style="font-size:16px;font-weight:800;color:'+qc+'">'+p.qty+'</div>'
+              +sBadge(p)
+            +'</div>'
+            +'<div style="color:var(--tx3);margin-left:4px;font-size:12px" id="pexp-arrow-'+p.id+'">›</div>'
+          +'</div>'
+          +expandPanel
+          +'</div>';
       }).join('');
     }
   }
-  document.getElementById('prod-tbl').innerHTML=rows||'<tr><td colspan="8" style="text-align:center;color:var(--tx3);padding:20px">No products found</td></tr>';
+  document.getElementById('prod-list').innerHTML=rows||'<div style="text-align:center;color:var(--tx3);padding:30px">No products found</div>';
 }
-function delProd(id){if(!confirm('Delete this product?'))return;products=products.filter(p=>p.id!==id);renderProds();toast('Product deleted');}
+
+let _expandedProd = null;
+function toggleProdRow(id){
+  let panel=document.getElementById('pexp-'+id);
+  let arrow=document.getElementById('pexp-arrow-'+id);
+  if(!panel)return;
+  let isOpen=panel.style.display!=='none';
+  // Close previously open one
+  if(_expandedProd && _expandedProd!==id){
+    let prev=document.getElementById('pexp-'+_expandedProd);
+    let prevArrow=document.getElementById('pexp-arrow-'+_expandedProd);
+    if(prev){prev.style.display='none';}
+    if(prevArrow){prevArrow.textContent='›';prevArrow.style.transform='';}
+  }
+  panel.style.display=isOpen?'none':'block';
+  arrow.textContent=isOpen?'›':'›';
+  arrow.style.transform=isOpen?'':'rotate(90deg)';
+  _expandedProd=isOpen?null:id;
+}
+
+function uploadPhotoInline(pid, input){
+  let file=input.files[0]; if(!file)return;
+  let reader=new FileReader();
+  reader.onload=e=>{
+    let p=gP(pid);
+    p.photo=e.target.result;
+    sbPushProduct(p);
+    toast('✓ Photo saved');
+    renderProds(); // re-render to show new photo
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhotoInline(pid){
+  let p=gP(pid); if(!p)return;
+  p.photo=null;
+  sbPushProduct(p);
+  toast('Photo removed');
+  renderProds();
+}
+
+function openEditProd(id){
+  let p=gP(id); if(!p)return;
+  let sel=document.getElementById('np-cat');
+  sel.innerHTML='<option value="">Select…</option>'+categories.map(c=>'<option value="'+c.id+'"'+(p.cat===c.id?' selected':'')+'>'+c.name+'</option>').join('');
+  let c=gC(p.cat);
+  document.getElementById('np-sub').innerHTML=c?c.subs.map(s=>'<option value="'+s.id+'"'+(p.sub===s.id?' selected':'')+'>'+s.name+'</option>').join(''):'';
+  document.getElementById('np-name').value=p.name;
+  document.getElementById('np-qty').value=p.qty;
+  document.getElementById('np-thr').value=p.threshold;
+  document.getElementById('np-bc').value=p.barcode||'';
+  document.getElementById('np-edit-id').value=id;
+  openModal('m-addprod');
+}
 function openAddProd(){
+  document.getElementById('addprod-title').textContent='Add product';
+  document.getElementById('np-edit-id').value='';
   let sel=document.getElementById('np-cat');
   sel.innerHTML='<option value="">Select…</option>'+categories.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
   ['np-name','np-bc'].forEach(id=>{let el=document.getElementById(id);if(el)el.value='';});
@@ -2467,12 +2548,20 @@ function npSubcats(){let cid=document.getElementById('np-cat').value,c=gC(cid);d
 function saveProd(){
   let name=document.getElementById('np-name').value.trim(),cat=document.getElementById('np-cat').value,sub=document.getElementById('np-sub').value;
   if(!name||!cat||!sub){toast('Fill in all required fields','rd');return;}
-  let id=Math.max(...products.map(p=>p.id),0)+1;
   let qty=parseInt(document.getElementById('np-qty').value)||0,thr=parseInt(document.getElementById('np-thr').value)||20;
   let bc=document.getElementById('np-bc').value.trim().replace(/\D/g,'')||undefined;
-  let p={id,name,sku:cat.substring(0,4).toUpperCase()+'-'+String(id).padStart(3,'0'),cat,sub,qty,threshold:thr,vendor:sN(cat,sub),barcode:bc,lastUpdated:new Date().toISOString().slice(0,10)};
-  products.push(p);closeModal('m-addprod');renderProds();sbPushProduct(p);toast('"'+name+'" added');
+  let editId=document.getElementById('np-edit-id').value;
+  if(editId){
+    let p=gP(parseInt(editId));
+    if(p){p.name=name;p.cat=cat;p.sub=sub;p.qty=qty;p.threshold=thr;if(bc)p.barcode=bc;p.vendor=sN(cat,sub);sbPushProduct(p);}
+    closeModal('m-addprod');renderProds();toast('"'+name+'" updated');
+  }else{
+    let id=Math.max(...products.map(p=>p.id),0)+1;
+    let p={id,name,sku:cat.substring(0,4).toUpperCase()+'-'+String(id).padStart(3,'0'),cat,sub,qty,threshold:thr,vendor:sN(cat,sub),barcode:bc,lastUpdated:new Date().toISOString().slice(0,10)};
+    products.push(p);closeModal('m-addprod');renderProds();sbPushProduct(p);toast('"'+name+'" added');
+  }
 }
+function delProd(id){if(!confirm('Delete this product?'))return;products=products.filter(p=>p.id!==id);_expandedProd=null;renderProds();toast('Product deleted');}
 
 // ── Register barcode ──────────────────────────────────────────────
 function openRegisterBc(id){
@@ -2532,9 +2621,10 @@ async function fetchProductImage(productName, serpKey) {
 }
 
 async function imageUrlToBase64(url) {
-  // Proxy through a CORS-friendly service or direct fetch
-  let res = await fetchTimeout(url, {}, 8000);
-  if (!res.ok) throw new Error('Image fetch failed: ' + res.status);
+  // Proxy through our Vercel API to bypass CORS on Google Images
+  let proxyUrl = '/api/image-proxy?url=' + encodeURIComponent(url);
+  let res = await fetchTimeout(proxyUrl, {}, 12000);
+  if (!res.ok) throw new Error('Proxy fetch failed: ' + res.status);
   let blob = await res.blob();
   return new Promise((resolve, reject) => {
     let reader = new FileReader();
