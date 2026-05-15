@@ -5,168 +5,198 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
 <title>CityStar Warehouse</title>
 <style>
 :root{
-  --bg:#f5f4f0;--sur:#fff;--sur2:#f0efe9;--sur3:#e8e7e0;
-  --bdr:#dddbd2;--bdr2:#c8c6bc;
-  --tx:#1a1917;--tx2:#6b6960;--tx3:#9e9c94;
-  --pu:#4c3fff;--pu2:#eeecff;--pu3:#2a1fff;
-  --gn:#1a7a4a;--gn2:#e3f5ec;--gn3:#0f5c36;
-  --am:#b85c00;--am2:#fff3e0;--am3:#8a4400;
-  --rd:#c0392b;--rd2:#fdecea;--rd3:#922b21;
-  --bl:#1565c0;--bl2:#e3f0ff;--bl3:#0d47a1;
+  /* Brand */
+  --pu:#5B47FB;--pu2:#EEEAFF;--pu3:#3B2FD9;
+  /* Surface */
+  --bg:#F8F9FB;--sur:#FFFFFF;--sur2:#F1F3F7;--sur3:#E4E7EE;
+  /* Borders */
+  --bdr:#E2E6EF;--bdr2:#C8CFDE;
+  /* Text */
+  --tx:#0F172A;--tx2:#475569;--tx3:#94A3B8;
+  /* Semantic */
+  --gn:#16A34A;--gn2:#F0FDF4;--gn3:#15803D;
+  --am:#D97706;--am2:#FFFBEB;--am3:#B45309;
+  --rd:#DC2626;--rd2:#FEF2F2;--rd3:#B91C1C;
+  --bl:#2563EB;--bl2:#EFF6FF;--bl3:#1D4ED8;
   --wa:#25d366;
-  --sw:210px;--tb:52px;--bn:62px;
-  --r:8px;--rl:12px;--rx:20px;
+  /* Layout */
+  --sw:224px;--tb:56px;--bn:64px;
+  /* Radius */
+  --r:8px;--rl:12px;--rx:18px;
+  /* Shadow */
+  --sh-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+  --sh-md:0 4px 16px rgba(15,23,42,.08),0 2px 6px rgba(15,23,42,.04);
+  --sh-lg:0 20px 48px rgba(15,23,42,.14),0 8px 16px rgba(15,23,42,.06);
+  --sh-pu:0 4px 16px rgba(91,71,251,.28);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{height:100%}
-body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);height:100%;display:flex;flex-direction:column;overflow:hidden}
+body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);height:100%;display:flex;flex-direction:column;overflow:hidden;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font-family:inherit}
 svg{display:inline-block;vertical-align:middle;flex-shrink:0}
 
 /* ── TOPBAR ── */
-#topbar{height:var(--tb);background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;z-index:30}
-.logo{font-weight:700;font-size:15px;flex:1;display:flex;align-items:center;gap:7px;overflow:hidden}
-#menu-btn{display:none;background:none;border:none;padding:6px;color:var(--tx);line-height:0;flex-shrink:0}
-.av{width:30px;height:30px;border-radius:50%;background:var(--pu);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.role-badge{font-size:11px;font-weight:600;background:var(--pu2);color:var(--pu3);border-radius:20px;padding:2px 9px;white-space:nowrap}
+#topbar{height:var(--tb);background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;z-index:30;box-shadow:var(--sh-sm)}
+.logo{font-weight:700;font-size:15px;letter-spacing:-.01em;flex:1;display:flex;align-items:center;gap:8px;overflow:hidden;color:var(--tx)}
+.logo-icon{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--pu),var(--pu3));display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;box-shadow:var(--sh-pu)}
+#menu-btn{display:none;background:none;border:none;padding:6px;color:var(--tx2);line-height:0;flex-shrink:0;border-radius:var(--r)}
+#menu-btn:active{background:var(--sur2)}
+.av{width:32px;height:32px;border-radius:50%;background:var(--pu);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--sh-sm);cursor:pointer;transition:transform .1s}
+.av:active{transform:scale(.94)}
+.role-badge{font-size:11px;font-weight:600;background:var(--pu2);color:var(--pu);border-radius:20px;padding:3px 10px;white-space:nowrap;letter-spacing:.01em}
 .bell-wrap{position:relative;flex-shrink:0}
-.bell-btn{background:none;border:none;padding:6px;color:var(--tx2);display:flex;align-items:center;line-height:0}
-.bell-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--rd);border-radius:50%;border:1.5px solid var(--sur);display:none}
+.bell-btn{background:none;border:none;padding:7px;color:var(--tx3);display:flex;align-items:center;line-height:0;border-radius:var(--r);transition:color .1s,background .1s}
+.bell-btn:hover{background:var(--sur2);color:var(--tx2)}
+.bell-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--rd);border-radius:50%;border:2px solid var(--sur);display:none}
 
 /* ── LAYOUT ── */
 #layout{display:flex;flex:1;overflow:hidden;min-height:0}
 
 /* ── SIDEBAR ── */
-#sidebar{width:var(--sw);background:var(--sur);border-right:1px solid var(--bdr);padding:10px 8px;display:flex;flex-direction:column;gap:1px;flex-shrink:0;overflow-y:auto;z-index:20;transition:transform .25s ease}
-.ni{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:var(--r);font-size:13px;color:var(--tx2);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:background .1s}
-.ni:hover{background:var(--sur2)}
-.ni.on{background:var(--pu2);color:var(--pu3);font-weight:600}
-.sep{height:1px;background:var(--bdr);margin:6px 4px}
+#sidebar{width:var(--sw);background:var(--sur);border-right:1px solid var(--bdr);padding:12px 10px;display:flex;flex-direction:column;gap:2px;flex-shrink:0;overflow-y:auto;z-index:20;transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.sidebar-section{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;padding:10px 10px 4px;margin-top:6px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--r);font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:all .12s;position:relative}
+.ni svg{color:var(--tx3);transition:color .12s;flex-shrink:0}
+.ni:hover{background:var(--sur2);color:var(--tx)}
+.ni:hover svg{color:var(--tx2)}
+.ni.on{background:var(--pu2);color:var(--pu);font-weight:600}
+.ni.on svg{color:var(--pu)}
+.sep{height:1px;background:var(--bdr);margin:8px 6px}
+.sidebar-bottom{margin-top:auto;padding-top:10px;border-top:1px solid var(--bdr)}
 
 /* ── MAIN ── */
-#main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;min-height:0}
+#main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px;min-height:0}
 
 /* ── BOTTOM NAV ── */
-#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--bn);background:var(--sur);border-top:1px solid var(--bdr);z-index:200;will-change:transform}
-.bn-row{display:flex;height:100%}
-.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;color:var(--tx3);font-size:9px;font-weight:600;cursor:pointer;padding:0}
+#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--bn);background:rgba(255,255,255,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--bdr);z-index:200;will-change:transform}
+.bn-row{display:flex;height:100%;padding:0 4px}
+.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--tx3);font-size:9px;font-weight:600;cursor:pointer;padding:0;letter-spacing:.02em;transition:color .12s}
 .bn-btn.on{color:var(--pu)}
-.bn-btn svg{width:22px;height:22px}
-#bn-more-menu{position:fixed;bottom:var(--bn);right:0;width:200px;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl) var(--rl) 0 0;padding:8px;display:none;flex-direction:column;gap:2px;box-shadow:0 -4px 20px rgba(0,0,0,.12);z-index:201}
+.bn-btn.on svg{filter:drop-shadow(0 0 6px rgba(91,71,251,.4))}
+.bn-btn svg{width:22px;height:22px;transition:transform .12s}
+.bn-btn:active svg{transform:scale(.88)}
+#bn-more-menu{position:fixed;bottom:var(--bn);right:0;left:0;background:rgba(255,255,255,.98);backdrop-filter:blur(16px);border-top:1px solid var(--bdr);padding:10px;display:none;flex-direction:column;gap:2px;box-shadow:var(--sh-lg);z-index:201}
 #bn-more-menu.open{display:flex}
-.bn-mi{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:var(--r);font-size:13px;color:var(--tx2);cursor:pointer;border:none;background:none;width:100%;text-align:left}
-.bn-mi:active{background:var(--pu2);color:var(--pu3)}
+.bn-mi{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--r);font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:background .1s}
+.bn-mi svg{color:var(--tx3)}
+.bn-mi:active{background:var(--pu2);color:var(--pu)}
 
-/* ── OVERLAY (sidebar mobile) ── */
-#sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:19;opacity:0;transition:opacity .25s;pointer-events:none}
+/* ── OVERLAY ── */
+#sb-ov{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(2px);z-index:19;opacity:0;transition:opacity .25s;pointer-events:none}
 
 /* ── PAGES ── */
 .page{display:none}.page.on{display:block}
-.pt{font-size:18px;font-weight:700;margin-bottom:2px}
-.ps{font-size:13px;color:var(--tx2);margin-bottom:14px}
+.pt{font-size:22px;font-weight:700;margin-bottom:2px;letter-spacing:-.02em;color:var(--tx)}
+.ps{font-size:13px;color:var(--tx2);margin-bottom:16px;font-weight:400}
 
 /* ── CARDS ── */
-.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px}
-.sec{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px;box-shadow:var(--sh-sm)}
+.card:hover{border-color:var(--bdr2)}
+.sec{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
 
 /* ── BADGES ── */
-.badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;border-radius:20px;padding:2px 8px}
-.bg{background:var(--gn2);color:var(--gn3)} .ba{background:var(--am2);color:var(--am3)}
-.br{background:var(--rd2);color:var(--rd3)} .bb{background:var(--bl2);color:var(--bl3)}
-.bp{background:var(--pu2);color:var(--pu3)} .bgr{background:var(--sur3);color:var(--tx2)}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;border-radius:20px;padding:2px 9px;letter-spacing:.01em}
+.bg{background:var(--gn2);color:var(--gn3)}
+.ba{background:var(--am2);color:var(--am3)}
+.br{background:var(--rd2);color:var(--rd3)}
+.bb{background:var(--bl2);color:var(--bl3)}
+.bp{background:var(--pu2);color:var(--pu)}
+.bgr{background:var(--sur3);color:var(--tx2)}
 
 /* ── BUTTONS ── */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:var(--r);padding:8px 14px;font-size:13px;font-weight:500;border:1px solid var(--bdr2);background:var(--sur);color:var(--tx);cursor:pointer;white-space:nowrap;transition:opacity .1s;line-height:1}
-.btn:active{opacity:.75}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn-pu{background:var(--pu);color:#fff;border-color:var(--pu)}
-.btn-gn{background:var(--gn);color:#fff;border-color:var(--gn)}
-.btn-rd{background:var(--rd2);color:var(--rd3);border-color:transparent}
-.btn-am{background:var(--am2);color:var(--am3);border-color:transparent}
-.btn-wa{background:var(--wa);color:#fff;border-color:var(--wa)}
-.btn-sm{padding:5px 9px;font-size:12px}
-.btn-icon{padding:6px;width:34px;height:34px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:var(--r);padding:9px 16px;font-size:13px;font-weight:600;border:1px solid var(--bdr);background:var(--sur);color:var(--tx);cursor:pointer;white-space:nowrap;transition:all .12s;line-height:1;letter-spacing:.01em;box-shadow:var(--sh-sm)}
+.btn:hover{border-color:var(--bdr2);background:var(--sur2)}
+.btn:active{transform:scale(.97);opacity:.85}
+.btn:disabled{opacity:.38;cursor:not-allowed;transform:none}
+.btn-pu{background:var(--pu);color:#fff;border-color:var(--pu);box-shadow:var(--sh-pu)}
+.btn-pu:hover{background:var(--pu3);border-color:var(--pu3)}
+.btn-gn{background:var(--gn);color:#fff;border-color:var(--gn);box-shadow:0 4px 14px rgba(22,163,74,.25)}
+.btn-gn:hover{background:var(--gn3);border-color:var(--gn3)}
+.btn-rd{background:var(--rd2);color:var(--rd3);border-color:transparent;box-shadow:none}
+.btn-rd:hover{background:#fecdd3;border-color:transparent}
+.btn-am{background:var(--am2);color:var(--am3);border-color:transparent;box-shadow:none}
+.btn-wa{background:var(--wa);color:#fff;border-color:var(--wa);box-shadow:0 4px 14px rgba(37,211,102,.3)}
+.btn-sm{padding:6px 11px;font-size:12px;box-shadow:none}
+.btn-icon{padding:7px;width:34px;height:34px;box-shadow:none}
 .w100{width:100%}
+.mb8{margin-bottom:8px}.mb10{margin-bottom:10px}.mb12{margin-bottom:12px}.mb14{margin-bottom:14px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}
 
 /* ── INPUTS ── */
-input,select,textarea{width:100%;border:1px solid var(--bdr2);border-radius:var(--r);padding:9px 12px;font-size:14px;color:var(--tx);background:var(--sur);outline:none;transition:border-color .12s;-webkit-appearance:none;appearance:none}
+input,select,textarea{width:100%;border:1.5px solid var(--bdr);border-radius:var(--r);padding:9px 12px;font-size:13px;font-weight:500;color:var(--tx);background:var(--sur);outline:none;transition:all .15s;-webkit-appearance:none;appearance:none}
 input:focus,select:focus,textarea:focus{border-color:var(--pu);box-shadow:0 0 0 3px var(--pu2)}
-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239e9c94' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:32px}
+input::placeholder,textarea::placeholder{color:var(--tx3);font-weight:400}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
 
 /* ── METRICS ── */
-.mgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
-.metric{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:12px}
-.mv{font-size:22px;font-weight:700;line-height:1;margin-bottom:2px}
-.ml{font-size:11px;color:var(--tx2)}
+.mgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.metric{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px;box-shadow:var(--sh-sm);position:relative;overflow:hidden;transition:transform .12s,box-shadow .12s}
+.metric:hover{transform:translateY(-1px);box-shadow:var(--sh-md)}
+.metric-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.mv{font-size:28px;font-weight:800;line-height:1;margin-bottom:3px;letter-spacing:-.02em}
+.ml{font-size:11px;color:var(--tx3);font-weight:500;letter-spacing:.01em}
+.metric-trend{font-size:11px;font-weight:600;position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:3px}
 
 /* ── TABS ── */
-.tabs{display:flex;border-bottom:1px solid var(--bdr);margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.tabs{display:flex;border-bottom:1.5px solid var(--bdr);margin-bottom:14px;overflow-x:auto;scrollbar-width:none;gap:2px}
 .tabs::-webkit-scrollbar{display:none}
-.tb{padding:8px 14px;font-size:13px;color:var(--tx2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
-.tb.on{color:var(--pu);border-bottom-color:var(--pu);font-weight:600}
+.tb{padding:9px 16px;font-size:13px;font-weight:500;color:var(--tx3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1.5px;white-space:nowrap;border-radius:var(--r) var(--r) 0 0;transition:all .12s}
+.tb:hover{color:var(--tx2);background:var(--sur2)}
+.tb.on{color:var(--pu);border-bottom-color:var(--pu);font-weight:700;background:transparent}
 .tbp{display:none}.tbp.on{display:block}
 
 /* ── PRODUCT ROWS ── */
-.plist{border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;background:var(--sur)}
-.prow{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--bdr);background:var(--sur);transition:background .1s}
+.plist{border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;background:var(--sur);box-shadow:var(--sh-sm)}
+.prow{display:flex;align-items:center;gap:12px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--bdr);background:var(--sur);transition:background .1s}
 .prow:last-child{border-bottom:none}
-.prow:active{background:var(--sur2)}
-.picon{width:34px;height:34px;border-radius:var(--r);background:var(--pu2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.pname{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.psub{font-size:11px;color:var(--tx3)}
-.pqty{font-size:15px;font-weight:700;text-align:right;flex-shrink:0;min-width:32px}
+.prow:hover{background:var(--sur2)}
+.prow:active{background:var(--pu2)}
+.picon{width:36px;height:36px;border-radius:var(--r);background:var(--pu2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pname{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx)}
+.psub{font-size:11px;color:var(--tx3);margin-top:1px}
+.pqty{font-size:16px;font-weight:700;text-align:right;flex-shrink:0;min-width:32px}
 
-/* ── TABLE ── */
-.tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{text-align:left;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;padding:7px 10px;border-bottom:1px solid var(--bdr);background:var(--sur2);white-space:nowrap}
-.tbl td{padding:8px 10px;border-bottom:1px solid var(--bdr);vertical-align:middle}
-.tbl tr:last-child td{border-bottom:none}
-.tbl tr:hover td{background:var(--sur2)}
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--bdr)}
-
-/* ── SCAN BAR ── */
-.scan-bar{display:flex;gap:8px;align-items:center;margin-bottom:10px}
-.scan-wrap{position:relative;flex:1}
-.scan-wrap input{padding-left:38px}
-.scan-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.4;line-height:0}
-.scan-btn{width:44px;height:44px;border-radius:var(--r);border:1px solid var(--bdr2);background:var(--sur);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:background .1s;line-height:0}
-.scan-btn:active{background:var(--sur2)}
-
-/* ── QTY CONTROLS ── */
-.qty-row{display:flex;gap:8px;align-items:center;margin-bottom:14px}
-.qbtn{width:48px;height:48px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600;flex-shrink:0;cursor:pointer;transition:background .1s;line-height:1}
-.qbtn:active{background:var(--sur3)}
-.qnum{flex:1;text-align:center;font-size:22px;font-weight:700;border:2px solid var(--pu) !important;padding:8px;border-radius:var(--r)}
+/* ── STOCK IN/OUT ── */
+.si-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.si-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;color:var(--tx3);text-align:center;gap:12px}
+.qty-row{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+.qbtn{width:52px;height:52px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);font-size:24px;font-weight:400;color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s;box-shadow:var(--sh-sm)}
+.qbtn:hover{background:var(--sur3);border-color:var(--bdr2)}
+.qbtn:active{transform:scale(.94)}
+.qnum{flex:1;text-align:center;font-size:28px;font-weight:800;border:2px solid var(--pu) !important;padding:8px;border-radius:var(--r);letter-spacing:-.01em}
 
 /* ── MODAL ── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:300;padding:0}
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;z-index:300;padding:0}
 .modal-bg.h{display:none}
-.modal{background:var(--sur);border-radius:var(--rx) var(--rx) 0 0;padding:0;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;animation:su .22s ease}
+.modal{background:var(--sur);border-radius:var(--rx) var(--rx) 0 0;padding:0;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;animation:su .22s cubic-bezier(.34,1.26,.64,1);box-shadow:var(--sh-lg)}
 @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-body{padding:18px 18px 24px}
-.mhandle{width:36px;height:4px;background:var(--bdr2);border-radius:2px;margin:10px auto 16px}
+.modal-body{padding:20px 20px 32px}
+.mhandle{width:40px;height:4px;background:var(--sur3);border-radius:2px;margin:12px auto 14px}
 
 /* ── CAT TREE ── */
-.cat-root{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:8px}
-.cat-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sur2);border-bottom:1px solid var(--bdr)}
-.cat-hdr-title{font-size:13px;font-weight:600;flex:1}
-.sub-item{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:13px;color:var(--tx2);border-bottom:1px solid var(--bdr)}
+.cat-root{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:10px;box-shadow:var(--sh-sm)}
+.cat-hdr{display:flex;align-items:center;gap:8px;padding:11px 14px;background:var(--sur2);border-bottom:1px solid var(--bdr)}
+.cat-hdr-title{font-size:13px;font-weight:700;flex:1;color:var(--tx)}
+.sub-item{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:13px;color:var(--tx2);border-bottom:1px solid var(--bdr);transition:background .1s}
 .sub-item:last-child{border-bottom:none}
+.sub-item:hover{background:var(--sur2)}
 
 /* ── CHIPS ── */
-.lu{font-size:10px;color:var(--tx3);background:var(--sur2);border-radius:20px;padding:1px 7px;white-space:nowrap}
+.lu{font-size:10px;color:var(--tx3);background:var(--sur2);border-radius:20px;padding:2px 8px;white-space:nowrap;font-weight:500}
 .lu.today{color:var(--gn3);background:var(--gn2)}
 .lu.old{color:var(--am3);background:var(--am2)}
 
 /* ── WA ── */
-.wa-bubble{background:#e5ddd5;border-radius:var(--rl);padding:14px;max-width:320px}
-.wa-msg{background:#fff;border-radius:8px 8px 8px 0;padding:10px 12px;font-size:12px;color:var(--tx);white-space:pre-line;line-height:1.6}
+.wa-bubble{background:#e5ddd5;border-radius:var(--rl);padding:14px;max-width:340px}
+.wa-msg{background:#fff;border-radius:8px 8px 8px 0;padding:12px 14px;font-size:12px;color:var(--tx);white-space:pre-line;line-height:1.7;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 
 /* ── TOAST ── */
-#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--gn);color:#fff;border-radius:var(--rl);padding:10px 18px;font-size:13px;font-weight:500;white-space:nowrap;z-index:999;opacity:0;transition:all .28s;pointer-events:none}
+#toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(48px);background:var(--tx);color:#fff;border-radius:var(--rl);padding:11px 20px;font-size:13px;font-weight:600;white-space:nowrap;z-index:999;opacity:0;transition:all .24s cubic-bezier(.34,1.26,.64,1);pointer-events:none;box-shadow:var(--sh-lg);letter-spacing:.01em}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
 /* ── CAMERA OVERLAY ── */
@@ -175,18 +205,19 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 #cam-ov-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .cam-frame-box{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .cam-frame{width:260px;height:110px;position:relative}
-.cam-frame::before,.cam-frame::after{content:'';position:absolute;border-color:#25d366;border-style:solid}
-.cam-frame::before{top:0;left:0;width:32px;height:32px;border-width:3px 0 0 3px;border-radius:4px 0 0 0}
-.cam-frame::after{bottom:0;right:0;width:32px;height:32px;border-width:0 3px 3px 0;border-radius:0 0 4px 0}
-.cam-frame-tr{position:absolute;top:0;right:0;width:32px;height:32px;border-top:3px solid #25d366;border-right:3px solid #25d366;border-radius:0 4px 0 0}
-.cam-frame-bl{position:absolute;bottom:0;left:0;width:32px;height:32px;border-bottom:3px solid #25d366;border-left:3px solid #25d366;border-radius:0 0 0 4px}
+.cam-frame::before,.cam-frame::after{content:'';position:absolute;border-color:var(--pu);border-style:solid}
+.cam-frame::before{top:0;left:0;width:32px;height:32px;border-width:3px 0 0 3px;border-radius:6px 0 0 0}
+.cam-frame::after{bottom:0;right:0;width:32px;height:32px;border-width:0 3px 3px 0;border-radius:0 0 6px 0}
+.cam-frame-tr{position:absolute;top:0;right:0;width:32px;height:32px;border-top:3px solid var(--pu);border-right:3px solid var(--pu);border-radius:0 6px 0 0}
+.cam-frame-bl{position:absolute;bottom:0;left:0;width:32px;height:32px;border-bottom:3px solid var(--pu);border-left:3px solid var(--pu);border-radius:0 0 0 6px}
 .cam-shade{position:absolute;inset:0;box-shadow:inset 0 0 0 9999px rgba(0,0,0,.5)}
 @keyframes scanline{0%{top:0}100%{top:calc(100% - 2px)}}
-.cam-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#25d366,transparent);animation:scanline 1.8s ease-in-out infinite}
-.cam-bar{background:rgba(0,0,0,.85);padding:16px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.1)}
-.cam-status{font-size:14px;color:#fff;font-weight:500;flex:1}
-.cam-sub{font-size:11px;color:#888;margin-top:2px}
-.cam-close{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:var(--r);padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0}
+.cam-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--pu),transparent);animation:scanline 2s ease-in-out infinite;opacity:.85}
+.cam-bar{background:rgba(15,23,42,.92);backdrop-filter:blur(8px);padding:18px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.08)}
+.cam-status{font-size:14px;color:#fff;font-weight:600;flex:1}
+.cam-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px}
+.cam-close{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:var(--r);padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0;transition:background .1s}
+.cam-close:hover{background:rgba(255,255,255,.2)}
 
 /* ── UTILS ── */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -195,71 +226,68 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .g5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .fx{display:flex;align-items:center}
 .gap6{gap:6px}.gap8{gap:8px}.gap10{gap:10px}.gap12{gap:12px}
-.f1{flex:1}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}
-.mb8{margin-bottom:8px}.mb10{margin-bottom:10px}.mb12{margin-bottom:12px}
-.tip{border-radius:var(--r);padding:8px 11px;font-size:12px;display:flex;align-items:flex-start;gap:7px;margin-bottom:8px;line-height:1.5}
-.tip-am{background:var(--am2);color:var(--am3)}.tip-gn{background:var(--gn2);color:var(--gn3)}
-
-/* ── ACTION BUTTONS in table ── */
+.f1{flex:1}
+.tip{border-radius:var(--r);padding:10px 13px;font-size:12px;display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;line-height:1.5;font-weight:500}
+.tip-am{background:var(--am2);color:var(--am3)}
+.tip-gn{background:var(--gn2);color:var(--gn3)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1.5px solid var(--bdr);white-space:nowrap;background:var(--sur2)}
+.tbl td{padding:10px;border-bottom:1px solid var(--bdr);vertical-align:middle;color:var(--tx2)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--sur2)}
 .act-btns{display:flex;gap:4px;align-items:center}
-.dest-btn{flex:1;border:2px solid var(--bdr2);border-radius:var(--rl);padding:14px 10px;background:var(--sur);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s}
-.dest-btn:active{opacity:.8}
-.dest-btn.dest-sel{border-color:var(--pu);background:var(--pu2)}
-/* ── PIN ── */
-.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--bdr2);transition:all .15s;display:inline-block}
-.pin-dot.filled{background:var(--pu);border-color:var(--pu)}
-.pin-dot.error{background:var(--rd);border-color:var(--rd);animation:shake .3s ease}
-.pin-user-btn{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--rl);cursor:pointer;width:100%;text-align:left;transition:all .12s}
-.pin-user-btn:active{background:var(--pu2);border-color:var(--pu)}
-.pin-av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0}
-.pin-uname{font-size:14px;font-weight:600;color:var(--tx)}
-.pin-urole{font-size:11px;color:var(--tx3)}
-.pin-key{height:64px;border-radius:var(--rl);border:1.5px solid var(--bdr);background:var(--sur);font-size:24px;font-weight:600;color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;user-select:none;transition:background .1s}
-.pin-key:active{background:var(--pu2);border-color:var(--pu);color:var(--pu3)}
-#pin-screen.hidden{display:none}
-@keyframes shake{0%,100%{transform:translateX(0)}25%,75%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+.dest-btn{flex:1;border:1.5px solid var(--bdr);border-radius:var(--rl);padding:16px 10px;background:var(--sur);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s;box-shadow:var(--sh-sm)}
+.dest-btn:hover{border-color:var(--bdr2);background:var(--sur2)}
+.dest-btn:active{transform:scale(.97)}
+.dest-btn.dest-sel{border-color:var(--pu);background:var(--pu2);box-shadow:0 0 0 3px var(--pu2)}
 
-/* ════ MOBILE ════ */
+/* ── PIN SCREEN ── */
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--bdr2);transition:all .18s cubic-bezier(.34,1.26,.64,1);display:inline-block}
+.pin-dot.filled{background:var(--pu);border-color:var(--pu);transform:scale(1.1)}
+.pin-dot.error{background:var(--rd);border-color:var(--rd);animation:shake .32s ease}
+.pin-user-btn{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--rl);cursor:pointer;width:100%;text-align:left;transition:all .12s;box-shadow:var(--sh-sm)}
+.pin-user-btn:hover{border-color:var(--pu);background:var(--pu2)}
+.pin-user-btn:active{transform:scale(.98)}
+.pin-av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;box-shadow:var(--sh-sm)}
+.pin-uname{font-size:14px;font-weight:600;color:var(--tx)}
+.pin-urole{font-size:11px;color:var(--tx3);margin-top:1px}
+.pin-key{height:66px;border-radius:var(--rl);border:1.5px solid var(--bdr);background:var(--sur);font-size:26px;font-weight:600;color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;user-select:none;transition:all .1s;box-shadow:var(--sh-sm);letter-spacing:-.01em}
+.pin-key:hover{background:var(--sur2);border-color:var(--bdr2)}
+.pin-key:active{background:var(--pu2);border-color:var(--pu);color:var(--pu);transform:scale(.95);box-shadow:none}
+#pin-screen.hidden{display:none}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+
+/* ── MOBILE ── */
 @media(max-width:768px){
   #menu-btn{display:flex}
-  #sidebar{position:fixed;top:var(--tb);left:0;bottom:0;width:var(--sw);transform:translateX(-100%);box-shadow:4px 0 24px rgba(0,0,0,.15)}
+  #sidebar{position:fixed;top:var(--tb);left:0;bottom:0;width:var(--sw);transform:translateX(-100%);box-shadow:var(--sh-lg)}
   #sidebar.open{transform:translateX(0)}
   #sb-ov{display:block}
   #bottom-nav{display:block}
-  #main{padding:10px 10px 80px}
-  #toast{bottom:72px}
-  /* metrics */
+  #main{padding:12px 12px 82px}
+  #toast{bottom:74px}
   .mgrid{grid-template-columns:1fr 1fr}
   .mgrid .metric:last-child{grid-column:span 2}
-  /* dashboard */
   #dash-r2,#dash-r3{grid-template-columns:1fr !important}
-  /* stock in/out single column */
   .si-layout{display:block !important}
   #si-right,#so-detail{display:none !important}
-  /* modals */
   .modal{max-height:92vh}
-  /* tables */
   .hm{display:none}
-  /* action buttons */
   .act-btns{flex-wrap:nowrap}
   .act-btns .btn-sm{padding:5px 6px;min-width:30px}
-  /* grids stack on mobile - but NOT g2 in modals */
   .g3,.g4,.g5{grid-template-columns:1fr}
-  /* settings/containers tabs content */
   .tbp .card{margin-bottom:10px}
 }
 @media(min-width:769px){
   #bottom-nav,.bn-more-menu{display:none !important}
   #sb-ov{display:none !important}
 }
-/* role */
+/* ── ROLES ── */
 body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-events:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{animation:spin .8s linear infinite;display:inline-block}
-.si-layout{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.si-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:260px;color:var(--tx3);text-align:center;gap:10px}
 </style>
-</head>
 <body class="role-admin">
 
 <!-- SVG sprite -->
@@ -291,7 +319,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 <!-- TOP BAR -->
 <div id="topbar">
   <button id="menu-btn" onclick="toggleSb()" aria-label="Menu"><svg width="20" height="20"><use href="#ic-menu"/></svg></button>
-  <div class="logo"><svg width="17" height="17"><use href="#ic-pkg"/></svg> CityStar Warehouse</div>
+  <div class="logo"><div class="logo-icon">🏪</div><span style="letter-spacing:-.01em">CityStar Warehouse</span></div>
   <div class="bell-wrap">
     <button class="bell-btn" onclick="nav('dash')" aria-label="Alerts"><svg width="18" height="18"><use href="#ic-bell"/></svg></button>
     <div class="bell-dot" id="bell-dot"></div>
@@ -329,11 +357,11 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
     <select id="dash-period" onchange="refreshDash()" style="width:auto;font-size:12px;padding:6px 28px 6px 10px;flex-shrink:0"><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30">Last 30 days</option></select>
   </div>
   <div class="mgrid">
-    <div class="metric"><div class="fx mb6" style="justify-content:space-between"><div style="width:28px;height:28px;border-radius:7px;background:var(--pu2);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" style="color:var(--pu3)"><use href="#ic-pkg"/></svg></div><span style="font-size:10px;color:var(--tx3)">SKUs</span></div><div class="mv" id="m-tot">0</div><div class="ml">Products</div></div>
-    <div class="metric"><div class="fx mb6" style="justify-content:space-between"><div style="width:28px;height:28px;border-radius:7px;background:var(--gn2);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" style="color:var(--gn3)"><use href="#ic-in"/></svg></div><span style="font-size:10px;color:var(--gn3)" id="m-in-tr"></span></div><div class="mv" style="color:var(--gn)" id="m-in">0</div><div class="ml">Stocked in</div></div>
-    <div class="metric"><div class="fx mb6" style="justify-content:space-between"><div style="width:28px;height:28px;border-radius:7px;background:var(--rd2);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" style="color:var(--rd3)"><use href="#ic-out"/></svg></div><span style="font-size:10px;color:var(--rd3)" id="m-out-tr"></span></div><div class="mv" style="color:var(--rd)" id="m-out">0</div><div class="ml">Moved out</div></div>
-    <div class="metric"><div class="fx mb6" style="justify-content:space-between"><div style="width:28px;height:28px;border-radius:7px;background:var(--am2);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" style="color:var(--am3)"><use href="#ic-warn"/></svg></div><span style="font-size:10px;color:var(--am3)" id="m-low-pct"></span></div><div class="mv" style="color:var(--am)" id="m-low">0</div><div class="ml">Low stock</div></div>
-    <div class="metric"><div class="fx mb6" style="justify-content:space-between"><div style="width:28px;height:28px;border-radius:7px;background:var(--rd2);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" style="color:var(--rd3)"><use href="#ic-x"/></svg></div><span style="font-size:10px;color:var(--rd3)">urgent</span></div><div class="mv" style="color:var(--rd)" id="m-oos">0</div><div class="ml">Out of stock</div></div>
+    <div class="metric"><div class="metric-icon" style="background:var(--pu2)"><svg width="18" height="18" style="color:var(--pu)"><use href="#ic-pkg"/></svg></div><div class="mv" id="m-tot">0</div><div class="ml">Total products</div><span class="metric-trend" style="color:var(--tx3)" id="m-in-tr"></span></div>
+    <div class="metric"><div class="metric-icon" style="background:var(--gn2)"><svg width="18" height="18" style="color:var(--gn)"><use href="#ic-in"/></svg></div><div class="mv" style="color:var(--gn)" id="m-in">0</div><div class="ml">Stocked in</div><span class="metric-trend" style="color:var(--gn)" id="m-in-tr2"></span></div>
+    <div class="metric"><div class="metric-icon" style="background:var(--bl2)"><svg width="18" height="18" style="color:var(--bl)"><use href="#ic-out"/></svg></div><div class="mv" style="color:var(--bl)" id="m-out">0</div><div class="ml">Moved out</div><span class="metric-trend" style="color:var(--bl)" id="m-out-tr"></span></div>
+    <div class="metric"><div class="metric-icon" style="background:var(--am2)"><svg width="18" height="18" style="color:var(--am)"><use href="#ic-warn"/></svg></div><div class="mv" style="color:var(--am)" id="m-low">0</div><div class="ml">Low stock</div><span class="metric-trend" style="color:var(--am)" id="m-low-pct"></span></div>
+    <div class="metric"><div class="metric-icon" style="background:var(--rd2)"><svg width="18" height="18" style="color:var(--rd)"><use href="#ic-x"/></svg></div><div class="mv" style="color:var(--rd)" id="m-oos">0</div><div class="ml">Out of stock</div><span class="metric-trend" style="color:var(--rd)">urgent</span></div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 260px;gap:10px;margin-bottom:10px" id="dash-r2">
     <div class="card"><div class="fx mb10"><span style="font-size:13px;font-weight:600;flex:1">Stock movement</span><div class="fx gap10" style="font-size:11px"><span class="fx gap6" style="color:var(--gn3)"><span style="width:9px;height:3px;background:var(--gn);border-radius:2px;display:inline-block"></span>In</span><span class="fx gap6" style="color:var(--rd3)"><span style="width:9px;height:3px;background:var(--rd);border-radius:2px;display:inline-block"></span>Out</span></div></div><canvas id="mv-chart" height="120"></canvas></div>
@@ -1009,30 +1037,39 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 <!-- Add/Edit Container modal -->
 <!-- Mark Delivered modal -->
 <!-- PIN LOGIN SCREEN -->
-<div id="pin-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
-  <div style="font-size:44px;margin-bottom:8px">🏪</div>
-  <div style="font-size:22px;font-weight:700;margin-bottom:4px">CityStar Warehouse</div>
-  <div style="font-size:13px;color:var(--tx3);margin-bottom:28px;text-align:center" id="pin-screen-sub">Enter your name and PIN to sign in</div>
+<div id="pin-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px">
 
-  <!-- Step 1: Name selector -->
+  <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--pu),var(--pu3));display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;box-shadow:var(--sh-pu)">🏪</div>
+  <div style="font-size:22px;font-weight:800;margin-bottom:4px;letter-spacing:-.02em">CityStar Warehouse</div>
+  <div style="font-size:13px;color:var(--tx3);margin-bottom:32px;text-align:center" id="pin-screen-sub">Sign in to continue</div>
+
+  <!-- Step 1: Name text input -->
   <div id="pin-name-step" style="width:100%;max-width:320px">
-    <label style="font-size:12px;color:var(--tx2);font-weight:500;display:block;margin-bottom:6px">Your name</label>
-    <select id="pin-name-sel" onchange="pinNameSelected(this.value)" style="font-size:15px;font-weight:600;margin-bottom:16px;text-align:center">
-      <option value="">Select your name…</option>
-    </select>
+    <div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Your name</div>
+    <input type="text" id="pin-name-inp" placeholder="Type your name…"
+      autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false"
+      style="font-size:16px;font-weight:600;text-align:center;margin-bottom:12px;padding:14px;letter-spacing:.01em"
+      onkeydown="if(event.key==='Enter')pinNameContinue()"/>
+    <button onclick="pinNameContinue()" class="btn btn-pu w100" style="height:48px;font-size:15px;font-weight:700;justify-content:center;letter-spacing:.01em">
+      Continue →
+    </button>
+    <div id="pin-name-err" style="color:var(--rd);font-size:12px;font-weight:500;text-align:center;margin-top:10px;min-height:18px"></div>
   </div>
 
-  <!-- Step 2: PIN pad (shown after name selected) -->
+  <!-- Step 2: PIN pad -->
   <div id="pin-pad-wrap" style="display:none;width:100%;max-width:300px">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-      <button onclick="pinBack()" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;color:var(--tx2)">← Back</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <button onclick="pinBack()" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--r);padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;color:var(--tx2);transition:all .12s;white-space:nowrap">← Back</button>
       <div style="flex:1;text-align:center">
-        <div style="font-size:15px;font-weight:700" id="pin-entering-name"></div>
-        <div style="font-size:11px;color:var(--tx3)" id="pin-entering-role"></div>
+        <div style="font-size:15px;font-weight:700;letter-spacing:-.01em" id="pin-entering-name"></div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:2px" id="pin-entering-role"></div>
       </div>
-      <div style="width:60px"></div>
+      <div style="width:64px"></div>
     </div>
-    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:24px" id="pin-dots">
+    <div id="pin-attempts-bar" style="display:none;text-align:center;margin-bottom:8px">
+      <span id="pin-attempts-txt" style="font-size:11px;font-weight:600;color:var(--am3);background:var(--am2);border-radius:20px;padding:3px 12px"></span>
+    </div>
+    <div style="display:flex;gap:14px;justify-content:center;margin-bottom:28px" id="pin-dots">
       <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px">
@@ -1047,23 +1084,23 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
       <button class="pin-key" onclick="pinPress('9')">9</button>
       <div></div>
       <button class="pin-key" onclick="pinPress('0')">0</button>
-      <button class="pin-key" onclick="pinDel()" style="font-size:17px;color:var(--tx2)">⌫</button>
+      <button class="pin-key" onclick="pinDel()" style="font-size:18px;color:var(--tx2)">⌫</button>
     </div>
-    <div style="color:var(--rd);font-size:13px;text-align:center;min-height:20px;margin-top:6px" id="pin-err"></div>
+    <div style="color:var(--rd);font-size:12px;font-weight:600;text-align:center;min-height:20px;margin-top:8px" id="pin-err"></div>
   </div>
 
   <!-- Change PIN panel -->
   <div id="pin-change-wrap" style="display:none;width:100%;max-width:300px">
-    <div style="text-align:center;margin-bottom:20px">
-      <div style="font-size:32px;margin-bottom:6px">🔐</div>
-      <div style="font-size:16px;font-weight:700" id="pin-change-title">Set your PIN</div>
-      <div style="font-size:12px;color:var(--tx3);margin-top:4px" id="pin-change-sub">Choose a new 4-digit PIN</div>
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:36px;margin-bottom:10px">🔐</div>
+      <div style="font-size:17px;font-weight:700;letter-spacing:-.01em" id="pin-change-title">Set your PIN</div>
+      <div style="font-size:12px;color:var(--tx3);margin-top:6px" id="pin-change-sub">Choose a secure 4-digit PIN</div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:16px">
+    <div style="display:flex;gap:14px;align-items:center;justify-content:center;margin-bottom:20px">
       <div class="pin-dot" id="pcs-1"></div><div class="pin-dot" id="pcs-2"></div>
       <div class="pin-dot" id="pcs-3"></div><div class="pin-dot" id="pcs-4"></div>
     </div>
-    <div style="font-size:11px;color:var(--tx3);text-align:center;margin-bottom:16px" id="pin-change-hint">Enter new PIN</div>
+    <div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;text-align:center;margin-bottom:16px" id="pin-change-hint">Enter new PIN</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px">
       <button class="pin-key" onclick="pinChangePress('1')">1</button>
       <button class="pin-key" onclick="pinChangePress('2')">2</button>
@@ -1076,11 +1113,15 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
       <button class="pin-key" onclick="pinChangePress('9')">9</button>
       <div></div>
       <button class="pin-key" onclick="pinChangePress('0')">0</button>
-      <button class="pin-key" onclick="pinChangeDel()" style="font-size:17px;color:var(--tx2)">⌫</button>
+      <button class="pin-key" onclick="pinChangeDel()" style="font-size:18px;color:var(--tx2)">⌫</button>
     </div>
-    <div style="color:var(--rd);font-size:13px;text-align:center;min-height:20px;margin-top:6px" id="pin-change-err"></div>
-    <button onclick="pinChangeCancel()" style="width:100%;margin-top:8px;background:none;border:1px solid var(--bdr);border-radius:var(--r);padding:10px;font-size:13px;color:var(--tx2);cursor:pointer" id="pin-change-cancel">Cancel</button>
+    <div style="color:var(--rd);font-size:12px;font-weight:600;text-align:center;min-height:20px;margin-top:8px" id="pin-change-err"></div>
+    <button onclick="pinChangeCancel()" id="pin-change-cancel"
+      style="width:100%;margin-top:12px;background:none;border:1px solid var(--bdr);border-radius:var(--r);padding:11px;font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer">
+      Cancel
+    </button>
   </div>
+
 </div><!-- Add/Edit container modal -->
 <div class="modal-bg h" id="m-container">
   <div class="modal" style="max-width:480px"><div class="mhandle"></div><div class="modal-body">
@@ -1191,7 +1232,7 @@ function luChip(d) { return '<span class="lu ' + dateAge(d) + '">' + fmtDate(d) 
 function toast(msg, type) {
   let t = document.getElementById('toast');
   t.textContent = msg;
-  t.style.background = type === 'rd' ? 'var(--rd)' : 'var(--gn)';
+  t.style.background = type === 'rd' ? 'var(--rd)' : 'var(--tx)';
   t.classList.add('show');
   clearTimeout(t._t);
   t._t = setTimeout(() => t.classList.remove('show'), 2800);
@@ -1253,65 +1294,167 @@ let appUsers = (()=>{
     let saved = localStorage.getItem('wms_users_v1');
     if (saved) { let p = JSON.parse(saved); if (Array.isArray(p) && p.length) return p; }
   } catch(e){}
-  // Default users — mustChangePin:true so first login forces PIN setup
+  // Default users — only used if localStorage is empty (first ever load)
+  // mustChangePin:true only on very first load before any PIN has been set
   return [
     {id:'owner1', name:'Owner', role:'owner', pin:'0000', color:'#c0392b', mustChangePin:true, phone:''},
     {id:'admin1', name:'Admin', role:'admin',  pin:'1234', color:'#4c3fff', mustChangePin:true, phone:''},
   ];
 })();
 let _pinTarget = null, _pinEntry = '';
-let _pinChangeEntry = '', _pinChangeFirst = '', _pinChangeStep = 1; // 1=enter new, 2=confirm
-let _pinChangeMandatory = false; // true = can't skip
-const ROLE_COLORS  = {owner:'#c0392b', admin:'#4c3fff', operator:'#1a7a4a'};
-const ROLE_LABELS  = {owner:'Owner',   admin:'Admin',   operator:'Operator'};
+let _pinAttempts = 0;
+const PIN_MAX_ATTEMPTS = 6;
+let _pinChangeEntry = '', _pinChangeFirst = '', _pinChangeStep = 1;
+let _pinChangeMandatory = false;
+const ROLE_COLORS = {owner:'#c0392b', admin:'#4c3fff', operator:'#1a7a4a'};
+const ROLE_LABELS = {owner:'Owner', admin:'Admin', operator:'Operator'};
 
 function initPin() {
-  renderPinNameDropdown();
-  // Check for URL token (SMS link login)
-  let params = new URLSearchParams(window.location.search);
-  if (!params.get('token')) return;
+  // Focus name input on load
+  setTimeout(() => {
+    let inp = document.getElementById('pin-name-inp');
+    if (inp) inp.focus();
+  }, 300);
 }
 
-function renderPinNameDropdown() {
-  let sel = document.getElementById('pin-name-sel');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Select your name…</option>'
-    + appUsers.map(u => '<option value="' + u.id + '">' + u.name + ' (' + ROLE_LABELS[u.role] + ')</option>').join('');
-}
+// Keep compatibility stubs — these are no-ops now (no dropdown)
+function renderPinUserList() {}
+function renderPinNameDropdown() {}
+function pinNameSelected() {}
+function pinSelectUser() {}
 
-// Keep for compatibility
-function renderPinUserList() { renderPinNameDropdown(); }
-
-function pinNameSelected(uid) {
-  if (!uid) return;
-  let u = appUsers.find(u => u.id === uid);
-  if (!u) return;
+function pinNameContinue() {
+  let inp = document.getElementById('pin-name-inp');
+  let errEl = document.getElementById('pin-name-err');
+  let name = inp ? inp.value.trim() : '';
+  if (!name) {
+    if (errEl) errEl.textContent = 'Please enter your name';
+    if (inp) inp.focus();
+    return;
+  }
+  // Find user by name (case-insensitive, partial ok)
+  let u = appUsers.find(u => u.name.toLowerCase() === name.toLowerCase())
+       || appUsers.find(u => u.name.toLowerCase().startsWith(name.toLowerCase()));
+  if (!u) {
+    if (errEl) errEl.textContent = 'Name not found — check spelling or contact your manager';
+    if (inp) { inp.select(); inp.focus(); }
+    return;
+  }
+  if (errEl) errEl.textContent = '';
   _pinTarget = u;
   _pinEntry = '';
-  document.getElementById('pin-name-step').style.display = 'none';
-  document.getElementById('pin-pad-wrap').style.display = 'block';
-  document.getElementById('pin-entering-name').textContent = u.name;
-  document.getElementById('pin-entering-role').textContent = ROLE_LABELS[u.role];
-  document.getElementById('pin-err').textContent = '';
+  _pinAttempts = 0;
+  // Show PIN pad
+  let nameStep = document.getElementById('pin-name-step');
+  let padWrap  = document.getElementById('pin-pad-wrap');
+  if (nameStep) nameStep.style.display = 'none';
+  if (padWrap)  padWrap.style.display  = 'block';
+  let nameEl = document.getElementById('pin-entering-name');
+  let roleEl = document.getElementById('pin-entering-role');
+  let errPad = document.getElementById('pin-err');
+  let attBar = document.getElementById('pin-attempts-bar');
+  if (nameEl) nameEl.textContent = u.name;
+  if (roleEl) roleEl.textContent = ROLE_LABELS[u.role];
+  if (errPad) errPad.textContent = '';
+  if (attBar) attBar.style.display = 'none';
   updatePinDots();
 }
 
-function pinSelectUser(uid) { pinNameSelected(uid); }
+function pinBack() {
+  _pinEntry = ''; _pinTarget = null; _pinAttempts = 0;
+  let nameStep = document.getElementById('pin-name-step');
+  let padWrap  = document.getElementById('pin-pad-wrap');
+  let errPad   = document.getElementById('pin-err');
+  let attBar   = document.getElementById('pin-attempts-bar');
+  if (nameStep) nameStep.style.display = 'block';
+  if (padWrap)  padWrap.style.display  = 'none';
+  if (errPad)   errPad.textContent     = '';
+  if (attBar)   attBar.style.display   = 'none';
+  updatePinDots();
+  setTimeout(() => { let i = document.getElementById('pin-name-inp'); if (i) i.focus(); }, 100);
+}
+
+function pinPress(d) {
+  if (_pinEntry.length >= 4) return;
+  _pinEntry += d;
+  updatePinDots();
+  if (_pinEntry.length === 4) setTimeout(checkPin, 150);
+}
+function pinDel() {
+  if (!_pinEntry.length) return;
+  _pinEntry = _pinEntry.slice(0, -1);
+  updatePinDots();
+  let e = document.getElementById('pin-err'); if (e) e.textContent = '';
+}
+function updatePinDots() {
+  // Only update the 4 dots inside pin-pad-wrap to avoid touching change-PIN dots
+  let padWrap = document.getElementById('pin-pad-wrap');
+  if (!padWrap) return;
+  padWrap.querySelectorAll('.pin-dot').forEach((dot, i) => {
+    dot.classList.toggle('filled', i < _pinEntry.length);
+    dot.classList.remove('error');
+  });
+}
+
+function checkPin() {
+  if (!_pinTarget) return;
+  if (_pinEntry === _pinTarget.pin) {
+    _pinAttempts = 0;
+    if (_pinTarget.mustChangePin) {
+      showPinChange(true);
+    } else {
+      _doLogin(_pinTarget);
+    }
+  } else {
+    _pinAttempts++;
+    let remaining = PIN_MAX_ATTEMPTS - _pinAttempts;
+    let padWrap = document.getElementById('pin-pad-wrap');
+    if (padWrap) padWrap.querySelectorAll('.pin-dot').forEach(d => d.classList.add('error'));
+
+    if (_pinAttempts >= PIN_MAX_ATTEMPTS) {
+      // Locked out — go back to name screen after showing message
+      let errEl = document.getElementById('pin-err');
+      if (errEl) errEl.textContent = 'Too many attempts — please try again';
+      _pinEntry = '';
+      setTimeout(() => {
+        updatePinDots();
+        pinBack();
+        let ne = document.getElementById('pin-name-err');
+        if (ne) ne.textContent = 'Account temporarily locked — contact your manager';
+      }, 1200);
+    } else {
+      let errEl = document.getElementById('pin-err');
+      let attBar = document.getElementById('pin-attempts-bar');
+      let attTxt = document.getElementById('pin-attempts-txt');
+      if (errEl) errEl.textContent = 'Wrong PIN';
+      if (attBar) attBar.style.display = 'block';
+      if (attTxt) attTxt.textContent = remaining + ' attempt' + (remaining === 1 ? '' : 's') + ' remaining';
+      _pinEntry = '';
+      setTimeout(updatePinDots, 500);
+    }
+  }
+}
 
 // ── Change PIN flow ───────────────────────────────────────────────
 function showPinChange(mandatory) {
   _pinChangeMandatory = mandatory;
   _pinChangeEntry = ''; _pinChangeFirst = ''; _pinChangeStep = 1;
-  document.getElementById('pin-pad-wrap').style.display = 'none';
-  document.getElementById('pin-user-list').style.display = 'none';
-  document.getElementById('pin-change-wrap').style.display = 'block';
-  document.getElementById('pin-change-title').textContent = mandatory ? 'Set your PIN' : 'Change PIN';
-  document.getElementById('pin-change-sub').textContent = mandatory
-    ? 'You must set a new 4-digit PIN before continuing'
-    : 'Choose a new 4-digit PIN for ' + (_pinTarget ? _pinTarget.name : 'your account');
-  document.getElementById('pin-change-hint').textContent = 'Enter new PIN';
-  document.getElementById('pin-change-cancel').style.display = mandatory ? 'none' : 'block';
-  document.getElementById('pin-change-err').textContent = '';
+  let padWrap   = document.getElementById('pin-pad-wrap');
+  let nameStep  = document.getElementById('pin-name-step');
+  let changeWrap = document.getElementById('pin-change-wrap');
+  if (padWrap)    padWrap.style.display    = 'none';
+  if (nameStep)   nameStep.style.display   = 'none';
+  if (changeWrap) changeWrap.style.display = 'block';
+  let title  = document.getElementById('pin-change-title');
+  let sub    = document.getElementById('pin-change-sub');
+  let hint   = document.getElementById('pin-change-hint');
+  let cancel = document.getElementById('pin-change-cancel');
+  let errEl  = document.getElementById('pin-change-err');
+  if (title)  title.textContent  = mandatory ? 'Set your PIN' : 'Change PIN';
+  if (sub)    sub.textContent    = mandatory ? 'Set a new 4-digit PIN before continuing' : 'Choose a new 4-digit PIN';
+  if (hint)   hint.textContent   = 'Enter new PIN';
+  if (cancel) cancel.style.display = mandatory ? 'none' : 'block';
+  if (errEl)  errEl.textContent  = '';
   updateChangeDots();
 }
 
@@ -1321,78 +1464,63 @@ function pinChangePress(d) {
   updateChangeDots();
   if (_pinChangeEntry.length === 4) setTimeout(pinChangeNext, 150);
 }
-
 function pinChangeDel() {
   if (!_pinChangeEntry.length) return;
-  _pinChangeEntry = _pinChangeEntry.slice(0,-1);
+  _pinChangeEntry = _pinChangeEntry.slice(0, -1);
   updateChangeDots();
-  document.getElementById('pin-change-err').textContent = '';
+  let e = document.getElementById('pin-change-err'); if (e) e.textContent = '';
 }
-
 function updateChangeDots() {
   ['pcs-1','pcs-2','pcs-3','pcs-4'].forEach((id, i) => {
-    let el = document.getElementById(id);
+    let el = document.getElementById(id); if (!el) return;
     el.classList.toggle('filled', i < _pinChangeEntry.length);
     el.classList.remove('error');
   });
 }
-
 function pinChangeNext() {
+  let errEl = document.getElementById('pin-change-err');
+  let hint  = document.getElementById('pin-change-hint');
   if (_pinChangeStep === 1) {
-    // Check not same as default / not too simple
-    if (_pinChangeEntry === '0000' || _pinChangeEntry === '1234' || _pinChangeEntry === '1111' || _pinChangeEntry === '0000') {
-      document.getElementById('pin-change-err').textContent = 'Choose a less obvious PIN';
-      ['pcs-1','pcs-2','pcs-3','pcs-4'].forEach(id => document.getElementById(id).classList.add('error'));
+    let simple = ['0000','1111','2222','3333','4444','5555','6666','7777','8888','9999','1234','4321'];
+    if (simple.includes(_pinChangeEntry)) {
+      if (errEl) errEl.textContent = 'Too simple — choose a less obvious PIN';
+      ['pcs-1','pcs-2','pcs-3','pcs-4'].forEach(id => { let el=document.getElementById(id); if(el) el.classList.add('error'); });
       _pinChangeEntry = ''; setTimeout(updateChangeDots, 600); return;
     }
-    // Check not used by another user
     let dup = appUsers.find(u => u.pin === _pinChangeEntry && u.id !== (_pinTarget ? _pinTarget.id : ''));
     if (dup) {
-      document.getElementById('pin-change-err').textContent = 'That PIN is used by ' + dup.name;
-      ['pcs-1','pcs-2','pcs-3','pcs-4'].forEach(id => document.getElementById(id).classList.add('error'));
+      if (errEl) errEl.textContent = 'That PIN is already in use';
+      ['pcs-1','pcs-2','pcs-3','pcs-4'].forEach(id => { let el=document.getElementById(id); if(el) el.classList.add('error'); });
       _pinChangeEntry = ''; setTimeout(updateChangeDots, 600); return;
     }
-    _pinChangeFirst = _pinChangeEntry;
-    _pinChangeEntry = '';
-    _pinChangeStep = 2;
-    document.getElementById('pin-change-hint').textContent = 'Confirm new PIN';
-    document.getElementById('pin-change-err').textContent = '';
+    _pinChangeFirst = _pinChangeEntry; _pinChangeEntry = ''; _pinChangeStep = 2;
+    if (hint)  hint.textContent  = 'Confirm new PIN';
+    if (errEl) errEl.textContent = '';
     updateChangeDots();
   } else {
-    // Confirm step
     if (_pinChangeEntry !== _pinChangeFirst) {
-      document.getElementById('pin-change-err').textContent = 'PINs don\'t match — try again';
-      ['pcs-1','pcs-2','pcs-3','pcs-4'].forEach(id => document.getElementById(id).classList.add('error'));
+      if (errEl) errEl.textContent = "PINs don't match — try again";
+      ['pcs-1','pcs-2','pcs-3','pcs-4'].forEach(id => { let el=document.getElementById(id); if(el) el.classList.add('error'); });
       _pinChangeEntry = ''; _pinChangeFirst = ''; _pinChangeStep = 1;
-      document.getElementById('pin-change-hint').textContent = 'Enter new PIN';
+      if (hint) hint.textContent = 'Enter new PIN';
       setTimeout(updateChangeDots, 600); return;
     }
-    // Save the new PIN
     let u = appUsers.find(u => u.id === (_pinTarget ? _pinTarget.id : ''));
     if (u) {
-      u.pin = _pinChangeFirst;
-      u.mustChangePin = false;
+      u.pin = _pinChangeFirst; u.mustChangePin = false;
       if (_pinTarget) { _pinTarget.pin = _pinChangeFirst; _pinTarget.mustChangePin = false; }
-      // Persist immediately to localStorage so reload doesn't re-prompt
-      try { localStorage.setItem('wms_users_v1', JSON.stringify(appUsers)); } catch(e){}
+      try { localStorage.setItem('wms_users_v1', JSON.stringify(appUsers)); } catch(e) {}
       sbPushUsers();
-      renderPinUserList();
     }
-    document.getElementById('pin-change-err').textContent = '';
-    document.getElementById('pin-change-wrap').style.display = 'none';
-    // Now complete login
-    if (_pinTarget) {
-      _doLogin(_pinTarget);
-    }
-    toast('PIN set successfully');
+    let cw = document.getElementById('pin-change-wrap'); if (cw) cw.style.display = 'none';
+    if (_pinTarget) _doLogin(_pinTarget);
+    toast('PIN set — you\'re in!');
   }
 }
-
 function pinChangeCancel() {
-  // Close PIN screen, return to app without logging out
   let ps = document.getElementById('pin-screen');
   if (ps) { ps.classList.add('hidden'); ps.style.display = 'none'; }
-  document.getElementById('pin-change-wrap').style.display = 'none';
+  let cw = document.getElementById('pin-change-wrap'); if (cw) cw.style.display = 'none';
   _pinChangeEntry = ''; _pinChangeFirst = ''; _pinChangeStep = 1;
 }
 
@@ -1400,12 +1528,11 @@ function pinChangeCancel() {
 function _doLogin(u) {
   currentRole = u.role; currentUser = u.name; currentUserId = u.id;
   let col = u.color || ROLE_COLORS[currentRole] || '#4c3fff';
-  let ini = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  let ini = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   document.body.className = 'role-' + currentRole;
-  document.getElementById('role-lbl').textContent = u.name;
-  let avEl = document.getElementById('av-txt');
-  avEl.textContent = ini; avEl.style.background = col;
-  document.getElementById('dash-title').textContent = currentRole === 'owner' ? 'Owner Dashboard' : 'Dashboard';
+  let rl = document.getElementById('role-lbl'); if (rl) rl.textContent = u.name;
+  let av = document.getElementById('av-txt'); if (av) { av.textContent = ini; av.style.background = col; }
+  let dt = document.getElementById('dash-title'); if (dt) dt.textContent = currentRole === 'owner' ? 'Owner Dashboard' : 'Dashboard';
   let ps = document.getElementById('pin-screen');
   if (ps) { ps.classList.add('hidden'); ps.style.display = 'none'; }
   let opOnly = currentRole === 'operator';
@@ -1419,311 +1546,69 @@ function _doLogin(u) {
   toast('Welcome, ' + currentUser + '!');
 }
 
-function pinSelectUser(uid) {
-  _pinTarget = appUsers.find(u => u.id === uid); if (!_pinTarget) return;
-  _pinEntry = '';
-  document.getElementById('pin-user-list').style.display = 'none';
-  document.getElementById('pin-pad-wrap').style.display = 'block';
-  document.getElementById('pin-entering-name').textContent = _pinTarget.name;
-  document.getElementById('pin-entering-role').textContent = ROLE_LABELS[_pinTarget.role];
-  document.getElementById('pin-err').textContent = '';
-  updatePinDots();
-}
-function pinBack() {
-  _pinEntry = ''; _pinTarget = null;
-  // Reset dropdown
-  let sel = document.getElementById('pin-name-sel');
-  if (sel) sel.value = '';
-  document.getElementById('pin-name-step').style.display = 'block';
-  document.getElementById('pin-pad-wrap').style.display = 'none';
-  document.getElementById('pin-err').textContent = '';
-}
-function pinPress(d) {
-  if (_pinEntry.length >= 4) return;
-  _pinEntry += d; updatePinDots();
-  if (_pinEntry.length === 4) setTimeout(checkPin, 150);
-}
-function pinDel() {
-  if (!_pinEntry.length) return;
-  _pinEntry = _pinEntry.slice(0,-1); updatePinDots();
-  document.getElementById('pin-err').textContent = '';
-}
-function updatePinDots() {
-  document.querySelectorAll('.pin-dot').forEach((dot, i) => {
-    dot.classList.toggle('filled', i < _pinEntry.length);
-    dot.classList.remove('error');
-  });
-}
-function checkPin() {
-  if (_pinEntry === _pinTarget.pin) {
-    // Correct PIN — check if user must change it
-    if (_pinTarget.mustChangePin) {
-      // Mandatory PIN change — show set-PIN screen
-      showPinChange(true);
-    } else {
-      _doLogin(_pinTarget);
-    }
-  } else {
-    document.querySelectorAll('.pin-dot').forEach(d => d.classList.add('error'));
-    document.getElementById('pin-err').textContent = 'Wrong PIN — try again';
-    _pinEntry = '';
-    setTimeout(updatePinDots, 600);
-  }
-}
 function lockApp() {
-  _pinEntry = ''; _pinTarget = null;
+  _pinEntry = ''; _pinTarget = null; _pinAttempts = 0;
   _pinChangeEntry = ''; _pinChangeFirst = ''; _pinChangeStep = 1;
   currentRole = ''; currentUser = ''; currentUserId = '';
-  let nameStep = document.getElementById('pin-name-step');
-  let pw  = document.getElementById('pin-pad-wrap');
-  let pc  = document.getElementById('pin-change-wrap');
-  let pe  = document.getElementById('pin-err');
-  let sub = document.getElementById('pin-screen-sub');
-  let sel = document.getElementById('pin-name-sel');
-  if (nameStep) nameStep.style.display = 'block';
-  if (pw)  pw.style.display  = 'none';
-  if (pc)  pc.style.display  = 'none';
-  if (pe)  pe.textContent    = '';
-  if (sub) sub.textContent   = 'Enter your name and PIN to sign in';
-  if (sel) sel.value         = '';
-  updatePinDots(); renderPinNameDropdown();
+  // Show name step, hide others
+  let nameStep  = document.getElementById('pin-name-step');
+  let padWrap   = document.getElementById('pin-pad-wrap');
+  let changeWrap = document.getElementById('pin-change-wrap');
+  let errPad    = document.getElementById('pin-err');
+  let nameErr   = document.getElementById('pin-name-err');
+  let nameInp   = document.getElementById('pin-name-inp');
+  let sub       = document.getElementById('pin-screen-sub');
+  let attBar    = document.getElementById('pin-attempts-bar');
+  if (nameStep)   nameStep.style.display   = 'block';
+  if (padWrap)    padWrap.style.display    = 'none';
+  if (changeWrap) changeWrap.style.display = 'none';
+  if (errPad)     errPad.textContent       = '';
+  if (nameErr)    nameErr.textContent      = '';
+  if (nameInp)    { nameInp.value = ''; }
+  if (sub)        sub.textContent          = 'Sign in to continue';
+  if (attBar)     attBar.style.display     = 'none';
+  updatePinDots();
   let ps = document.getElementById('pin-screen');
   if (ps) {
     ps.classList.remove('hidden');
-    ps.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px';
+    ps.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px';
   }
+  setTimeout(() => { if (nameInp) nameInp.focus(); }, 200);
 }
 function switchRole() { lockApp(); }
 
-// ── Safe fetch with timeout — NO AbortController (breaks in some browsers) ──
-function fetchTimeout(url, opts, ms) {
-  ms = ms || 12000;
-  // Do NOT pass any signal — causes postMessage cloning errors in Safari/WebView
-  let fetchOpts = Object.assign({}, opts);
-  delete fetchOpts.signal;
-  let fetchProm = fetch(url, fetchOpts);
-  let timeoutProm = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Request timed out after ' + (ms/1000) + 's')), ms)
-  );
-  return Promise.race([fetchProm, timeoutProm]);
-}
-
-// ── SMS diagnostics ───────────────────────────────────────────────
-function smsLog(msg, type) {
-  let el = document.getElementById('sms-log');
-  if (!el) return;
-  let ts = new Date().toLocaleTimeString();
-  let prefix = type === 'ok' ? '✓' : type === 'err' ? '✗' : '·';
-  el.textContent += '[' + ts + '] ' + prefix + ' ' + msg + '\n';
-  el.scrollTop = el.scrollHeight;
-}
-function setSmsStatus(ok) {
-  let dot = document.getElementById('sms-status-dot');
-  let lbl = document.getElementById('sms-status-lbl');
-  if (dot) dot.style.background = ok === true ? 'var(--gn)' : ok === false ? 'var(--rd)' : 'var(--am)';
-  if (lbl) lbl.textContent = ok === true ? 'Working' : ok === false ? 'Failed' : 'Checking…';
-}
-
-async function testApiEndpoint() {
-  let el = document.getElementById('api-test-result');
-  el.style.display = 'block'; el.textContent = '⏳ Checking…'; el.style.color = 'var(--tx3)';
-  document.getElementById('sms-log').textContent = '';
-  setSmsStatus(null);
-
-  smsLog('App URL: ' + window.location.origin);
-  smsLog('Testing POST to /api/send-login with empty body…');
-  smsLog('(Expect 400 = API exists, 404 = not deployed)');
-
-  try {
-    let r = await fetchTimeout('/api/send-login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({_ping: true})
-    }, 12000);
-
-    let text = '';
-    try { text = await r.text(); } catch(e) {}
-    smsLog('Status: ' + r.status);
-    smsLog('Body: ' + (text || '(empty)').slice(0, 300));
-
-    if (r.status === 404) {
-      el.innerHTML = '✗ 404 — api/send-login.js not deployed on Vercel';
-      el.style.color = 'var(--rd)';
-      smsLog('─── FIX ───', 'err');
-      smsLog('1. Make sure api/send-login.js is in your GitHub repo', 'err');
-      smsLog('2. Check Vercel dashboard → latest deployment is Ready', 'err');
-      smsLog('3. vercel.json must include "@vercel/node" build for api/', 'err');
-      setSmsStatus(false);
-    } else if (r.status === 400) {
-      el.innerHTML = '✓ API is reachable — now test SMS in Step 2';
-      el.style.color = 'var(--gn)';
-      smsLog('API found and responding correctly ✓', 'ok');
-      setSmsStatus(null);
-    } else if (r.status === 500) {
-      let data = {}; try { data = JSON.parse(text); } catch(e) {}
-      let msg = data.error || text.slice(0,150);
-      if (msg.includes('env') || msg.includes('configured')) {
-        el.innerHTML = '⚠ API found but Twilio env vars missing';
-        el.style.color = 'var(--am)';
-        smsLog('─── FIX ───', 'err');
-        smsLog('Go to Vercel → Settings → Environment Variables', 'err');
-        smsLog('Add: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER, APP_URL', 'err');
-        smsLog('Then: Vercel → Deployments → Redeploy', 'err');
-      } else {
-        el.innerHTML = '⚠ Server error: ' + msg.slice(0,80);
-        el.style.color = 'var(--am)';
-      }
-      setSmsStatus(false);
-    } else {
-      el.textContent = 'Status ' + r.status + ': ' + text.slice(0,100);
-      el.style.color = 'var(--am)';
-    }
-  } catch(e) {
-    let msg = e.message || String(e);
-    el.textContent = '✗ ' + msg;
-    el.style.color = 'var(--rd)';
-    smsLog('Error: ' + msg, 'err');
-    if (msg.includes('abort') || msg.includes('timeout') || msg.includes('network') || msg.includes('fetch')) {
-      smsLog('─── Possible causes ───', 'err');
-      smsLog('· api/send-login.js not in GitHub repo', 'err');
-      smsLog('· Vercel build failed — check Vercel dashboard', 'err');
-      smsLog('· vercel.json missing @vercel/node build rule', 'err');
-      smsLog('· You are testing on localhost (API only works on Vercel)', 'err');
-    }
-    setSmsStatus(false);
-  }
-}
-
-async function sendTestSms() {
-  let num = document.getElementById('sms-test-number').value.trim();
-  let el  = document.getElementById('sms-test-result');
-  el.style.display = 'block';
-
-  if (!num || !num.startsWith('+')) {
-    el.textContent = '✗ Enter number with country code (e.g. +959123456789)';
-    el.style.color = 'var(--rd)';
-    return;
-  }
-
-  el.textContent = '⏳ Sending…'; el.style.color = 'var(--tx3)';
-  smsLog('Sending test SMS to ' + num + '…');
-
-  try {
-    let token = 'test-' + Math.random().toString(36).slice(2,8);
-    let res = await fetchTimeout('/api/send-login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({to: num, userId: 'test', userName: 'Test User', token})
-    }, 15000);
-    let data = await res.json();
-    smsLog('HTTP status: ' + res.status);
-    smsLog('Response: ' + JSON.stringify(data).slice(0, 300));
-
-    if (data.success) {
-      el.innerHTML = '✓ SMS sent! SID: ' + data.sid;
-      el.style.color = 'var(--gn)';
-      smsLog('SMS delivered successfully. SID: ' + data.sid, 'ok');
-      setSmsStatus(true);
-    } else {
-      el.textContent = '✗ ' + (data.error || 'SMS failed');
-      el.style.color = 'var(--rd)';
-      smsLog('Twilio error: ' + (data.error || 'unknown'), 'err');
-      if (data.code) smsLog('Error code: ' + data.code + ' — check twilio.com/docs/errors/' + data.code, 'err');
-      if (data.code == 21608) smsLog('Trial account: recipient number not verified. Verify at console.twilio.com/verified', 'err');
-      setSmsStatus(false);
-    }
-  } catch(e) {
-    el.textContent = '✗ ' + e.message;
-    el.style.color = 'var(--rd)';
-    smsLog('Fetch error: ' + e.message, 'err');
-    setSmsStatus(false);
-  }
-}
-async function sendSmsLink(userId) {
-  let u = appUsers.find(u => u.id === userId);
-  if (!u) { toast('User not found', 'rd'); return; }
-  if (!u.phone) { toast('No phone number for ' + u.name, 'rd'); return; }
-
-  // Generate a one-time token and store it with expiry (24h)
-  let token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
-  let expiry = Date.now() + 24 * 60 * 60 * 1000;
-  u.loginToken = token; u.tokenExpiry = expiry;
-  sbPushUsers();
-
-  toast('Sending SMS to ' + u.phone + '…');
-  try {
-    let res = await fetchTimeout('/api/send-login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({to: u.phone, userId: u.id, userName: u.name, token})
-    }, 15000);
-    let data = await res.json();
-    if (data.success) {
-      toast('✓ SMS sent to ' + u.name);
-    } else {
-      toast('SMS failed: ' + (data.error || 'unknown error'), 'rd');
-      console.error('SMS error:', data);
-    }
-  } catch(e) {
-    toast('SMS error: ' + e.message, 'rd');
-    console.error('sendSmsLink:', e);
-  }
-}
-
-// ── Token auto-login (from SMS link) ─────────────────────────────
+// ── Token auto-login (SMS link) ───────────────────────────────────
 function checkUrlToken() {
   let params = new URLSearchParams(window.location.search);
-  let token  = params.get('token');
-  let uid    = params.get('uid');
+  let token = params.get('token'), uid = params.get('uid');
   if (!token || !uid) return false;
-
-  // Clean URL immediately
   window.history.replaceState({}, '', window.location.pathname);
-
   let u = appUsers.find(u => u.id === uid);
-  if (!u) { toast('Invalid login link', 'rd'); return false; }
-  if (!u.loginToken || u.loginToken !== token) { toast('Login link already used or invalid', 'rd'); return false; }
-  if (u.tokenExpiry && Date.now() > u.tokenExpiry) { toast('Login link has expired — request a new one', 'rd'); return false; }
-
-  // Consume token
-  u.loginToken = null; u.tokenExpiry = null;
-  sbPushUsers();
-
-  // Set as target and force PIN change
+  if (!u || !u.loginToken || u.loginToken !== token) { toast('Invalid or used login link', 'rd'); return false; }
+  if (u.tokenExpiry && Date.now() > u.tokenExpiry) { toast('Login link has expired', 'rd'); return false; }
+  u.loginToken = null; u.tokenExpiry = null; sbPushUsers();
   _pinTarget = u;
-  toast('Link verified — please set your PIN');
-
-  // Show pin-screen in change mode
   let ps = document.getElementById('pin-screen');
-  if (ps) {
-    ps.classList.remove('hidden');
-    ps.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px';
-  }
-  document.getElementById('pin-user-list').style.display = 'none';
-  document.getElementById('pin-pad-wrap').style.display = 'none';
-  document.getElementById('pin-screen-sub').textContent = 'Welcome, ' + u.name + '!';
-  showPinChange(true); // mandatory — must set PIN
+  if (ps) { ps.classList.remove('hidden'); ps.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px'; }
+  let ns = document.getElementById('pin-name-step'); if (ns) ns.style.display = 'none';
+  let sub = document.getElementById('pin-screen-sub'); if (sub) sub.textContent = 'Welcome, ' + u.name + '!';
+  showPinChange(true);
   return true;
 }
 
+// ── Change PIN from settings (for logged-in user) ─────────────────
 function openChangePinFor(userId) {
-  let u = appUsers.find(u => u.id === userId);
-  if (!u) return;
+  let u = appUsers.find(u => u.id === userId); if (!u) return;
   _pinTarget = u;
   let ps = document.getElementById('pin-screen');
-  if (ps) {
-    ps.classList.remove('hidden');
-    ps.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px';
-  }
-  document.getElementById('pin-user-list').style.display = 'none';
-  document.getElementById('pin-pad-wrap').style.display = 'none';
-  document.getElementById('pin-screen-sub').textContent =
-    userId === currentUserId ? 'Change your PIN' : 'Reset PIN for ' + u.name;
-  showPinChange(false); // not mandatory — can cancel back to app
+  if (ps) { ps.classList.remove('hidden'); ps.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px'; }
+  let ns = document.getElementById('pin-name-step'); if (ns) ns.style.display = 'none';
+  let pw = document.getElementById('pin-pad-wrap'); if (pw) pw.style.display = 'none';
+  let sub = document.getElementById('pin-screen-sub'); if (sub) sub.textContent = userId === currentUserId ? 'Change your PIN' : 'Reset PIN for ' + u.name;
+  showPinChange(false);
 }
+function myChangePin() { if (currentUserId) openChangePinFor(currentUserId); }
 
-// Legacy alias
-function myChangePin() { openChangePinFor(currentUserId); }
 
 function renderUsersList() {
   let el = document.getElementById('users-list'); if (!el) return;
@@ -3389,6 +3274,16 @@ async function sbPullUsers(){
     if(!error&&data&&data.value){
       let parsed=JSON.parse(data.value);
       if(Array.isArray(parsed)&&parsed.length){
+        // Preserve mustChangePin:false from localStorage — don't let Supabase re-prompt
+        let localSaved = [];
+        try { let s=localStorage.getItem('wms_users_v1'); if(s) localSaved=JSON.parse(s); } catch(e){}
+        parsed.forEach(u => {
+          let local = localSaved.find(l => l.id === u.id);
+          // If local says mustChangePin is false, trust local (user already set PIN)
+          if (local && local.mustChangePin === false) u.mustChangePin = false;
+          // Also preserve the local PIN if it differs (user changed it locally)
+          if (local && local.pin && local.pin !== u.pin) u.pin = local.pin;
+        });
         appUsers=parsed;
         try{localStorage.setItem('wms_users_v1',JSON.stringify(appUsers));}catch(e){}
         renderPinUserList();
