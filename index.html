@@ -571,6 +571,9 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
         🟢 <strong>Operator</strong> — stock in/out only
       </div>
     </div>
+    <button class="btn w100 mb8" style="justify-content:center;padding:12px;font-size:13px;background:var(--pu2);color:var(--pu3);border-color:var(--pu)" onclick="myChangePin()">
+      🔐 Change my PIN
+    </button>
     <button class="btn w100" style="justify-content:center;padding:14px;font-size:14px;color:var(--rd3);border-color:var(--rd)" onclick="switchRole()">
       🔒 Lock app &amp; switch user
     </button>
@@ -883,8 +886,12 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 <div id="pin-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
   <div style="font-size:40px;margin-bottom:6px">🏪</div>
   <div style="font-size:22px;font-weight:700;margin-bottom:4px">StockFlow WMS</div>
-  <div style="font-size:13px;color:var(--tx3);margin-bottom:28px;text-align:center">Select your account to sign in</div>
+  <div style="font-size:13px;color:var(--tx3);margin-bottom:28px;text-align:center" id="pin-screen-sub">Select your account to sign in</div>
+
+  <!-- User list -->
   <div id="pin-user-list" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+
+  <!-- Enter PIN pad -->
   <div id="pin-pad-wrap" style="display:none;width:100%;max-width:300px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
       <button onclick="pinBack()" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;color:var(--tx2)">← Back</button>
@@ -912,6 +919,37 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
       <button class="pin-key" onclick="pinDel()" style="font-size:17px;color:var(--tx2)">⌫</button>
     </div>
     <div style="color:var(--rd);font-size:13px;text-align:center;min-height:20px;margin-top:6px" id="pin-err"></div>
+  </div>
+
+  <!-- Set new PIN panel (shown after first login or manual change) -->
+  <div id="pin-change-wrap" style="display:none;width:100%;max-width:300px">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:32px;margin-bottom:6px">🔐</div>
+      <div style="font-size:16px;font-weight:700;color:var(--tx)" id="pin-change-title">Set your PIN</div>
+      <div style="font-size:12px;color:var(--tx3);margin-top:4px" id="pin-change-sub">Choose a new 4-digit PIN</div>
+    </div>
+    <!-- Step indicator -->
+    <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:16px" id="pin-change-step-dots">
+      <div class="pin-dot" id="pcs-1"></div><div class="pin-dot" id="pcs-2"></div>
+      <div class="pin-dot" id="pcs-3"></div><div class="pin-dot" id="pcs-4"></div>
+    </div>
+    <div style="font-size:11px;color:var(--tx3);text-align:center;margin-bottom:16px" id="pin-change-hint">Enter new PIN</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px">
+      <button class="pin-key" onclick="pinChangePress('1')">1</button>
+      <button class="pin-key" onclick="pinChangePress('2')">2</button>
+      <button class="pin-key" onclick="pinChangePress('3')">3</button>
+      <button class="pin-key" onclick="pinChangePress('4')">4</button>
+      <button class="pin-key" onclick="pinChangePress('5')">5</button>
+      <button class="pin-key" onclick="pinChangePress('6')">6</button>
+      <button class="pin-key" onclick="pinChangePress('7')">7</button>
+      <button class="pin-key" onclick="pinChangePress('8')">8</button>
+      <button class="pin-key" onclick="pinChangePress('9')">9</button>
+      <div></div>
+      <button class="pin-key" onclick="pinChangePress('0')">0</button>
+      <button class="pin-key" onclick="pinChangeDel()" style="font-size:17px;color:var(--tx2)">⌫</button>
+    </div>
+    <div style="color:var(--rd);font-size:13px;text-align:center;min-height:20px;margin-top:6px" id="pin-change-err"></div>
+    <button onclick="pinChangeCancel()" style="width:100%;margin-top:8px;background:none;border:1px solid var(--bdr);border-radius:var(--r);padding:10px;font-size:13px;color:var(--tx2);cursor:pointer" id="pin-change-cancel">Cancel</button>
   </div>
 </div><!-- Add/Edit container modal -->
 <div class="modal-bg h" id="m-container">
@@ -973,9 +1011,13 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
           <option value="owner">Owner — full + user management</option>
         </select>
       </div>
-      <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">4-digit PIN</label>
+      <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">4-digit PIN <span style="color:var(--tx3);font-weight:400">(temporary — user sets own on first login)</span></label>
         <input type="number" id="user-pin" placeholder="e.g. 5678" inputmode="numeric" style="font-size:22px;font-weight:700;letter-spacing:8px;text-align:center"/>
-        <div style="font-size:11px;color:var(--tx3);margin-top:4px">Share this PIN privately with the user. Must be unique.</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:4px">Share this PIN privately. User must set their own PIN on first login.</div>
+      </div>
+      <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Phone number <span style="color:var(--tx3);font-weight:400">(optional — for SMS login link)</span></label>
+        <input type="tel" id="user-phone" placeholder="e.g. +959123456789" inputmode="tel" autocomplete="off"/>
+        <div style="font-size:11px;color:var(--tx3);margin-top:4px">Include country code. Used to send a login link via SMS.</div>
       </div>
     </div>
     <div class="g2 mt16"><button class="btn w100" onclick="closeModal('m-adduser')">Cancel</button><button class="btn btn-pu w100" onclick="saveUser()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Save user</button></div>
@@ -1076,26 +1118,154 @@ let orderHistory = [];
 
 // ── PIN Auth ──────────────────────────────────────────────────────
 let appUsers = [
-  {id:'owner1', name:'Owner',   role:'owner',    pin:'0000', color:'#c0392b'},
-  {id:'admin1', name:'Admin',   role:'admin',    pin:'1234', color:'#4c3fff'},
+  {id:'owner1', name:'Owner', role:'owner', pin:'0000', color:'#c0392b', mustChangePin:true, phone:''},
+  {id:'admin1', name:'Admin', role:'admin',  pin:'1234', color:'#4c3fff', mustChangePin:true, phone:''},
 ];
 let _pinTarget = null, _pinEntry = '';
+let _pinChangeEntry = '', _pinChangeFirst = '', _pinChangeStep = 1; // 1=enter new, 2=confirm
+let _pinChangeMandatory = false; // true = can't skip
 const ROLE_COLORS  = {owner:'#c0392b', admin:'#4c3fff', operator:'#1a7a4a'};
 const ROLE_LABELS  = {owner:'Owner',   admin:'Admin',   operator:'Operator'};
 
-function initPin() { renderPinUserList(); }
+function initPin() {
+  renderPinUserList();
+  // Will be called again after sbPullUsers — this handles offline/no-supabase case
+  let params = new URLSearchParams(window.location.search);
+  if (!params.get('token')) return; // no token, normal flow
+}
 
 function renderPinUserList() {
   let el = document.getElementById('pin-user-list'); if (!el) return;
   el.innerHTML = appUsers.map(u => {
     let ini = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
     let col = u.color || ROLE_COLORS[u.role] || '#4c3fff';
+    let badge = u.mustChangePin ? '<span style="font-size:10px;background:var(--am2);color:var(--am3);border-radius:20px;padding:1px 6px;margin-left:6px">Set PIN</span>' : '';
     return '<button class="pin-user-btn" onclick="pinSelectUser(\'' + u.id + '\')">'
-      + '<div class="pin-av" style="background:' + col + '">' + ini + '</div>'
-      + '<div><div class="pin-uname">' + u.name + '</div>'
-      + '<div class="pin-urole">' + ROLE_LABELS[u.role] + '</div></div>'
+      + '<div class="pin-av" style="background:' + col + ';width:38px;height:38px;font-size:13px">' + ini + '</div>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div class="pin-uname">' + u.name + badge + '</div>'
+        + '<div class="pin-urole">' + ROLE_LABELS[u.role] + '</div>'
+      + '</div>'
       + '</button>';
   }).join('');
+}
+
+// ── Change PIN flow ───────────────────────────────────────────────
+function showPinChange(mandatory) {
+  _pinChangeMandatory = mandatory;
+  _pinChangeEntry = ''; _pinChangeFirst = ''; _pinChangeStep = 1;
+  document.getElementById('pin-pad-wrap').style.display = 'none';
+  document.getElementById('pin-user-list').style.display = 'none';
+  document.getElementById('pin-change-wrap').style.display = 'block';
+  document.getElementById('pin-change-title').textContent = mandatory ? 'Set your PIN' : 'Change PIN';
+  document.getElementById('pin-change-sub').textContent = mandatory
+    ? 'You must set a new 4-digit PIN before continuing'
+    : 'Choose a new 4-digit PIN for ' + (_pinTarget ? _pinTarget.name : 'your account');
+  document.getElementById('pin-change-hint').textContent = 'Enter new PIN';
+  document.getElementById('pin-change-cancel').style.display = mandatory ? 'none' : 'block';
+  document.getElementById('pin-change-err').textContent = '';
+  updateChangeDots();
+}
+
+function pinChangePress(d) {
+  if (_pinChangeEntry.length >= 4) return;
+  _pinChangeEntry += d;
+  updateChangeDots();
+  if (_pinChangeEntry.length === 4) setTimeout(pinChangeNext, 150);
+}
+
+function pinChangeDel() {
+  if (!_pinChangeEntry.length) return;
+  _pinChangeEntry = _pinChangeEntry.slice(0,-1);
+  updateChangeDots();
+  document.getElementById('pin-change-err').textContent = '';
+}
+
+function updateChangeDots() {
+  ['pcs-1','pcs-2','pcs-3','pcs-4'].forEach((id, i) => {
+    let el = document.getElementById(id);
+    el.classList.toggle('filled', i < _pinChangeEntry.length);
+    el.classList.remove('error');
+  });
+}
+
+function pinChangeNext() {
+  if (_pinChangeStep === 1) {
+    // Check not same as default / not too simple
+    if (_pinChangeEntry === '0000' || _pinChangeEntry === '1234' || _pinChangeEntry === '1111' || _pinChangeEntry === '0000') {
+      document.getElementById('pin-change-err').textContent = 'Choose a less obvious PIN';
+      ['pcs-1','pcs-2','pcs-3','pcs-4'].forEach(id => document.getElementById(id).classList.add('error'));
+      _pinChangeEntry = ''; setTimeout(updateChangeDots, 600); return;
+    }
+    // Check not used by another user
+    let dup = appUsers.find(u => u.pin === _pinChangeEntry && u.id !== (_pinTarget ? _pinTarget.id : ''));
+    if (dup) {
+      document.getElementById('pin-change-err').textContent = 'That PIN is used by ' + dup.name;
+      ['pcs-1','pcs-2','pcs-3','pcs-4'].forEach(id => document.getElementById(id).classList.add('error'));
+      _pinChangeEntry = ''; setTimeout(updateChangeDots, 600); return;
+    }
+    _pinChangeFirst = _pinChangeEntry;
+    _pinChangeEntry = '';
+    _pinChangeStep = 2;
+    document.getElementById('pin-change-hint').textContent = 'Confirm new PIN';
+    document.getElementById('pin-change-err').textContent = '';
+    updateChangeDots();
+  } else {
+    // Confirm step
+    if (_pinChangeEntry !== _pinChangeFirst) {
+      document.getElementById('pin-change-err').textContent = 'PINs don\'t match — try again';
+      ['pcs-1','pcs-2','pcs-3','pcs-4'].forEach(id => document.getElementById(id).classList.add('error'));
+      _pinChangeEntry = ''; _pinChangeFirst = ''; _pinChangeStep = 1;
+      document.getElementById('pin-change-hint').textContent = 'Enter new PIN';
+      setTimeout(updateChangeDots, 600); return;
+    }
+    // Save the new PIN
+    let u = appUsers.find(u => u.id === (_pinTarget ? _pinTarget.id : ''));
+    if (u) {
+      u.pin = _pinChangeFirst;
+      u.mustChangePin = false;
+      if (_pinTarget) _pinTarget.pin = _pinChangeFirst;
+      sbPushUsers();
+      renderPinUserList();
+    }
+    document.getElementById('pin-change-err').textContent = '';
+    document.getElementById('pin-change-wrap').style.display = 'none';
+    // Now complete login
+    if (_pinTarget) {
+      _doLogin(_pinTarget);
+    }
+    toast('PIN set successfully');
+  }
+}
+
+function pinChangeCancel() {
+  // Only reachable if not mandatory
+  document.getElementById('pin-change-wrap').style.display = 'none';
+  // Complete login without changing PIN
+  if (_pinTarget) _doLogin(_pinTarget);
+}
+
+// ── Core login ────────────────────────────────────────────────────
+function _doLogin(u) {
+  currentRole = u.role; currentUser = u.name; currentUserId = u.id;
+  let col = u.color || ROLE_COLORS[currentRole] || '#4c3fff';
+  let ini = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  document.body.className = 'role-' + currentRole;
+  document.getElementById('role-lbl').textContent = u.name;
+  let avEl = document.getElementById('av-txt');
+  avEl.textContent = ini; avEl.style.background = col;
+  document.getElementById('dash-title').textContent = currentRole === 'owner' ? 'Owner Dashboard' : 'Dashboard';
+  let ps = document.getElementById('pin-screen');
+  if (ps) { ps.classList.add('hidden'); ps.style.display = 'none'; }
+  let opOnly = currentRole === 'operator';
+  ['ni-cats','ni-orders'].forEach(id => {
+    let el = document.getElementById(id);
+    if (el) { el.style.opacity = opOnly ? '0.4' : ''; el.style.pointerEvents = opOnly ? 'none' : ''; }
+  });
+  let sNi = document.querySelector('.ni[data-page="settings"]');
+  if (sNi) sNi.style.display = opOnly ? 'none' : '';
+  refreshDash();
+  toast('Welcome, ' + currentUser + '!');
 }
 
 function pinSelectUser(uid) {
@@ -1132,35 +1302,14 @@ function updatePinDots() {
 }
 function checkPin() {
   if (_pinEntry === _pinTarget.pin) {
-    // ── Login success ──
-    currentRole = _pinTarget.role;
-    currentUser = _pinTarget.name;
-    currentUserId = _pinTarget.id;
-    let col = _pinTarget.color || ROLE_COLORS[currentRole] || '#4c3fff';
-    let ini = _pinTarget.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-    document.body.className = 'role-' + currentRole;
-    document.getElementById('role-lbl').textContent = _pinTarget.name;
-    let avEl = document.getElementById('av-txt');
-    avEl.textContent = ini; avEl.style.background = col;
-    document.getElementById('dash-title').textContent = currentRole === 'owner' ? 'Owner Dashboard' : 'Dashboard';
-    let ps = document.getElementById('pin-screen');
-    if (ps) { ps.classList.add('hidden'); ps.style.display = 'none'; }
-    ['topbar','layout','bottom-nav'].forEach(id => {
-      let el = document.getElementById(id); if (el) el.style.visibility = '';
-    });
-    // restrict nav for operator
-    let opOnly = currentRole === 'operator';
-    ['ni-cats','ni-orders'].forEach(id => {
-      let el = document.getElementById(id);
-      el.style.opacity = opOnly ? '0.4' : '';
-      el.style.pointerEvents = opOnly ? 'none' : '';
-    });
-    let sNi = document.querySelector('.ni[data-page="settings"]');
-    if (sNi) sNi.style.display = opOnly ? 'none' : '';
-    refreshDash();
-    toast('Welcome, ' + currentUser + '!');
+    // Correct PIN — check if user must change it
+    if (_pinTarget.mustChangePin) {
+      // Mandatory PIN change — show set-PIN screen
+      showPinChange(true);
+    } else {
+      _doLogin(_pinTarget);
+    }
   } else {
-    // ── Wrong PIN ──
     document.querySelectorAll('.pin-dot').forEach(d => d.classList.add('error'));
     document.getElementById('pin-err').textContent = 'Wrong PIN — try again';
     _pinEntry = '';
@@ -1169,17 +1318,19 @@ function checkPin() {
 }
 function lockApp() {
   _pinEntry = ''; _pinTarget = null;
+  _pinChangeEntry = ''; _pinChangeFirst = ''; _pinChangeStep = 1;
   currentRole = ''; currentUser = ''; currentUserId = '';
-  // Reset PIN screen to user list view
   let ul = document.getElementById('pin-user-list');
   let pw = document.getElementById('pin-pad-wrap');
+  let pc = document.getElementById('pin-change-wrap');
   let pe = document.getElementById('pin-err');
+  let sub = document.getElementById('pin-screen-sub');
   if (ul) ul.style.display = 'flex';
   if (pw) pw.style.display = 'none';
+  if (pc) pc.style.display = 'none';
   if (pe) pe.textContent = '';
-  updatePinDots();
-  renderPinUserList();
-  // Show PIN screen - use both inline style and class removal for reliability
+  if (sub) sub.textContent = 'Select your account to sign in';
+  updatePinDots(); renderPinUserList();
   let ps = document.getElementById('pin-screen');
   if (ps) {
     ps.classList.remove('hidden');
@@ -1188,25 +1339,114 @@ function lockApp() {
 }
 function switchRole() { lockApp(); }
 
+// ── SMS login link ────────────────────────────────────────────────
+async function sendSmsLink(userId) {
+  let u = appUsers.find(u => u.id === userId);
+  if (!u) { toast('User not found', 'rd'); return; }
+  if (!u.phone) { toast('No phone number for ' + u.name, 'rd'); return; }
+
+  // Generate a one-time token and store it with expiry (24h)
+  let token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  let expiry = Date.now() + 24 * 60 * 60 * 1000;
+  u.loginToken = token; u.tokenExpiry = expiry;
+  sbPushUsers();
+
+  toast('Sending SMS to ' + u.phone + '…');
+  try {
+    let res = await fetch('/api/send-login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({to: u.phone, userId: u.id, userName: u.name, token})
+    });
+    let data = await res.json();
+    if (data.success) {
+      toast('✓ SMS sent to ' + u.name);
+    } else {
+      toast('SMS failed: ' + (data.error || 'unknown error'), 'rd');
+      console.error('SMS error:', data);
+    }
+  } catch(e) {
+    toast('Cannot reach SMS server — check Vercel deployment', 'rd');
+    console.error('sendSmsLink:', e);
+  }
+}
+
+// ── Token auto-login (from SMS link) ─────────────────────────────
+function checkUrlToken() {
+  let params = new URLSearchParams(window.location.search);
+  let token  = params.get('token');
+  let uid    = params.get('uid');
+  if (!token || !uid) return false;
+
+  // Clean URL immediately
+  window.history.replaceState({}, '', window.location.pathname);
+
+  let u = appUsers.find(u => u.id === uid);
+  if (!u) { toast('Invalid login link', 'rd'); return false; }
+  if (!u.loginToken || u.loginToken !== token) { toast('Login link already used or invalid', 'rd'); return false; }
+  if (u.tokenExpiry && Date.now() > u.tokenExpiry) { toast('Login link has expired — request a new one', 'rd'); return false; }
+
+  // Consume token
+  u.loginToken = null; u.tokenExpiry = null;
+  sbPushUsers();
+
+  // Set as target and force PIN change
+  _pinTarget = u;
+  toast('Link verified — please set your PIN');
+
+  // Show pin-screen in change mode
+  let ps = document.getElementById('pin-screen');
+  if (ps) {
+    ps.classList.remove('hidden');
+    ps.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px';
+  }
+  document.getElementById('pin-user-list').style.display = 'none';
+  document.getElementById('pin-pad-wrap').style.display = 'none';
+  document.getElementById('pin-screen-sub').textContent = 'Welcome, ' + u.name + '!';
+  showPinChange(true); // mandatory — must set PIN
+  return true;
+}
+
 // ── User Management ───────────────────────────────────────────────
+function myChangePin() {
+  // Allow currently logged-in user to change their PIN
+  _pinTarget = appUsers.find(u => u.id === currentUserId);
+  if (!_pinTarget) { toast('Login first to change PIN', 'rd'); return; }
+  // Show pin-screen in change mode without locking out
+  let ps = document.getElementById('pin-screen');
+  if (ps) {
+    ps.classList.remove('hidden');
+    ps.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px';
+  }
+  document.getElementById('pin-user-list').style.display = 'none';
+  document.getElementById('pin-pad-wrap').style.display = 'none';
+  showPinChange(false); // not mandatory — can cancel
+}
+
 function renderUsersList() {
   let el = document.getElementById('users-list'); if (!el) return;
   el.innerHTML = appUsers.map(u => {
     let ini = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
     let col = u.color || ROLE_COLORS[u.role] || '#4c3fff';
     let badge = '<span class="badge ' + (u.role==='owner'?'br':u.role==='admin'?'bp':'bg') + '" style="font-size:10px">' + ROLE_LABELS[u.role] + '</span>';
+    let pinStatus = u.mustChangePin
+      ? '<span style="font-size:10px;background:var(--am2);color:var(--am3);border-radius:20px;padding:1px 7px;margin-left:4px">Temporary PIN</span>'
+      : '<span style="font-size:10px;color:var(--gn3);margin-left:4px">✓ PIN set</span>';
     let canEdit = currentRole === 'owner' || currentRole === 'admin';
+    let smsBtn = (canEdit && u.phone)
+      ? '<button class="btn btn-sm" onclick="sendSmsLink(\'' + u.id + '\')" title="Send SMS login link" style="padding:5px 7px;background:#e8fdf5;color:#1a7a4a;border-color:#3ecf8e">📱</button>'
+      : '';
     let acts = canEdit
       ? '<button class="btn btn-sm" onclick="editUser(\'' + u.id + '\')" title="Edit" style="padding:5px 7px"><svg width="13" height="13"><use href="#ic-edit"/></svg></button>'
+        + smsBtn
         + (u.id !== 'owner1' ? '<button class="btn btn-sm btn-rd" onclick="deleteUser(\'' + u.id + '\')" title="Delete" style="padding:5px 7px"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>' : '')
       : '';
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr)">'
       + '<div class="pin-av" style="background:' + col + ';width:36px;height:36px;font-size:12px">' + ini + '</div>'
       + '<div style="flex:1;min-width:0">'
         + '<div style="font-size:13px;font-weight:600">' + u.name + '</div>'
-        + '<div style="display:flex;align-items:center;gap:6px;margin-top:3px">' + badge
-          + '<span style="font-size:11px;color:var(--tx3)">PIN: ' + u.pin.split('').map(()=>'●').join('') + '</span>'
-        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:4px;margin-top:3px;flex-wrap:wrap">' + badge + pinStatus + '</div>'
+        + (u.phone ? '<div style="font-size:10px;color:var(--tx3);margin-top:2px">📱 ' + u.phone + '</div>' : '')
       + '</div>'
       + '<div style="display:flex;gap:4px">' + acts + '</div>'
       + '</div>';
@@ -1219,6 +1459,7 @@ function openAddUser() {
   document.getElementById('user-name').value = '';
   document.getElementById('user-role').value = 'operator';
   document.getElementById('user-pin').value = '';
+  document.getElementById('user-phone').value = '';
   openModal('m-adduser');
   setTimeout(() => document.getElementById('user-name').focus(), 150);
 }
@@ -1229,12 +1470,14 @@ function editUser(id) {
   document.getElementById('user-name').value = u.name;
   document.getElementById('user-role').value = u.role;
   document.getElementById('user-pin').value = u.pin;
+  document.getElementById('user-phone').value = u.phone || '';
   openModal('m-adduser');
 }
 function saveUser() {
-  let name = document.getElementById('user-name').value.trim();
-  let role = document.getElementById('user-role').value;
-  let pin  = String(document.getElementById('user-pin').value).trim();
+  let name  = document.getElementById('user-name').value.trim();
+  let role  = document.getElementById('user-role').value;
+  let pin   = String(document.getElementById('user-pin').value).trim();
+  let phone = document.getElementById('user-phone').value.trim().replace(/\s/g,'');
   if (!name) { toast('Enter a name', 'rd'); return; }
   if (!/^\d{4}$/.test(pin)) { toast('PIN must be exactly 4 digits', 'rd'); return; }
   let editId = document.getElementById('edituser-id').value;
@@ -1243,13 +1486,16 @@ function saveUser() {
   let col = ROLE_COLORS[role] || '#4c3fff';
   if (editId) {
     let u = appUsers.find(u => u.id === editId);
-    if (u) { u.name = name; u.role = role; u.pin = pin; u.color = col; }
+    if (u) { u.name = name; u.role = role; u.pin = pin; u.color = col; u.phone = phone; }
   } else {
-    appUsers.push({id: 'u' + Date.now(), name, role, pin, color: col});
+    let newUser = {id: 'u' + Date.now(), name, role, pin, color: col, mustChangePin: true, phone};
+    appUsers.push(newUser);
+    // Auto-send SMS login link if phone provided
+    if (phone) setTimeout(() => sendSmsLink(newUser.id), 500);
   }
   closeModal('m-adduser');
   renderUsersList(); renderPinUserList(); sbPushUsers();
-  toast(editId ? 'User updated' : '"' + name + '" added · PIN: ' + pin);
+  toast(editId ? 'User updated' : '"' + name + '" added · PIN: ' + pin + (phone ? ' · SMS sent' : ''));
 }
 function deleteUser(id) {
   let u = appUsers.find(u => u.id === id);
@@ -2414,6 +2660,10 @@ async function sbInit() {
   sbConnected = true;
   updateSbStatus(true);
   await sbPullUsers();
+  // Check if user arrived via SMS login link
+  if (!checkUrlToken()) {
+    // Normal flow — show PIN screen
+  }
   await sbPullContainers();
   await sbPull();
   sbSubscribe();
