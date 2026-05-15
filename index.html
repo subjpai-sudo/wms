@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<title>StockFlow WMS</title>
+<title>CityStar Warehouse</title>
 <style>
 :root{
   --bg:#f5f4f0;--sur:#fff;--sur2:#f0efe9;--sur3:#e8e7e0;
@@ -291,7 +291,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 <!-- TOP BAR -->
 <div id="topbar">
   <button id="menu-btn" onclick="toggleSb()" aria-label="Menu"><svg width="20" height="20"><use href="#ic-menu"/></svg></button>
-  <div class="logo"><svg width="17" height="17"><use href="#ic-pkg"/></svg> StockFlow WMS</div>
+  <div class="logo"><svg width="17" height="17"><use href="#ic-pkg"/></svg> CityStar Warehouse</div>
   <div class="bell-wrap">
     <button class="bell-btn" onclick="nav('dash')" aria-label="Alerts"><svg width="18" height="18"><use href="#ic-bell"/></svg></button>
     <div class="bell-dot" id="bell-dot"></div>
@@ -492,12 +492,26 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   <div id="of-low" style="display:none">
     <div class="card mb10"><div class="fx mb8"><div class="sec" style="margin-bottom:0;flex:1">Select items to reorder</div><div style="font-size:11px;color:var(--tx3)" id="rs-cnt">0 selected</div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th style="width:30px"></th><th>Product</th><th class="hm">Brand</th><th>Qty</th><th>Status</th><th>Order qty</th></tr></thead><tbody id="rs-tbl"></tbody></table></div></div>
     <div class="card mb10"><div class="sec">Note to owner</div><textarea id="rs-note" rows="2" placeholder="Add context…" style="resize:none"></textarea></div>
-    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn btn-wa" id="send-low-btn" onclick="sendOrder('low')"><svg width="13" height="13"><use href="#ic-wa"/></svg> Send via WhatsApp</button></div>
+    <div class="card mb10">
+      <div class="sec">Send alert to</div>
+      <select id="order-recipient" style="margin-bottom:8px;font-size:13px">
+        <option value="wa">WhatsApp only</option>
+      </select>
+      <div style="font-size:11px;color:var(--tx3)">Select a team member with a phone number to also send SMS</div>
+    </div>
+    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn btn-wa" id="send-low-btn" onclick="sendOrder('low')"><svg width="13" height="13"><use href="#ic-wa"/></svg> Send alert</button></div>
   </div>
   <div id="of-new" style="display:none">
     <div class="card mb10"><div class="sec">New items to order</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th>Category</th><th class="hm">Brand</th><th>Qty</th><th></th></tr></thead><tbody id="no-tbl"></tbody></table></div><button class="btn btn-sm mt8" onclick="addNORow()"><svg width="12" height="12"><use href="#ic-plus"/></svg> Add item</button></div>
     <div class="card mb10"><div class="sec">Note</div><textarea id="no-note" rows="2" placeholder="Supplier info, urgency…" style="resize:none"></textarea></div>
-    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn btn-wa" id="send-new-btn" onclick="sendOrder('new')"><svg width="13" height="13"><use href="#ic-wa"/></svg> Send via WhatsApp</button></div>
+    <div class="card mb10">
+      <div class="sec">Send alert to</div>
+      <select id="order-recipient-new" style="margin-bottom:8px;font-size:13px">
+        <option value="wa">WhatsApp only</option>
+      </select>
+      <div style="font-size:11px;color:var(--tx3)">Select a team member with a phone number to also send SMS</div>
+    </div>
+    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn btn-wa" id="send-new-btn" onclick="sendOrder('new')"><svg width="13" height="13"><use href="#ic-wa"/></svg> Send alert</button></div>
   </div>
   <div id="send-result" style="display:none;margin-top:10px"></div>
   <div class="card mt20"><div class="sec">Request history</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Request</th><th class="hm">Type</th><th class="hm">Items</th><th>Sent</th><th>WA</th><th>Status</th></tr></thead><tbody id="oh-tbl"></tbody></table></div></div>
@@ -545,6 +559,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   </div>
   <div class="tabs mb12">
     <button class="tb on" onclick="swTab(this,'stab-users')">Users</button>
+    <button class="tb" onclick="swTab(this,'stab-sms')">SMS</button>
     <button class="tb" onclick="swTab(this,'stab-supabase')">Supabase</button>
     <button class="tb" onclick="swTab(this,'stab-info')">Info</button>
   </div>
@@ -571,12 +586,69 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
         🟢 <strong>Operator</strong> — stock in/out only
       </div>
     </div>
-    <button class="btn w100 mb8" style="justify-content:center;padding:12px;font-size:13px;background:var(--pu2);color:var(--pu3);border-color:var(--pu)" onclick="myChangePin()">
-      🔐 Change my PIN
-    </button>
     <button class="btn w100" style="justify-content:center;padding:14px;font-size:14px;color:var(--rd3);border-color:var(--rd)" onclick="switchRole()">
       🔒 Lock app &amp; switch user
     </button>
+  </div>
+
+  <!-- SMS TAB -->
+  <div class="tbp" id="stab-sms">
+
+    <!-- Status checker -->
+    <div class="card mb10">
+      <div class="fx gap10 mb12">
+        <div style="width:36px;height:36px;border-radius:var(--r);background:#e8f0ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">📱</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700">Twilio SMS</div>
+          <div style="font-size:11px;color:var(--tx2);margin-top:1px">via /api/send-login on Vercel</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+          <div id="sms-status-dot" style="width:9px;height:9px;border-radius:50%;background:var(--tx3)"></div>
+          <span id="sms-status-lbl" style="font-size:12px;color:var(--tx2)">Not tested</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Check API endpoint -->
+      <div style="border:1px solid var(--bdr);border-radius:var(--r);padding:10px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px">Step 1 — Check API is reachable</div>
+        <div style="font-size:11px;color:var(--tx3);margin-bottom:8px">Tests if /api/send-login exists on Vercel</div>
+        <button class="btn btn-sm w100" style="justify-content:center" onclick="testApiEndpoint()">
+          🔍 Check API endpoint
+        </button>
+        <div id="api-test-result" style="margin-top:8px;font-size:12px;display:none"></div>
+      </div>
+
+      <!-- Step 2: Send test SMS -->
+      <div style="border:1px solid var(--bdr);border-radius:var(--r);padding:10px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px">Step 2 — Send test SMS</div>
+        <div style="font-size:11px;color:var(--tx3);margin-bottom:8px">Sends a real SMS to any number to verify Twilio works</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="tel" id="sms-test-number" placeholder="+959123456789" style="flex:1;font-size:13px" value=""/>
+          <button class="btn btn-sm btn-pu" style="flex-shrink:0" onclick="sendTestSms()">Send</button>
+        </div>
+        <div id="sms-test-result" style="font-size:12px;display:none"></div>
+      </div>
+
+      <!-- Diagnostic log -->
+      <div style="border:1px solid var(--bdr);border-radius:var(--r);padding:10px">
+        <div class="fx mb6">
+          <div style="font-size:12px;font-weight:600;flex:1">Diagnostic log</div>
+          <button onclick="document.getElementById('sms-log').textContent=''" style="font-size:10px;background:none;border:none;color:var(--tx3);cursor:pointer">Clear</button>
+        </div>
+        <div id="sms-log" style="font-family:monospace;font-size:11px;color:var(--tx2);line-height:1.7;max-height:200px;overflow-y:auto;white-space:pre-wrap">Tap "Check API endpoint" to start diagnostics…</div>
+      </div>
+    </div>
+
+    <!-- Config info -->
+    <div class="card" style="font-size:12px;color:var(--tx2);line-height:1.8">
+      <strong style="color:var(--tx)">If API not reachable:</strong><br>
+      1. Check Vercel → Deployments → latest shows ✓ Ready<br>
+      2. Check Vercel → Settings → Environment Variables has all 4 vars<br>
+      3. Make sure <code style="background:var(--sur2);padding:1px 5px;border-radius:3px">api/send-login.js</code> is in your GitHub repo<br>
+      4. Redeploy after adding env vars<br><br>
+      <strong style="color:var(--tx)">Twilio free trial note:</strong><br>
+      Free accounts can only SMS verified numbers. Upgrade or verify numbers at console.twilio.com
+    </div>
   </div>
 
   <!-- SUPABASE TAB -->
@@ -628,7 +700,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
           <span style="color:var(--tx2)">Activity logs</span><strong id="info-acts">0</strong>
         </div>
         <div style="height:1px;background:var(--bdr);margin:4px 0"></div>
-        <div style="font-size:11px;color:var(--tx3)">StockFlow WMS v3.0 — Myanmar Grocery Warehouse</div>
+        <div style="font-size:11px;color:var(--tx3)">CityStar Warehouse v3.0 — Myanmar Grocery Warehouse</div>
       </div>
     </div>
   </div>
@@ -884,19 +956,24 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 <!-- Mark Delivered modal -->
 <!-- PIN LOGIN SCREEN -->
 <div id="pin-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
-  <div style="font-size:40px;margin-bottom:6px">🏪</div>
-  <div style="font-size:22px;font-weight:700;margin-bottom:4px">StockFlow WMS</div>
-  <div style="font-size:13px;color:var(--tx3);margin-bottom:28px;text-align:center" id="pin-screen-sub">Select your account to sign in</div>
+  <div style="font-size:44px;margin-bottom:8px">🏪</div>
+  <div style="font-size:22px;font-weight:700;margin-bottom:4px">CityStar Warehouse</div>
+  <div style="font-size:13px;color:var(--tx3);margin-bottom:28px;text-align:center" id="pin-screen-sub">Enter your name and PIN to sign in</div>
 
-  <!-- User list -->
-  <div id="pin-user-list" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+  <!-- Step 1: Name selector -->
+  <div id="pin-name-step" style="width:100%;max-width:320px">
+    <label style="font-size:12px;color:var(--tx2);font-weight:500;display:block;margin-bottom:6px">Your name</label>
+    <select id="pin-name-sel" onchange="pinNameSelected(this.value)" style="font-size:15px;font-weight:600;margin-bottom:16px;text-align:center">
+      <option value="">Select your name…</option>
+    </select>
+  </div>
 
-  <!-- Enter PIN pad -->
+  <!-- Step 2: PIN pad (shown after name selected) -->
   <div id="pin-pad-wrap" style="display:none;width:100%;max-width:300px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
       <button onclick="pinBack()" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;color:var(--tx2)">← Back</button>
       <div style="flex:1;text-align:center">
-        <div style="font-size:14px;font-weight:600" id="pin-entering-name"></div>
+        <div style="font-size:15px;font-weight:700" id="pin-entering-name"></div>
         <div style="font-size:11px;color:var(--tx3)" id="pin-entering-role"></div>
       </div>
       <div style="width:60px"></div>
@@ -921,15 +998,14 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
     <div style="color:var(--rd);font-size:13px;text-align:center;min-height:20px;margin-top:6px" id="pin-err"></div>
   </div>
 
-  <!-- Set new PIN panel (shown after first login or manual change) -->
+  <!-- Change PIN panel -->
   <div id="pin-change-wrap" style="display:none;width:100%;max-width:300px">
     <div style="text-align:center;margin-bottom:20px">
       <div style="font-size:32px;margin-bottom:6px">🔐</div>
-      <div style="font-size:16px;font-weight:700;color:var(--tx)" id="pin-change-title">Set your PIN</div>
+      <div style="font-size:16px;font-weight:700" id="pin-change-title">Set your PIN</div>
       <div style="font-size:12px;color:var(--tx3);margin-top:4px" id="pin-change-sub">Choose a new 4-digit PIN</div>
     </div>
-    <!-- Step indicator -->
-    <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:16px" id="pin-change-step-dots">
+    <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:16px">
       <div class="pin-dot" id="pcs-1"></div><div class="pin-dot" id="pcs-2"></div>
       <div class="pin-dot" id="pcs-3"></div><div class="pin-dot" id="pcs-4"></div>
     </div>
@@ -1028,7 +1104,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 let categories=[{"id": "canned_myanmar", "name": "Myanmar Canned", "icon": "can", "subs": [{"id": "ready", "name": "READY"}, {"id": "best", "name": "BEST"}, {"id": "hmg", "name": "HMG"}, {"id": "eain_chat", "name": "EAIN CHAT"}, {"id": "tomo", "name": "TOMO"}, {"id": "win", "name": "WIN"}, {"id": "ma_toke_ma", "name": "MA TOKE MA"}]}, {"id": "dry_fish", "name": "Dry Fish", "icon": "fish", "subs": [{"id": "mtg", "name": "MTG"}]}, {"id": "pickled_tea", "name": "Pickled Tea", "icon": "leaf", "subs": [{"id": "phoe_htaung", "name": "PHOE HTAUNG"}, {"id": "pin_pyo_ywet", "name": "PIN PYO YWET"}]}, {"id": "gold_snacks", "name": "Snacks", "icon": "star", "subs": [{"id": "gold", "name": "GOLD"}]}, {"id": "hmwe_powder", "name": "HMWE Powder", "icon": "grain", "subs": [{"id": "hmwe", "name": "HMWE"}]}, {"id": "tea_coffee", "name": "Tea & Coffee", "icon": "coffee", "subs": [{"id": "happy", "name": "HAPPY"}, {"id": "premier", "name": "PREMIER"}]}, {"id": "a1_spice", "name": "Spices", "icon": "flame", "subs": [{"id": "a1", "name": "A1"}, {"id": "thar_lon_thu", "name": "THAR LON THU"}]}, {"id": "rice", "name": "Rice", "icon": "grain", "subs": [{"id": "shwebo", "name": "SHWEBO"}, {"id": "yadanar_toe", "name": "YADANAR TOE"}, {"id": "thai", "name": "THAI"}, {"id": "kandil", "name": "KANDIL"}]}];
 let products=[{"id": 2, "name": "FRIED MYEIK SHRIMP PASTE 160g", "sku": "DRY_-002", "cat": "dry_fish", "sub": "mtg", "qty": 2, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-01"}, {"id": 6, "name": "FRIED FISH SAUCE With TAMARIND 160g", "sku": "DRY_-006", "cat": "dry_fish", "sub": "mtg", "qty": 6, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 7, "name": "DRIED HEADLESS ANCHOVY 160g", "sku": "DRY_-007", "cat": "dry_fish", "sub": "mtg", "qty": 147, "threshold": 20, "vendor": "MTG", "lastUpdated": "2026-04-28"}, {"id": 8, "name": "DRIED LOTIA CHOPPED 160g", "sku": "DRY_-008", "cat": "dry_fish", "sub": "mtg", "qty": 4, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-12"}, {"id": 10, "name": "DRIED SHOL (Roasted & Crispy) 160g", "sku": "DRY_-010", "cat": "dry_fish", "sub": "mtg", "qty": 35, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-08"}, {"id": 12, "name": "DRIED SHRIMP POWDER 160g", "sku": "DRY_-012", "cat": "dry_fish", "sub": "mtg", "qty": 31, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-14"}, {"id": 13, "name": "SPICY FRIED DRIED ANCHOVY 160g", "sku": "DRY_-013", "cat": "dry_fish", "sub": "mtg", "qty": 7, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-13"}, {"id": 17, "name": "SPICY FRIED DRIED LOTIA 160g", "sku": "DRY_-017", "cat": "dry_fish", "sub": "mtg", "qty": 21, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 18, "name": "DRIED LOTIA (Roasted & Crispy) 160g", "sku": "DRY_-018", "cat": "dry_fish", "sub": "mtg", "qty": 36, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 32, "name": "READY CHICKPEA CURRY 155g", "sku": "READ-032", "cat": "canned_myanmar", "sub": "ready", "qty": 30, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 33, "name": "READY SARDINES IN TOMATO SAUCE 190g", "sku": "READ-033", "cat": "canned_myanmar", "sub": "ready", "qty": 31, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 34, "name": "READY BEEF CURRY 425g", "sku": "READ-034", "cat": "canned_myanmar", "sub": "ready", "qty": 41, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 35, "name": "READY BEEF CURRY 150g", "sku": "READ-035", "cat": "canned_myanmar", "sub": "ready", "qty": 83, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 36, "name": "READY GOAT MEAT CURRY 150g", "sku": "READ-036", "cat": "canned_myanmar", "sub": "ready", "qty": 84, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 37, "name": "READY Stir-Fried Fish Curry 150g", "sku": "READ-037", "cat": "canned_myanmar", "sub": "ready", "qty": 9, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-08"}, {"id": 38, "name": "READY Nga Gyin with Fermented Soybeans 145g", "sku": "READ-038", "cat": "canned_myanmar", "sub": "ready", "qty": 30, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 40, "name": "READY Sweet & Sour Fried Fish (ROHU) 155g", "sku": "READ-040", "cat": "canned_myanmar", "sub": "ready", "qty": 10, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-04-20"}, {"id": 41, "name": "READY Fish Sauce Curry 155g", "sku": "READ-041", "cat": "canned_myanmar", "sub": "ready", "qty": 3, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 42, "name": "READY Fish Cakes In Curry 155g", "sku": "READ-042", "cat": "canned_myanmar", "sub": "ready", "qty": 89, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-12"}, {"id": 43, "name": "READY Hot & Spicy Fried Fish (ROHU) 130g", "sku": "READ-043", "cat": "canned_myanmar", "sub": "ready", "qty": 95, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-12"}, {"id": 44, "name": "READY STEAMED YELLOWPEA 340g", "sku": "READ-044", "cat": "canned_myanmar", "sub": "ready", "qty": 283, "threshold": 30, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 139, "name": "READY CHICKEN CURRY WITH CHICKPEA 425g", "sku": "READ-139", "cat": "canned_myanmar", "sub": "ready", "qty": 53, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 140, "name": "READY CHICKEN CURRY WITH BAMBOO SHOOT 425g", "sku": "READ-140", "cat": "canned_myanmar", "sub": "ready", "qty": 39, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-14"}, {"id": 141, "name": "READY CHICKPEA CURRY 400g", "sku": "READ-141", "cat": "canned_myanmar", "sub": "ready", "qty": 105, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 142, "name": "READY GOAT MEAT CURRY 425g", "sku": "READ-142", "cat": "canned_myanmar", "sub": "ready", "qty": 14, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 143, "name": "READY Hot & Spicy Fried Fish 280g", "sku": "READ-143", "cat": "canned_myanmar", "sub": "ready", "qty": 17, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-10"}, {"id": 144, "name": "READY STEAMED HILSHA 380g", "sku": "READ-144", "cat": "canned_myanmar", "sub": "ready", "qty": 104, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 145, "name": "READY STEAMED NGAGYIN 380g", "sku": "READ-145", "cat": "canned_myanmar", "sub": "ready", "qty": 52, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 146, "name": "READY Fish Cakes In Curry 400g", "sku": "READ-146", "cat": "canned_myanmar", "sub": "ready", "qty": 34, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 147, "name": "READY MACKEREL IN TOMATO SAUCE 425g", "sku": "READ-147", "cat": "canned_myanmar", "sub": "ready", "qty": 35, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 148, "name": "READY FRIED ACACIA CONCINNA LEAVES 400g", "sku": "READ-148", "cat": "canned_myanmar", "sub": "ready", "qty": 3, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 149, "name": "READY FRIED ROSELLE LEAF 400g", "sku": "READ-149", "cat": "canned_myanmar", "sub": "ready", "qty": 173, "threshold": 30, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 150, "name": "READY Fish Sauce Curry 400g", "sku": "READ-150", "cat": "canned_myanmar", "sub": "ready", "qty": 29, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-14"}, {"id": 47, "name": "BEST BOILED JENGKOL BEAN 490g", "sku": "BEST-047", "cat": "canned_myanmar", "sub": "best", "qty": 162, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 51, "name": "BEST ROASTED CATFISH CHILLI PASTE 460g", "sku": "BEST-051", "cat": "canned_myanmar", "sub": "best", "qty": 7, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 52, "name": "BEST CATFISH SOUR BAMBOO SHOT CURRY 375g", "sku": "BEST-052", "cat": "canned_myanmar", "sub": "best", "qty": 50, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-12"}, {"id": 53, "name": "BEST COTTON MILK PLANT LEAVES 360g", "sku": "BEST-053", "cat": "canned_myanmar", "sub": "best", "qty": 4, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 58, "name": "BEST TAMARIND LEAVES 125g", "sku": "BEST-058", "cat": "canned_myanmar", "sub": "best", "qty": 11, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-05-11"}, {"id": 59, "name": "BEST GOA BEAN ROOT 265g", "sku": "BEST-059", "cat": "canned_myanmar", "sub": "best", "qty": 1, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 60, "name": "BEST GINGER WORT FLOWER 355g", "sku": "BEST-060", "cat": "canned_myanmar", "sub": "best", "qty": 29, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-11"}, {"id": 62, "name": "BEST FRIED PEA AND BAMBOO SHOOT 365g", "sku": "BEST-062", "cat": "canned_myanmar", "sub": "best", "qty": 19, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-13"}, {"id": 63, "name": "BEST BAKED FISH STICK 135g", "sku": "BEST-063", "cat": "canned_myanmar", "sub": "best", "qty": 10, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 64, "name": "BEST FRIED JENGKOL BEAN 245g", "sku": "BEST-064", "cat": "canned_myanmar", "sub": "best", "qty": 193, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-10"}, {"id": 66, "name": "BEST MALAPHU 405g", "sku": "BEST-066", "cat": "canned_myanmar", "sub": "best", "qty": 36, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-04-20"}, {"id": 68, "name": "BEST ROSELLE LEAVES SOUP PASTE 430g", "sku": "BEST-068", "cat": "canned_myanmar", "sub": "best", "qty": 13, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-06"}, {"id": 138, "name": "BEST FISH PASTE CURRY 405g", "sku": "BEST-138", "cat": "canned_myanmar", "sub": "best", "qty": 175, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 164, "name": "BEST DUCK EGGS OILY CURRY 375g", "sku": "BEST-164", "cat": "canned_myanmar", "sub": "best", "qty": 72, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 165, "name": "BEST FERMENTED TOFU 405g", "sku": "BEST-165", "cat": "canned_myanmar", "sub": "best", "qty": 43, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-10"}, {"id": 166, "name": "BEST COCONUT MILK NOODLE SOUP 405g", "sku": "BEST-166", "cat": "canned_myanmar", "sub": "best", "qty": 26, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 167, "name": "BEST VEGETARIAN MIXED FRUIT BEAN CURRY 360g", "sku": "BEST-167", "cat": "canned_myanmar", "sub": "best", "qty": 32, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-14"}, {"id": 168, "name": "BEST MOHINGAR PASTE 385g", "sku": "BEST-168", "cat": "canned_myanmar", "sub": "best", "qty": 4, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-08"}, {"id": 169, "name": "BEST TAMARIND LEAVES 405g", "sku": "BEST-169", "cat": "canned_myanmar", "sub": "best", "qty": 171, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-14"}, {"id": 171, "name": "EAIN CHAT ASSORTED VEGETABLE & BEAN CURRY 430g", "sku": "EAIN-171", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 75, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-14"}, {"id": 173, "name": "EAIN CHAT FISH PASTE SAUCE 400g", "sku": "EAIN-173", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 45, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-14"}, {"id": 174, "name": "EAIN CHAT FISH PASTE SAUCE (WITHOUT SHRIMP) 400g", "sku": "EAIN-174", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 72, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-11"}, {"id": 170, "name": "EAIN CHAT COCONUT NOODLE SOUP 400g", "sku": "EAIN-170", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 22, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-13"}, {"id": 70, "name": "HMG Green Chillies Fish Paste 350g", "sku": "HMG_-070", "cat": "canned_myanmar", "sub": "hmg", "qty": 316, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-10"}, {"id": 71, "name": "HMG Mawlamyaing Mohinga Paste 360g", "sku": "HMG_-071", "cat": "canned_myanmar", "sub": "hmg", "qty": 217, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-08"}, {"id": 72, "name": "HMG Stir Fried Roselle Leaves with Fish 400g", "sku": "HMG_-072", "cat": "canned_myanmar", "sub": "hmg", "qty": 270, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-13"}, {"id": 79, "name": "PHOE HTAUNG BRAND SHWE HTOO 320g", "sku": "PHOE-079", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 123, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 80, "name": "PHOE HTAUNG LAY YAUNG CHEL SPECIAL 320g", "sku": "PHOE-080", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 250, "threshold": 30, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-06"}, {"id": 81, "name": "PHOE HTAUNG THAEDAW PAE KYI PU 320g", "sku": "PHOE-081", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 96, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-04-28"}, {"id": 82, "name": "PHOE HTAUNG CHINESE FRIED BEANS 320g", "sku": "PHOE-082", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 49, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 83, "name": "PHOE HTAUNG PICKLE TEA SHU-SHAE 360g", "sku": "PHOE-083", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 348, "threshold": 30, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-08"}, {"id": 84, "name": "PHOE HTAUNG PICKLED TEA (SWEET) 360g", "sku": "PHOE-084", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 105, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 85, "name": "PHOE HTAUNG PICKLED TEA (SPICY) 360g", "sku": "PHOE-085", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 128, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 86, "name": "PHOE HTAUNG PICKLED TEA (KYET CHAY NI) 360g", "sku": "PHOE-086", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 55, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 87, "name": "PT ZAYAM BOILED TEA LEAVES 400g", "sku": "PHOE-087", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 75, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-08"}, {"id": 88, "name": "PT PICKLED TEA LEAVES (SWEET) 160g", "sku": "PHOE-088", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 2, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-10"}, {"id": 89, "name": "PT PICKLED TEA LEAVES (SPICY) 160g", "sku": "PHOE-089", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 4, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-10"}, {"id": 90, "name": "PT PICKLED TEA LEAVES (SHU-SHAE) 160g", "sku": "PHOE-090", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 17, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-01"}, {"id": 183, "name": "PIN PYO YWET PICKLED TEA LEAF SWEET 360g", "sku": "PIN_-183", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 3, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-05-08"}, {"id": 184, "name": "PIN PYO YWET PICKLED TEA LEAF SPICY 360g", "sku": "PIN_-184", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 29, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-04-20"}, {"id": 185, "name": "PIN PYO YWET PICKLED TEA LEAF SHU-SHAE 360g", "sku": "PIN_-185", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 17, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-05-12"}, {"id": 186, "name": "MA TOKE MA SPECIAL PAE PU KYAW 400g", "sku": "WIN_-186", "cat": "canned_myanmar", "sub": "ma_toke_ma", "qty": 5, "threshold": 15, "vendor": "MA TOKE MA", "lastUpdated": "2026-05-06"}, {"id": 159, "name": "WIN SPECIAL PICKLED TEA & VARIOUS FRIED PEA 400g", "sku": "MT_O-159", "cat": "canned_myanmar", "sub": "win", "qty": 306, "threshold": 30, "vendor": "WIN", "lastUpdated": "2026-04-28"}, {"id": 160, "name": "WIN PICKLED TEA & VARIOUS FRIED PEA 400g", "sku": "MT_O-160", "cat": "canned_myanmar", "sub": "win", "qty": 79, "threshold": 20, "vendor": "WIN", "lastUpdated": "2026-05-11"}, {"id": 74, "name": "TOMO Rakhine Fried Fish Paste 320g", "sku": "TOMO-074", "cat": "canned_myanmar", "sub": "tomo", "qty": 36, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-04-28"}, {"id": 75, "name": "TOMO Fried Fish Sauce With Prawn 320g", "sku": "TOMO-075", "cat": "canned_myanmar", "sub": "tomo", "qty": 24, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-12"}, {"id": 178, "name": "TOMO Fried Fish Sauce With Marian 60g", "sku": "TOMO-178", "cat": "canned_myanmar", "sub": "tomo", "qty": 38, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-12"}, {"id": 179, "name": "TOMO Fried Fish Sauce 60g", "sku": "TOMO-179", "cat": "canned_myanmar", "sub": "tomo", "qty": 34, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-14"}, {"id": 180, "name": "TOMO Rakhine Fried Fish Paste 60g", "sku": "TOMO-180", "cat": "canned_myanmar", "sub": "tomo", "qty": 38, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-06"}, {"id": 153, "name": "GOLD PEA & BEAN CRUNCHY STICK (SPICY)", "sku": "GOLD-153", "cat": "gold_snacks", "sub": "gold", "qty": 87, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-13"}, {"id": 154, "name": "GOLD PEA & BEAN CRUNCHY STICK (Natural)", "sku": "GOLD-154", "cat": "gold_snacks", "sub": "gold", "qty": 46, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-08"}, {"id": 155, "name": "GOLD BAYARKYAW", "sku": "GOLD-155", "cat": "gold_snacks", "sub": "gold", "qty": 161, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-13"}, {"id": 156, "name": "GOLD CHICK PEA STICK", "sku": "GOLD-156", "cat": "gold_snacks", "sub": "gold", "qty": 44, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-12"}, {"id": 21, "name": "HMWE MON HIN KHAR POWDER 150g", "sku": "HMWE-021", "cat": "hmwe_powder", "sub": "hmwe", "qty": 4, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-12"}, {"id": 22, "name": "HMWE RICE NOODLE 350g", "sku": "HMWE-022", "cat": "hmwe_powder", "sub": "hmwe", "qty": 296, "threshold": 30, "vendor": "HMWE", "lastUpdated": "2026-05-11"}, {"id": 24, "name": "HMWE CHICKPEA POWDER (BAYA KYAW)", "sku": "HMWE-024", "cat": "hmwe_powder", "sub": "hmwe", "qty": 4, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-04-20"}, {"id": 27, "name": "HMWE CHICKPEA POWDER", "sku": "HMWE-027", "cat": "hmwe_powder", "sub": "hmwe", "qty": 7, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-10"}, {"id": 28, "name": "HMWE ROASTED CHICKPEA POWDER 150g", "sku": "HMWE-028", "cat": "hmwe_powder", "sub": "hmwe", "qty": 31, "threshold": 15, "vendor": "HMWE", "lastUpdated": "2026-05-01"}, {"id": 29, "name": "HMWE TOHU POWDER 150g", "sku": "HMWE-029", "cat": "hmwe_powder", "sub": "hmwe", "qty": 3, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-10"}, {"id": 128, "name": "PREMIER NAMHSAN TEA MIX 20×400g", "sku": "TEA_-128", "cat": "tea_coffee", "sub": "premier", "qty": 114, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-08"}, {"id": 129, "name": "PREMIER INSTANT NUTRITIOUS CEREAL 20×500g", "sku": "TEA_-129", "cat": "tea_coffee", "sub": "premier", "qty": 68, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-01"}, {"id": 130, "name": "PREMIER INSTANT COFFEE MIX 3in1 32×540g", "sku": "TEA_-130", "cat": "tea_coffee", "sub": "premier", "qty": 76, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-13"}, {"id": 127, "name": "HAPPY 3in1 INSTANT COFFEE MIX 20×660g", "sku": "TEA_-127", "cat": "tea_coffee", "sub": "happy", "qty": 41, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-04-20"}, {"id": 161, "name": "HAPPY INSTANT TEA MIX (REGULAR) 20×660g", "sku": "TEA_-161", "cat": "tea_coffee", "sub": "happy", "qty": 201, "threshold": 30, "vendor": "HAPPY", "lastUpdated": "2026-05-12"}, {"id": 162, "name": "HAPPY INSTANT TEA MIX (PHAN SEINT) 20×660g", "sku": "TEA_-162", "cat": "tea_coffee", "sub": "happy", "qty": 16, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-05-06"}, {"id": 163, "name": "HAPPY INSTANT TEA MIX (CHO SEINT) 20×660g", "sku": "TEA_-163", "cat": "tea_coffee", "sub": "happy", "qty": 167, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-04-28"}, {"id": 133, "name": "A1 PREMIUM CHILI FLAKES 200g", "sku": "A1_S-133", "cat": "a1_spice", "sub": "a1", "qty": 29, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-01"}, {"id": 134, "name": "A1 PREMIUM CHILI FLAKES 100g", "sku": "A1_S-134", "cat": "a1_spice", "sub": "a1", "qty": 93, "threshold": 20, "vendor": "A1", "lastUpdated": "2026-05-12"}, {"id": 135, "name": "A1 PREMIUM CHILI POWDER 100g", "sku": "A1_S-135", "cat": "a1_spice", "sub": "a1", "qty": 83, "threshold": 20, "vendor": "A1", "lastUpdated": "2026-05-13"}, {"id": 136, "name": "A1 ROASTED CHILI POWDER 100g", "sku": "A1_S-136", "cat": "a1_spice", "sub": "a1", "qty": 16, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-12"}, {"id": 137, "name": "A1 PREMIUM PAPRIKA POWDER 100g", "sku": "A1_S-137", "cat": "a1_spice", "sub": "a1", "qty": 48, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-11"}, {"id": 175, "name": "THAR LON THU ROASTED CHILI POWDER 85g", "sku": "A1_S-175", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 15, "threshold": 10, "vendor": "THAR LON THU", "lastUpdated": "2026-05-06"}, {"id": 176, "name": "THAR LON THU CHILI FLAKES 85g", "sku": "A1_S-176", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 110, "threshold": 20, "vendor": "THAR LON THU", "lastUpdated": "2026-04-20"}, {"id": 177, "name": "THAR LON THU CHILI POWDER 85g", "sku": "A1_S-177", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 20, "threshold": 10, "vendor": "THAR LON THU", "lastUpdated": "2026-05-06"}, {"id": 131, "name": "SHWEBO PEARL RICE 20kg (4bags × 5kg)", "sku": "RICE-131", "cat": "rice", "sub": "shwebo", "qty": 22, "threshold": 5, "vendor": "SHWEBO", "lastUpdated": "2026-05-01"}, {"id": 132, "name": "YADANAR TOE RICE 20kg (4bags × 5kg)", "sku": "RICE-132", "cat": "rice", "sub": "yadanar_toe", "qty": 60, "threshold": 5, "vendor": "YADANAR TOE", "lastUpdated": "2026-05-08"}, {"id": 187, "name": "THAI JASMINE RICE 20kg (4bags × 5kg)", "sku": "RICE-187", "cat": "rice", "sub": "thai", "qty": 13, "threshold": 5, "vendor": "THAI", "lastUpdated": "2026-05-14"}, {"id": 181, "name": "KANDIL CLASSIC BASMATI RICE", "sku": "RICE-181", "cat": "rice", "sub": "kandil", "qty": 0, "threshold": 5, "vendor": "KANDIL", "lastUpdated": "2026-05-01"}];
 // ═══════════════════════════════════════════════════════════════
-// StockFlow WMS — Complete Logic
+// CityStar Warehouse — Complete Logic
 // ═══════════════════════════════════════════════════════════════
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -1117,10 +1193,18 @@ let activity = [
 let orderHistory = [];
 
 // ── PIN Auth ──────────────────────────────────────────────────────
-let appUsers = [
-  {id:'owner1', name:'Owner', role:'owner', pin:'0000', color:'#c0392b', mustChangePin:true, phone:''},
-  {id:'admin1', name:'Admin', role:'admin',  pin:'1234', color:'#4c3fff', mustChangePin:true, phone:''},
-];
+let appUsers = (()=>{
+  // Try localStorage first (fastest, persists PIN changes immediately)
+  try {
+    let saved = localStorage.getItem('wms_users_v1');
+    if (saved) { let p = JSON.parse(saved); if (Array.isArray(p) && p.length) return p; }
+  } catch(e){}
+  // Default users — mustChangePin:true so first login forces PIN setup
+  return [
+    {id:'owner1', name:'Owner', role:'owner', pin:'0000', color:'#c0392b', mustChangePin:true, phone:''},
+    {id:'admin1', name:'Admin', role:'admin',  pin:'1234', color:'#4c3fff', mustChangePin:true, phone:''},
+  ];
+})();
 let _pinTarget = null, _pinEntry = '';
 let _pinChangeEntry = '', _pinChangeFirst = '', _pinChangeStep = 1; // 1=enter new, 2=confirm
 let _pinChangeMandatory = false; // true = can't skip
@@ -1128,27 +1212,37 @@ const ROLE_COLORS  = {owner:'#c0392b', admin:'#4c3fff', operator:'#1a7a4a'};
 const ROLE_LABELS  = {owner:'Owner',   admin:'Admin',   operator:'Operator'};
 
 function initPin() {
-  renderPinUserList();
-  // Will be called again after sbPullUsers — this handles offline/no-supabase case
+  renderPinNameDropdown();
+  // Check for URL token (SMS link login)
   let params = new URLSearchParams(window.location.search);
-  if (!params.get('token')) return; // no token, normal flow
+  if (!params.get('token')) return;
 }
 
-function renderPinUserList() {
-  let el = document.getElementById('pin-user-list'); if (!el) return;
-  el.innerHTML = appUsers.map(u => {
-    let ini = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-    let col = u.color || ROLE_COLORS[u.role] || '#4c3fff';
-    let badge = u.mustChangePin ? '<span style="font-size:10px;background:var(--am2);color:var(--am3);border-radius:20px;padding:1px 6px;margin-left:6px">Set PIN</span>' : '';
-    return '<button class="pin-user-btn" onclick="pinSelectUser(\'' + u.id + '\')">'
-      + '<div class="pin-av" style="background:' + col + ';width:38px;height:38px;font-size:13px">' + ini + '</div>'
-      + '<div style="flex:1;min-width:0">'
-        + '<div class="pin-uname">' + u.name + badge + '</div>'
-        + '<div class="pin-urole">' + ROLE_LABELS[u.role] + '</div>'
-      + '</div>'
-      + '</button>';
-  }).join('');
+function renderPinNameDropdown() {
+  let sel = document.getElementById('pin-name-sel');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select your name…</option>'
+    + appUsers.map(u => '<option value="' + u.id + '">' + u.name + ' (' + ROLE_LABELS[u.role] + ')</option>').join('');
 }
+
+// Keep for compatibility
+function renderPinUserList() { renderPinNameDropdown(); }
+
+function pinNameSelected(uid) {
+  if (!uid) return;
+  let u = appUsers.find(u => u.id === uid);
+  if (!u) return;
+  _pinTarget = u;
+  _pinEntry = '';
+  document.getElementById('pin-name-step').style.display = 'none';
+  document.getElementById('pin-pad-wrap').style.display = 'block';
+  document.getElementById('pin-entering-name').textContent = u.name;
+  document.getElementById('pin-entering-role').textContent = ROLE_LABELS[u.role];
+  document.getElementById('pin-err').textContent = '';
+  updatePinDots();
+}
+
+function pinSelectUser(uid) { pinNameSelected(uid); }
 
 // ── Change PIN flow ───────────────────────────────────────────────
 function showPinChange(mandatory) {
@@ -1224,7 +1318,9 @@ function pinChangeNext() {
     if (u) {
       u.pin = _pinChangeFirst;
       u.mustChangePin = false;
-      if (_pinTarget) _pinTarget.pin = _pinChangeFirst;
+      if (_pinTarget) { _pinTarget.pin = _pinChangeFirst; _pinTarget.mustChangePin = false; }
+      // Persist immediately to localStorage so reload doesn't re-prompt
+      try { localStorage.setItem('wms_users_v1', JSON.stringify(appUsers)); } catch(e){}
       sbPushUsers();
       renderPinUserList();
     }
@@ -1239,10 +1335,11 @@ function pinChangeNext() {
 }
 
 function pinChangeCancel() {
-  // Only reachable if not mandatory
+  // Close PIN screen, return to app without logging out
+  let ps = document.getElementById('pin-screen');
+  if (ps) { ps.classList.add('hidden'); ps.style.display = 'none'; }
   document.getElementById('pin-change-wrap').style.display = 'none';
-  // Complete login without changing PIN
-  if (_pinTarget) _doLogin(_pinTarget);
+  _pinChangeEntry = ''; _pinChangeFirst = ''; _pinChangeStep = 1;
 }
 
 // ── Core login ────────────────────────────────────────────────────
@@ -1280,7 +1377,10 @@ function pinSelectUser(uid) {
 }
 function pinBack() {
   _pinEntry = ''; _pinTarget = null;
-  document.getElementById('pin-user-list').style.display = 'flex';
+  // Reset dropdown
+  let sel = document.getElementById('pin-name-sel');
+  if (sel) sel.value = '';
+  document.getElementById('pin-name-step').style.display = 'block';
   document.getElementById('pin-pad-wrap').style.display = 'none';
   document.getElementById('pin-err').textContent = '';
 }
@@ -1320,17 +1420,19 @@ function lockApp() {
   _pinEntry = ''; _pinTarget = null;
   _pinChangeEntry = ''; _pinChangeFirst = ''; _pinChangeStep = 1;
   currentRole = ''; currentUser = ''; currentUserId = '';
-  let ul = document.getElementById('pin-user-list');
-  let pw = document.getElementById('pin-pad-wrap');
-  let pc = document.getElementById('pin-change-wrap');
-  let pe = document.getElementById('pin-err');
+  let nameStep = document.getElementById('pin-name-step');
+  let pw  = document.getElementById('pin-pad-wrap');
+  let pc  = document.getElementById('pin-change-wrap');
+  let pe  = document.getElementById('pin-err');
   let sub = document.getElementById('pin-screen-sub');
-  if (ul) ul.style.display = 'flex';
-  if (pw) pw.style.display = 'none';
-  if (pc) pc.style.display = 'none';
-  if (pe) pe.textContent = '';
-  if (sub) sub.textContent = 'Select your account to sign in';
-  updatePinDots(); renderPinUserList();
+  let sel = document.getElementById('pin-name-sel');
+  if (nameStep) nameStep.style.display = 'block';
+  if (pw)  pw.style.display  = 'none';
+  if (pc)  pc.style.display  = 'none';
+  if (pe)  pe.textContent    = '';
+  if (sub) sub.textContent   = 'Enter your name and PIN to sign in';
+  if (sel) sel.value         = '';
+  updatePinDots(); renderPinNameDropdown();
   let ps = document.getElementById('pin-screen');
   if (ps) {
     ps.classList.remove('hidden');
@@ -1339,7 +1441,150 @@ function lockApp() {
 }
 function switchRole() { lockApp(); }
 
-// ── SMS login link ────────────────────────────────────────────────
+// ── Safe fetch with timeout — NO AbortController (breaks in some browsers) ──
+function fetchTimeout(url, opts, ms) {
+  ms = ms || 12000;
+  // Do NOT pass any signal — causes postMessage cloning errors in Safari/WebView
+  let fetchOpts = Object.assign({}, opts);
+  delete fetchOpts.signal;
+  let fetchProm = fetch(url, fetchOpts);
+  let timeoutProm = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Request timed out after ' + (ms/1000) + 's')), ms)
+  );
+  return Promise.race([fetchProm, timeoutProm]);
+}
+
+// ── SMS diagnostics ───────────────────────────────────────────────
+function smsLog(msg, type) {
+  let el = document.getElementById('sms-log');
+  if (!el) return;
+  let ts = new Date().toLocaleTimeString();
+  let prefix = type === 'ok' ? '✓' : type === 'err' ? '✗' : '·';
+  el.textContent += '[' + ts + '] ' + prefix + ' ' + msg + '\n';
+  el.scrollTop = el.scrollHeight;
+}
+function setSmsStatus(ok) {
+  let dot = document.getElementById('sms-status-dot');
+  let lbl = document.getElementById('sms-status-lbl');
+  if (dot) dot.style.background = ok === true ? 'var(--gn)' : ok === false ? 'var(--rd)' : 'var(--am)';
+  if (lbl) lbl.textContent = ok === true ? 'Working' : ok === false ? 'Failed' : 'Checking…';
+}
+
+async function testApiEndpoint() {
+  let el = document.getElementById('api-test-result');
+  el.style.display = 'block'; el.textContent = '⏳ Checking…'; el.style.color = 'var(--tx3)';
+  document.getElementById('sms-log').textContent = '';
+  setSmsStatus(null);
+
+  smsLog('App URL: ' + window.location.origin);
+  smsLog('Testing POST to /api/send-login with empty body…');
+  smsLog('(Expect 400 = API exists, 404 = not deployed)');
+
+  try {
+    let r = await fetchTimeout('/api/send-login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({_ping: true})
+    }, 12000);
+
+    let text = '';
+    try { text = await r.text(); } catch(e) {}
+    smsLog('Status: ' + r.status);
+    smsLog('Body: ' + (text || '(empty)').slice(0, 300));
+
+    if (r.status === 404) {
+      el.innerHTML = '✗ 404 — api/send-login.js not deployed on Vercel';
+      el.style.color = 'var(--rd)';
+      smsLog('─── FIX ───', 'err');
+      smsLog('1. Make sure api/send-login.js is in your GitHub repo', 'err');
+      smsLog('2. Check Vercel dashboard → latest deployment is Ready', 'err');
+      smsLog('3. vercel.json must include "@vercel/node" build for api/', 'err');
+      setSmsStatus(false);
+    } else if (r.status === 400) {
+      el.innerHTML = '✓ API is reachable — now test SMS in Step 2';
+      el.style.color = 'var(--gn)';
+      smsLog('API found and responding correctly ✓', 'ok');
+      setSmsStatus(null);
+    } else if (r.status === 500) {
+      let data = {}; try { data = JSON.parse(text); } catch(e) {}
+      let msg = data.error || text.slice(0,150);
+      if (msg.includes('env') || msg.includes('configured')) {
+        el.innerHTML = '⚠ API found but Twilio env vars missing';
+        el.style.color = 'var(--am)';
+        smsLog('─── FIX ───', 'err');
+        smsLog('Go to Vercel → Settings → Environment Variables', 'err');
+        smsLog('Add: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER, APP_URL', 'err');
+        smsLog('Then: Vercel → Deployments → Redeploy', 'err');
+      } else {
+        el.innerHTML = '⚠ Server error: ' + msg.slice(0,80);
+        el.style.color = 'var(--am)';
+      }
+      setSmsStatus(false);
+    } else {
+      el.textContent = 'Status ' + r.status + ': ' + text.slice(0,100);
+      el.style.color = 'var(--am)';
+    }
+  } catch(e) {
+    let msg = e.message || String(e);
+    el.textContent = '✗ ' + msg;
+    el.style.color = 'var(--rd)';
+    smsLog('Error: ' + msg, 'err');
+    if (msg.includes('abort') || msg.includes('timeout') || msg.includes('network') || msg.includes('fetch')) {
+      smsLog('─── Possible causes ───', 'err');
+      smsLog('· api/send-login.js not in GitHub repo', 'err');
+      smsLog('· Vercel build failed — check Vercel dashboard', 'err');
+      smsLog('· vercel.json missing @vercel/node build rule', 'err');
+      smsLog('· You are testing on localhost (API only works on Vercel)', 'err');
+    }
+    setSmsStatus(false);
+  }
+}
+
+async function sendTestSms() {
+  let num = document.getElementById('sms-test-number').value.trim();
+  let el  = document.getElementById('sms-test-result');
+  el.style.display = 'block';
+
+  if (!num || !num.startsWith('+')) {
+    el.textContent = '✗ Enter number with country code (e.g. +959123456789)';
+    el.style.color = 'var(--rd)';
+    return;
+  }
+
+  el.textContent = '⏳ Sending…'; el.style.color = 'var(--tx3)';
+  smsLog('Sending test SMS to ' + num + '…');
+
+  try {
+    let token = 'test-' + Math.random().toString(36).slice(2,8);
+    let res = await fetchTimeout('/api/send-login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({to: num, userId: 'test', userName: 'Test User', token})
+    }, 15000);
+    let data = await res.json();
+    smsLog('HTTP status: ' + res.status);
+    smsLog('Response: ' + JSON.stringify(data).slice(0, 300));
+
+    if (data.success) {
+      el.innerHTML = '✓ SMS sent! SID: ' + data.sid;
+      el.style.color = 'var(--gn)';
+      smsLog('SMS delivered successfully. SID: ' + data.sid, 'ok');
+      setSmsStatus(true);
+    } else {
+      el.textContent = '✗ ' + (data.error || 'SMS failed');
+      el.style.color = 'var(--rd)';
+      smsLog('Twilio error: ' + (data.error || 'unknown'), 'err');
+      if (data.code) smsLog('Error code: ' + data.code + ' — check twilio.com/docs/errors/' + data.code, 'err');
+      if (data.code == 21608) smsLog('Trial account: recipient number not verified. Verify at console.twilio.com/verified', 'err');
+      setSmsStatus(false);
+    }
+  } catch(e) {
+    el.textContent = '✗ ' + e.message;
+    el.style.color = 'var(--rd)';
+    smsLog('Fetch error: ' + e.message, 'err');
+    setSmsStatus(false);
+  }
+}
 async function sendSmsLink(userId) {
   let u = appUsers.find(u => u.id === userId);
   if (!u) { toast('User not found', 'rd'); return; }
@@ -1353,11 +1598,11 @@ async function sendSmsLink(userId) {
 
   toast('Sending SMS to ' + u.phone + '…');
   try {
-    let res = await fetch('/api/send-login', {
+    let res = await fetchTimeout('/api/send-login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({to: u.phone, userId: u.id, userName: u.name, token})
-    });
+    }, 15000);
     let data = await res.json();
     if (data.success) {
       toast('✓ SMS sent to ' + u.name);
@@ -1366,7 +1611,7 @@ async function sendSmsLink(userId) {
       console.error('SMS error:', data);
     }
   } catch(e) {
-    toast('Cannot reach SMS server — check Vercel deployment', 'rd');
+    toast('SMS error: ' + e.message, 'rd');
     console.error('sendSmsLink:', e);
   }
 }
@@ -1407,12 +1652,10 @@ function checkUrlToken() {
   return true;
 }
 
-// ── User Management ───────────────────────────────────────────────
-function myChangePin() {
-  // Allow currently logged-in user to change their PIN
-  _pinTarget = appUsers.find(u => u.id === currentUserId);
-  if (!_pinTarget) { toast('Login first to change PIN', 'rd'); return; }
-  // Show pin-screen in change mode without locking out
+function openChangePinFor(userId) {
+  let u = appUsers.find(u => u.id === userId);
+  if (!u) return;
+  _pinTarget = u;
   let ps = document.getElementById('pin-screen');
   if (ps) {
     ps.classList.remove('hidden');
@@ -1420,8 +1663,13 @@ function myChangePin() {
   }
   document.getElementById('pin-user-list').style.display = 'none';
   document.getElementById('pin-pad-wrap').style.display = 'none';
-  showPinChange(false); // not mandatory — can cancel
+  document.getElementById('pin-screen-sub').textContent =
+    userId === currentUserId ? 'Change your PIN' : 'Reset PIN for ' + u.name;
+  showPinChange(false); // not mandatory — can cancel back to app
 }
+
+// Legacy alias
+function myChangePin() { openChangePinFor(currentUserId); }
 
 function renderUsersList() {
   let el = document.getElementById('users-list'); if (!el) return;
@@ -1433,14 +1681,19 @@ function renderUsersList() {
       ? '<span style="font-size:10px;background:var(--am2);color:var(--am3);border-radius:20px;padding:1px 7px;margin-left:4px">Temporary PIN</span>'
       : '<span style="font-size:10px;color:var(--gn3);margin-left:4px">✓ PIN set</span>';
     let canEdit = currentRole === 'owner' || currentRole === 'admin';
+    let isMe = u.id === currentUserId;
     let smsBtn = (canEdit && u.phone)
       ? '<button class="btn btn-sm" onclick="sendSmsLink(\'' + u.id + '\')" title="Send SMS login link" style="padding:5px 7px;background:#e8fdf5;color:#1a7a4a;border-color:#3ecf8e">📱</button>'
       : '';
+    // Change PIN: user can change their own, owner/admin can reset others
+    let changePinBtn = (isMe || canEdit)
+      ? '<button class="btn btn-sm" onclick="openChangePinFor(\'' + u.id + '\')" title="Change PIN" style="padding:5px 7px;background:var(--pu2);color:var(--pu3);border-color:transparent">🔐</button>'
+      : '';
     let acts = canEdit
       ? '<button class="btn btn-sm" onclick="editUser(\'' + u.id + '\')" title="Edit" style="padding:5px 7px"><svg width="13" height="13"><use href="#ic-edit"/></svg></button>'
-        + smsBtn
+        + changePinBtn + smsBtn
         + (u.id !== 'owner1' ? '<button class="btn btn-sm btn-rd" onclick="deleteUser(\'' + u.id + '\')" title="Delete" style="padding:5px 7px"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>' : '')
-      : '';
+      : (isMe ? changePinBtn : '');
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr)">'
       + '<div class="pin-av" style="background:' + col + ';width:36px;height:36px;font-size:12px">' + ini + '</div>'
       + '<div style="flex:1;min-width:0">'
@@ -2247,7 +2500,7 @@ function updateWaDot(ok){let d=document.getElementById('wa-dot');d.style.backgro
 async function testWA(){
   let btn=document.getElementById('wa-test-btn'),msg=document.getElementById('wa-conn-msg');
   btn.textContent='Testing…';btn.disabled=true;
-  try{let res=await fetch(document.getElementById('wa-server').value.trim()+'/health',{signal:AbortSignal.timeout(5000)});let d=await res.json();msg.textContent=d.wa_ready?'✓ Connected':'⚠ Check .env';msg.style.color=d.wa_ready?'var(--gn)':'var(--am)';updateWaDot(d.wa_ready);}
+  try{let res=await fetchTimeout(document.getElementById('wa-server').value.trim()+'/health',{},5000);let d=await res.json();msg.textContent=d.wa_ready?'✓ Connected':'⚠ Check .env';msg.style.color=d.wa_ready?'var(--gn)':'var(--am)';updateWaDot(d.wa_ready);}
   catch(e){msg.textContent='✗ Cannot reach server';msg.style.color='var(--rd)';updateWaDot(false);}
   btn.textContent='Test';btn.disabled=false;
 }
@@ -2259,7 +2512,8 @@ function setOType(type){
   document.getElementById('of-new').style.display=type==='new'?'block':'none';
   document.getElementById('wa-preview').style.display='none';
   let sr=document.getElementById('send-result');if(sr)sr.style.display='none';
-  if(type==='low')renderRS();if(type==='new')renderNO();
+  if(type==='low'){renderRS();populateOrderRecipients();}
+  if(type==='new'){renderNO();populateOrderRecipients();}
 }
 function renderRS(){
   let low=products.filter(p=>gS(p)!=='ok').sort((a,b)=>a.qty-b.qty);
@@ -2272,31 +2526,70 @@ function renderNO(){if(!noRowsList.length)noRowsList=[{id:Date.now()}];_renderNO
 function _renderNO(){document.getElementById('no-tbl').innerHTML=noRowsList.map(r=>'<tr><td><input type="text" placeholder="Product…" id="nor-n-'+r.id+'" style="min-width:100px"/></td><td><select id="nor-c-'+r.id+'"><option value="">Select…</option>'+categories.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('')+'</select></td><td class="hm"><input type="text" placeholder="Brand" id="nor-b-'+r.id+'" style="min-width:70px"/></td><td><input type="number" placeholder="qty" min="1" id="nor-q-'+r.id+'" style="width:60px;padding:4px 7px"/></td><td><button class="btn btn-sm btn-rd" onclick="delNOR('+r.id+')"><svg width="12" height="12"><use href="#ic-trash"/></svg></button></td></tr>').join('');}
 function addNORow(){noRowsList.push({id:Date.now()});_renderNO();}
 function delNOR(id){noRowsList=noRowsList.filter(r=>r.id!==id);_renderNO();}
+function populateOrderRecipients() {
+  let teamWithPhone = appUsers.filter(u => u.phone);
+  let opts = '<option value="wa">WhatsApp only</option>'
+    + teamWithPhone.map(u => '<option value="sms:' + u.id + '">SMS + WA → ' + u.name + ' (' + u.phone + ')</option>').join('');
+  ['order-recipient','order-recipient-new'].forEach(id => {
+    let el = document.getElementById(id); if (el) el.innerHTML = opts;
+  });
+}
+
 async function sendOrder(type){
   let items=[],msgText='';
   if(type==='low'){
     document.querySelectorAll('.rs-cb:checked').forEach(cb=>{let pid=parseInt(cb.dataset.id),qi=document.querySelector('.rs-qty[data-id="'+pid+'"]');if(qi&&qi.value){let p=gP(pid);items.push({name:p.name,qty:parseInt(qi.value),cat:cN(p.cat),vendor:p.vendor||''});}});
     if(!items.length){toast('Select at least one item','rd');return;}
-    msgText='RESTOCK REQUEST\n'+items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+(it.vendor?' | '+it.vendor:'')+'\n   Order: '+it.qty+' boxes').join('\n\n');
+    msgText='🏪 CITYSTAR WAREHOUSE\nRESTOCK REQUEST\n\n'+items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+(it.vendor?' | '+it.vendor:'')+'\n   Order qty: '+it.qty+' boxes').join('\n\n');
     let note=document.getElementById('rs-note').value;if(note)msgText+='\n\nNote: '+note;
   }else{
     noRowsList.forEach(r=>{let name=document.getElementById('nor-n-'+r.id)?.value.trim(),cat=document.getElementById('nor-c-'+r.id)?.value,qty=document.getElementById('nor-q-'+r.id)?.value;if(name&&qty)items.push({name,cat:cN(cat)||cat,qty:parseInt(qty)});});
     if(!items.length){toast('Add at least one item','rd');return;}
-    msgText='NEW ORDER REQUEST\n'+items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+'\n   Qty: '+it.qty+' boxes').join('\n\n');
+    msgText='🏪 CITYSTAR WAREHOUSE\nNEW ORDER REQUEST\n\n'+items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+'\n   Qty: '+it.qty+' boxes').join('\n\n');
     let note=document.getElementById('no-note').value;if(note)msgText+='\n\nNote: '+note;
   }
-  msgText+='\n\nSent by: '+(currentUser||'Admin')+' — '+nowT();
-  document.getElementById('wa-msg-body').textContent=msgText;document.getElementById('wa-msg-time').textContent=nowT();document.getElementById('wa-preview').style.display='block';
+  msgText+='\n\nSent by: '+(currentUser||'Admin')+'\n'+nowT();
+
+  document.getElementById('wa-msg-body').textContent=msgText;
+  document.getElementById('wa-msg-time').textContent=nowT();
+  document.getElementById('wa-preview').style.display='block';
+
+  let recipientEl = document.getElementById(type==='low'?'order-recipient':'order-recipient-new');
+  let recipientVal = recipientEl ? recipientEl.value : 'wa';
+
   let he={id:Date.now(),desc:(type==='low'?'Restock':'New order')+': '+items.length+' item(s)',type,items:items.length,time:nowT(),status:'sending',waOk:null};
   orderHistory.unshift(he);renderOH();
+
   let sb=document.getElementById('send-'+type+'-btn');sb.disabled=true;sb.textContent='Sending…';
+
+  // Send WhatsApp
   try{
-    let res=await fetch(waConfig.server+'/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:waConfig.phone,text:msgText}),signal:AbortSignal.timeout(10000)});
+    let res=await fetchTimeout(waConfig.server+'/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:waConfig.phone,text:msgText})},10000);
     let d=await res.json();he.waOk=d.success===true;he.status=he.waOk?'pending':'send_failed';
-    if(he.waOk)toast('WhatsApp sent');else toast('Send failed: '+(d.error||'unknown'),'rd');updateWaDot(he.waOk);
-    sbPushOrder(he);
-  }catch(e){he.waOk=false;he.status='send_failed';toast(!waConfig.phone?'No owner number set':'Cannot reach server','rd');updateWaDot(false);}
-  sb.disabled=false;sb.innerHTML='<svg width="13" height="13"><use href="#ic-wa"/></svg> Send via WhatsApp';
+    if(he.waOk)toast('WhatsApp sent');else toast('WA failed: '+(d.error||'unknown'),'rd');
+    updateWaDot(he.waOk);sbPushOrder(he);
+  }catch(e){he.waOk=false;he.status='send_failed';toast(!waConfig.phone?'No WA number set':'WA server unreachable','rd');updateWaDot(false);}
+
+  // Also send SMS if a team member was selected
+  if(recipientVal && recipientVal.startsWith('sms:')) {
+    let uid = recipientVal.replace('sms:','');
+    let u = appUsers.find(u => u.id === uid);
+    if (u && u.phone) {
+      try {
+        let smsBody = msgText;
+        let smsRes = await fetchTimeout('/api/send-login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({to: u.phone, userId: 'order-alert', userName: u.name, token: '', message: smsBody})
+        }, 15000);
+        let smsData = await smsRes.json();
+        if(smsData.success) toast('SMS also sent to ' + u.name);
+        else toast('SMS to ' + u.name + ' failed: ' + (smsData.error||''), 'rd');
+      } catch(e) { toast('SMS send error: ' + e.message, 'rd'); }
+    }
+  }
+
+  sb.disabled=false;sb.innerHTML='<svg width="13" height="13"><use href="#ic-wa"/></svg> Send alert';
   renderOH();setOType(null);
 }
 function renderOH(){
@@ -2692,14 +2985,6 @@ async function sbPull() {
   }catch(e){console.error('sbPull:',e);}
 }
 
-async function sbPullUsers(){
-  if(!sbClient)return;
-  try{
-    let {data,error}=await sbClient.from('settings').select('value').eq('key','app_users').single();
-    if(!error&&data&&data.value){let parsed=JSON.parse(data.value);if(Array.isArray(parsed)&&parsed.length){appUsers=parsed;renderPinUserList();}}
-  }catch(e){}
-}
-
 function sbSubscribe(){
   if(!sbClient)return;
   sbClient.channel('products-rt').on('postgres_changes',{event:'*',schema:'public',table:'products'},payload=>{
@@ -2754,7 +3039,24 @@ async function sbPushSettings(){
   if(!sbClient)return;
   try{await sbClient.from('settings').upsert([{key:'wa_server',value:waConfig.server},{key:'wa_phone',value:waConfig.phone}]);}catch(e){}
 }
+async function sbPullUsers(){
+  if(!sbClient)return;
+  try{
+    let {data,error}=await sbClient.from('settings').select('value').eq('key','app_users').single();
+    if(!error&&data&&data.value){
+      let parsed=JSON.parse(data.value);
+      if(Array.isArray(parsed)&&parsed.length){
+        appUsers=parsed;
+        try{localStorage.setItem('wms_users_v1',JSON.stringify(appUsers));}catch(e){}
+        renderPinUserList();
+      }
+    }
+  }catch(e){}
+}
+
 async function sbPushUsers(){
+  // Always save to localStorage immediately
+  try{localStorage.setItem('wms_users_v1',JSON.stringify(appUsers));}catch(e){}
   if(!sbClient)return;
   try{await sbClient.from('settings').upsert({key:'app_users',value:JSON.stringify(appUsers)});}catch(e){}
 }
