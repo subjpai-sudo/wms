@@ -504,8 +504,136 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   <div id="wa-preview" style="display:none;margin-top:14px"><div class="sec mb8">Message preview</div><div class="wa-bubble"><div class="wa-msg" id="wa-msg-body"></div><div style="font-size:10px;color:var(--tx3);text-align:right;margin-top:4px" id="wa-msg-time"></div></div></div>
 </div>
 
+
+<!-- CONTAINER TRACKING -->
+<div class="page" id="page-containers">
+  <div class="fx gap8 mb12">
+    <div style="flex:1"><div class="pt">Containers</div><div class="ps" style="margin-bottom:0">Incoming shipment tracking</div></div>
+    <button class="btn btn-pu btn-sm" id="btn-add-container" onclick="openAddContainer()"><svg width="13" height="13"><use href="#ic-plus"/></svg> New container</button>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tabs" id="cont-tabs">
+    <button class="tb on" onclick="swContTab(this,'ctab-pending')">Pending <span id="ct-pending-cnt" class="badge ba" style="font-size:10px;margin-left:4px">0</span></button>
+    <button class="tb" onclick="swContTab(this,'ctab-delivered')">Delivered <span id="ct-delivered-cnt" class="badge bg" style="font-size:10px;margin-left:4px">0</span></button>
+  </div>
+
+  <!-- PENDING containers -->
+  <div id="ctab-pending">
+    <div id="cont-pending-list"></div>
+    <div id="cont-pending-empty" style="display:none;text-align:center;padding:40px 20px;color:var(--tx3)">
+      <svg width="40" height="40" style="opacity:.2;margin-bottom:10px;display:block;margin-inline:auto"><use href="#ic-pkg"/></svg>
+      <div style="font-size:14px">No pending containers</div>
+      <div style="font-size:12px;margin-top:4px">Add a new incoming shipment</div>
+    </div>
+  </div>
+
+  <!-- DELIVERED containers -->
+  <div id="ctab-delivered" style="display:none">
+    <div id="cont-delivered-list"></div>
+    <div id="cont-delivered-empty" style="display:none;text-align:center;padding:40px 20px;color:var(--tx3)">
+      <svg width="40" height="40" style="opacity:.2;margin-bottom:10px;display:block;margin-inline:auto"><use href="#ic-chk"/></svg>
+      <div style="font-size:14px">No delivered containers yet</div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="page" id="page-settings">
+  <div class="fx gap8 mb12">
+    <div class="pt" style="flex:1">Settings</div>
+  </div>
+  <div class="tabs mb12">
+    <button class="tb on" onclick="swTab(this,'stab-users')">Users</button>
+    <button class="tb" onclick="swTab(this,'stab-supabase')">Supabase</button>
+    <button class="tb" onclick="swTab(this,'stab-info')">Info</button>
+  </div>
+
+  <!-- USERS TAB -->
+  <div class="tbp on" id="stab-users">
+    <div class="card mb10">
+      <div class="fx gap8 mb12">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700">Team members</div>
+          <div style="font-size:12px;color:var(--tx2);margin-top:2px">Each user logs in with a 4-digit PIN</div>
+        </div>
+        <button class="btn btn-pu btn-sm" onclick="openAddUser()">
+          <svg width="13" height="13"><use href="#ic-plus"/></svg> Add user
+        </button>
+      </div>
+      <div id="users-list"></div>
+    </div>
+    <div class="card mb10" style="background:var(--pu2);border-color:var(--pu)">
+      <div style="font-size:12px;color:var(--pu3);line-height:1.8">
+        <strong>Role permissions</strong><br>
+        🔴 <strong>Owner</strong> — full access + manage users + containers<br>
+        🟠 <strong>Admin</strong> — full access + containers (no user mgmt)<br>
+        🟢 <strong>Operator</strong> — stock in/out only
+      </div>
+    </div>
+    <button class="btn w100" style="justify-content:center;padding:14px;font-size:14px;color:var(--rd3);border-color:var(--rd)" onclick="switchRole()">
+      🔒 Lock app &amp; switch user
+    </button>
+  </div>
+
+  <!-- SUPABASE TAB -->
+  <div class="tbp" id="stab-supabase">
+    <div class="card mb10" style="border:1.5px solid #3ecf8e">
+      <div class="fx gap10 mb12">
+        <div style="width:36px;height:36px;border-radius:var(--r);background:#e8fdf5;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 3L4.5 13.5M21 3l-6.5 18L4.5 13.5M21 3L9 15" stroke="#3ecf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700">Supabase real-time sync</div>
+          <div style="font-size:11px;color:var(--tx2);margin-top:2px">ilyaqubsrpjrfgekwonw.supabase.co</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <div id="sb-status-dot" style="width:9px;height:9px;border-radius:50%;background:var(--rd)"></div>
+          <span id="sb-status-lbl" style="font-size:12px;color:var(--tx2)">Not connected</span>
+        </div>
+      </div>
+      <input type="hidden" id="sb-url-inp" value="https://ilyaqubsrpjrfgekwonw.supabase.co"/>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-pu w100" style="justify-content:center;font-size:13px" onclick="sbPushAll()">
+          <svg width="13" height="13"><use href="#ic-in"/></svg> Push all data
+        </button>
+        <button class="btn w100" style="justify-content:center;font-size:13px" onclick="sbPull()">
+          <svg width="13" height="13"><use href="#ic-out"/></svg> Pull from DB
+        </button>
+      </div>
+    </div>
+    <div class="card" style="font-size:12px;color:var(--tx2);line-height:1.7">
+      <strong style="color:var(--tx)">First time setup:</strong><br>
+      1. Run the SQL schema in Supabase SQL Editor<br>
+      2. Enable Replication for all 5 tables<br>
+      3. Tap "Push all data" to upload your 111 products
+    </div>
+  </div>
+
+  <!-- INFO TAB -->
+  <div class="tbp" id="stab-info">
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">App info</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span style="color:var(--tx2)">Products</span><strong id="info-prods">111</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span style="color:var(--tx2)">Categories</span><strong>8</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span style="color:var(--tx2)">Activity logs</span><strong id="info-acts">0</strong>
+        </div>
+        <div style="height:1px;background:var(--bdr);margin:4px 0"></div>
+        <div style="font-size:11px;color:var(--tx3)">StockFlow WMS v3.0 — Myanmar Grocery Warehouse</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 </div><!-- /layout -->
+
 
 <!-- BOTTOM NAV -->
 <div id="bottom-nav">
@@ -784,167 +912,108 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   </div>
 </div>
 
-<!-- CONTAINER TRACKING -->
-<div class="page" id="page-containers">
-  <div class="fx gap8 mb12">
-    <div style="flex:1"><div class="pt">Containers</div><div class="ps" style="margin-bottom:0">Incoming shipment tracking</div></div>
-    <button class="btn btn-pu btn-sm" id="btn-add-container" onclick="openAddContainer()"><svg width="13" height="13"><use href="#ic-plus"/></svg> New container</button>
-  </div>
-
-  <!-- Tab bar -->
-  <div class="tabs" id="cont-tabs">
-    <button class="tb on" onclick="swContTab(this,'ctab-pending')">Pending <span id="ct-pending-cnt" class="badge ba" style="font-size:10px;margin-left:4px">0</span></button>
-    <button class="tb" onclick="swContTab(this,'ctab-delivered')">Delivered <span id="ct-delivered-cnt" class="badge bg" style="font-size:10px;margin-left:4px">0</span></button>
-  </div>
-
-  <!-- PENDING containers -->
-  <div id="ctab-pending">
-    <div id="cont-pending-list"></div>
-    <div id="cont-pending-empty" style="display:none;text-align:center;padding:40px 20px;color:var(--tx3)">
-      <svg width="40" height="40" style="opacity:.2;margin-bottom:10px;display:block;margin-inline:auto"><use href="#ic-pkg"/></svg>
-      <div style="font-size:14px">No pending containers</div>
-      <div style="font-size:12px;margin-top:4px">Add a new incoming shipment</div>
+<!-- Add/Edit Container modal -->
+<div class="modal-bg h" id="m-addcont">
+  <div class="modal"><div class="mhandle"></div><div class="modal-body">
+    <div class="fx gap8 mb14">
+      <div style="font-size:16px;font-weight:700;flex:1" id="cont-modal-title">New container</div>
+      <button class="btn btn-sm" onclick="closeModal('m-addcont')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
     </div>
-  </div>
-
-  <!-- DELIVERED containers -->
-  <div id="ctab-delivered" style="display:none">
-    <div id="cont-delivered-list"></div>
-    <div id="cont-delivered-empty" style="display:none;text-align:center;padding:40px 20px;color:var(--tx3)">
-      <svg width="40" height="40" style="opacity:.2;margin-bottom:10px;display:block;margin-inline:auto"><use href="#ic-chk"/></svg>
-      <div style="font-size:14px">No delivered containers yet</div>
-    </div>
-  </div>
-</div>
-
-<!-- SETTINGS PAGE -->
-<div class="page" id="page-settings">
-  <div class="fx gap8 mb12">
-    <div class="pt" style="flex:1">Settings</div>
-  </div>
-  <div class="tabs mb12">
-    <button class="tb on" onclick="swTab(this,'stab-users')">Users</button>
-    <button class="tb" onclick="swTab(this,'stab-supabase')">Supabase</button>
-    <button class="tb" onclick="swTab(this,'stab-info')">Info</button>
-  </div>
-
-  <!-- USERS TAB -->
-  <div class="tbp on" id="stab-users">
-    <div class="card mb10">
-      <div class="fx gap8 mb12">
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:700">Team members</div>
-          <div style="font-size:12px;color:var(--tx2);margin-top:2px">Each user logs in with a 4-digit PIN</div>
-        </div>
-        <button class="btn btn-pu btn-sm" onclick="openAddUser()">
-          <svg width="13" height="13"><use href="#ic-plus"/></svg> Add user
+    <input type="hidden" id="cont-edit-id"/>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Container / Shipment name</label>
+        <input type="text" id="cont-name" placeholder="e.g. CNT-001, May Shipment"/>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Expected arrival date</label>
+        <input type="date" id="cont-date"/>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Supplier / Origin (optional)</label>
+        <input type="text" id="cont-supplier" placeholder="e.g. Yangon Supplier Co."/>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:6px;font-weight:500">Products in this container</label>
+        <div id="cont-items-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+        <button class="btn btn-sm w100" style="justify-content:center" onclick="addContItem()">
+          <svg width="13" height="13"><use href="#ic-plus"/></svg> Add product line
         </button>
       </div>
-      <div id="users-list"></div>
-    </div>
-    <div class="card mb10" style="background:var(--pu2);border-color:var(--pu)">
-      <div style="font-size:12px;color:var(--pu3);line-height:1.8">
-        <strong>Role permissions</strong><br>
-        🔴 <strong>Owner</strong> — full access + manage users + containers<br>
-        🟠 <strong>Admin</strong> — full access + containers (no user mgmt)<br>
-        🟢 <strong>Operator</strong> — stock in/out only
+      <div>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">Notes (optional)</label>
+        <textarea id="cont-notes" rows="2" placeholder="Any additional info…" style="resize:none"></textarea>
       </div>
     </div>
-    <button class="btn w100" style="justify-content:center;padding:14px;font-size:14px;color:var(--rd3);border-color:var(--rd)" onclick="switchRole()">
-      🔒 Lock app &amp; switch user
-    </button>
-  </div>
-
-  <!-- SUPABASE TAB -->
-  <div class="tbp" id="stab-supabase">
-    <div class="card mb10" style="border:1.5px solid #3ecf8e">
-      <div class="fx gap10 mb12">
-        <div style="width:36px;height:36px;border-radius:var(--r);background:#e8fdf5;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 3L4.5 13.5M21 3l-6.5 18L4.5 13.5M21 3L9 15" stroke="#3ecf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700">Supabase real-time sync</div>
-          <div style="font-size:11px;color:var(--tx2);margin-top:2px">ilyaqubsrpjrfgekwonw.supabase.co</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-          <div id="sb-status-dot" style="width:9px;height:9px;border-radius:50%;background:var(--rd)"></div>
-          <span id="sb-status-lbl" style="font-size:12px;color:var(--tx2)">Not connected</span>
-        </div>
-      </div>
-      <input type="hidden" id="sb-url-inp" value="https://ilyaqubsrpjrfgekwonw.supabase.co"/>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-pu w100" style="justify-content:center;font-size:13px" onclick="sbPushAll()">
-          <svg width="13" height="13"><use href="#ic-in"/></svg> Push all data
-        </button>
-        <button class="btn w100" style="justify-content:center;font-size:13px" onclick="sbPull()">
-          <svg width="13" height="13"><use href="#ic-out"/></svg> Pull from DB
-        </button>
-      </div>
+    <div class="g2 mt14">
+      <button class="btn w100" onclick="closeModal('m-addcont')">Cancel</button>
+      <button class="btn btn-pu w100" onclick="saveContainer()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Save</button>
     </div>
-    <div class="card" style="font-size:12px;color:var(--tx2);line-height:1.7">
-      <strong style="color:var(--tx)">First time setup:</strong><br>
-      1. Run the SQL schema in Supabase SQL Editor<br>
-      2. Enable Replication for all 5 tables<br>
-      3. Tap "Push all data" to upload your 111 products
-    </div>
-  </div>
-
-  <!-- INFO TAB -->
-  <div class="tbp" id="stab-info">
-    <div class="card">
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px">App info</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div style="display:flex;justify-content:space-between;font-size:13px">
-          <span style="color:var(--tx2)">Products</span><strong id="info-prods">111</strong>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:13px">
-          <span style="color:var(--tx2)">Categories</span><strong>8</strong>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:13px">
-          <span style="color:var(--tx2)">Activity logs</span><strong id="info-acts">0</strong>
-        </div>
-        <div style="height:1px;background:var(--bdr);margin:4px 0"></div>
-        <div style="font-size:11px;color:var(--tx3)">StockFlow WMS v3.0 — Myanmar Grocery Warehouse</div>
-      </div>
-    </div>
-  </div>
+  </div></div>
 </div>
 
-<!-- CONTAINER TRACKING -->
-<div class="page" id="page-containers">
-  <div class="fx gap8 mb14">
-    <div style="flex:1"><div class="pt">Container tracking</div><div class="ps">Incoming shipments — mark as delivered to update stock</div></div>
-    <button class="btn btn-pu btn-sm" onclick="openAddContainer()"><svg width="13" height="13"><use href="#ic-plus"/></svg> Add shipment</button>
-  </div>
-
-  <!-- Summary cards -->
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
-    <div class="card" style="text-align:center">
-      <div style="font-size:22px;font-weight:800;color:var(--bl)" id="ct-pending-cnt">0</div>
-      <div style="font-size:11px;color:var(--tx2);margin-top:2px">Pending</div>
+<!-- Mark Delivered modal -->
+<div class="modal-bg h" id="m-deliver">
+  <div class="modal"><div class="mhandle"></div><div class="modal-body">
+    <div class="fx gap8 mb12">
+      <div style="font-size:16px;font-weight:700;flex:1">Mark as delivered</div>
+      <button class="btn btn-sm" onclick="closeModal('m-deliver')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
     </div>
-    <div class="card" style="text-align:center">
-      <div style="font-size:22px;font-weight:800;color:var(--am)" id="ct-transit-cnt">0</div>
-      <div style="font-size:11px;color:var(--tx2);margin-top:2px">In transit</div>
+    <div style="background:var(--gn2);border-radius:var(--r);padding:10px 12px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600;color:var(--gn3)" id="del-cont-name"></div>
+      <div style="font-size:11px;color:var(--gn);margin-top:3px">Stock will be added to each product automatically</div>
     </div>
-    <div class="card" style="text-align:center">
-      <div style="font-size:22px;font-weight:800;color:var(--gn)" id="ct-delivered-cnt">0</div>
-      <div style="font-size:11px;color:var(--tx2);margin-top:2px">Delivered</div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">Confirm quantities received:</div>
+    <div id="del-items-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+    <div>
+      <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px">Actual arrival date</label>
+      <input type="date" id="del-date" style="margin-bottom:12px"/>
     </div>
-  </div>
-
-  <!-- Filter tabs -->
-  <div class="tabs mb10">
-    <button class="tb on" onclick="swContainerTab('all',this)">All</button>
-    <button class="tb" onclick="swContainerTab('pending',this)">Pending</button>
-    <button class="tb" onclick="swContainerTab('transit',this)">In transit</button>
-    <button class="tb" onclick="swContainerTab('delivered',this)">Delivered</button>
-  </div>
-
-  <div id="container-list"></div>
+    <div class="g2">
+      <button class="btn w100" onclick="closeModal('m-deliver')">Cancel</button>
+      <button class="btn btn-gn w100" style="font-size:14px;font-weight:700" onclick="confirmDeliver()">
+        <svg width="15" height="15"><use href="#ic-chk"/></svg> Confirm &amp; add stock
+      </button>
+    </div>
+  </div></div>
 </div>
 
-<!-- Add/Edit container modal -->
+<div id="toast"></div>
+<!-- PIN LOGIN SCREEN -->
+<div id="pin-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+  <div style="font-size:40px;margin-bottom:6px">🏪</div>
+  <div style="font-size:22px;font-weight:700;margin-bottom:4px">StockFlow WMS</div>
+  <div style="font-size:13px;color:var(--tx3);margin-bottom:28px;text-align:center">Select your account to sign in</div>
+  <div id="pin-user-list" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+  <div id="pin-pad-wrap" style="display:none;width:100%;max-width:300px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <button onclick="pinBack()" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--r);padding:6px 12px;font-size:12px;cursor:pointer;color:var(--tx2)">← Back</button>
+      <div style="flex:1;text-align:center">
+        <div style="font-size:14px;font-weight:600" id="pin-entering-name"></div>
+        <div style="font-size:11px;color:var(--tx3)" id="pin-entering-role"></div>
+      </div>
+      <div style="width:60px"></div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:24px" id="pin-dots">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px">
+      <button class="pin-key" onclick="pinPress('1')">1</button>
+      <button class="pin-key" onclick="pinPress('2')">2</button>
+      <button class="pin-key" onclick="pinPress('3')">3</button>
+      <button class="pin-key" onclick="pinPress('4')">4</button>
+      <button class="pin-key" onclick="pinPress('5')">5</button>
+      <button class="pin-key" onclick="pinPress('6')">6</button>
+      <button class="pin-key" onclick="pinPress('7')">7</button>
+      <button class="pin-key" onclick="pinPress('8')">8</button>
+      <button class="pin-key" onclick="pinPress('9')">9</button>
+      <div></div>
+      <button class="pin-key" onclick="pinPress('0')">0</button>
+      <button class="pin-key" onclick="pinDel()" style="font-size:17px;color:var(--tx2)">⌫</button>
+    </div>
+    <div style="color:var(--rd);font-size:13px;text-align:center;min-height:20px;margin-top:6px" id="pin-err"></div>
+  </div>
+</div><!-- Add/Edit container modal -->
 <div class="modal-bg h" id="m-container">
   <div class="modal" style="max-width:480px"><div class="mhandle"></div><div class="modal-body">
     <div class="fx gap8 mb14">
