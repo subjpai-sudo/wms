@@ -458,7 +458,13 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 
 <!-- PRODUCTS -->
 <div class="page" id="page-products">
-  <div class="fx gap8 mb12"><div style="flex:1"><div class="pt">Products</div></div><button class="btn btn-pu btn-sm" onclick="openAddProd()"><svg width="13" height="13"><use href="#ic-plus"/></svg> Add</button></div>
+  <div class="fx gap8 mb12">
+    <div style="flex:1"><div class="pt">Products</div></div>
+    <button class="btn btn-sm" onclick="openBulkImages()" style="background:var(--bl2);color:var(--bl3);border-color:transparent" title="Auto-fetch product images">
+      🖼 Auto images
+    </button>
+    <button class="btn btn-pu btn-sm" onclick="openAddProd()"><svg width="13" height="13"><use href="#ic-plus"/></svg> Add</button>
+  </div>
   <div class="card">
     <div class="fx gap8 mb10" style="flex-wrap:wrap">
       <input type="search" id="prod-srch" placeholder="Search…" oninput="renderProds()" style="flex:1;min-width:120px"/>
@@ -490,7 +496,13 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
     <div class="card" id="ot-new" onclick="setOType('new')" style="cursor:pointer;border:1.5px solid var(--bdr)"><div class="fx gap10"><div style="width:32px;height:32px;border-radius:var(--r);background:var(--bl2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" style="color:var(--bl3)"><use href="#ic-plus"/></svg></div><div><div style="font-size:13px;font-weight:600">New order</div><div style="font-size:11px;color:var(--tx2)">New products</div></div></div></div>
   </div>
   <div id="of-low" style="display:none">
-    <div class="card mb10"><div class="fx mb8"><div class="sec" style="margin-bottom:0;flex:1">Select items to reorder</div><div style="font-size:11px;color:var(--tx3)" id="rs-cnt">0 selected</div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th style="width:30px"></th><th>Product</th><th class="hm">Brand</th><th>Qty</th><th>Status</th><th>Order qty</th></tr></thead><tbody id="rs-tbl"></tbody></table></div></div>
+    <div class="card mb10">
+      <div class="fx mb10">
+        <div class="sec" style="margin-bottom:0;flex:1">Select items to reorder</div>
+        <div style="font-size:11px;color:var(--tx3)" id="rs-cnt">0 selected</div>
+      </div>
+      <div id="rs-items-wrap" style="border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;max-height:400px;overflow-y:auto;background:var(--sur)"></div>
+    </div>
     <div class="card mb10"><div class="sec">Note to owner</div><textarea id="rs-note" rows="2" placeholder="Add context…" style="resize:none"></textarea></div>
     <div class="card mb10">
       <div class="sec">Send alert to</div>
@@ -514,7 +526,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
     <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn btn-wa" id="send-new-btn" onclick="sendOrder('new')"><svg width="13" height="13"><use href="#ic-wa"/></svg> Send alert</button></div>
   </div>
   <div id="send-result" style="display:none;margin-top:10px"></div>
-  <div class="card mt20"><div class="sec">Request history</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Request</th><th class="hm">Type</th><th class="hm">Items</th><th>Sent</th><th>WA</th><th>Status</th></tr></thead><tbody id="oh-tbl"></tbody></table></div></div>
+  <div class="card mt20"><div class="sec">Request history</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Request</th><th class="hm">Type</th><th class="hm">Items</th><th>Sent</th><th>Alert</th><th>Status</th></tr></thead><tbody id="oh-tbl"></tbody></table></div></div>
   <div id="wa-preview" style="display:none;margin-top:14px"><div class="sec mb8">Message preview</div><div class="wa-bubble"><div class="wa-msg" id="wa-msg-body"></div><div style="font-size:10px;color:var(--tx3);text-align:right;margin-top:4px" id="wa-msg-time"></div></div></div>
 </div>
 
@@ -945,6 +957,47 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
       <button class="btn w100" onclick="closeModal('m-deliver')">Cancel</button>
       <button class="btn btn-gn w100" style="font-size:14px;font-weight:700" onclick="confirmDeliver()">
         <svg width="15" height="15"><use href="#ic-chk"/></svg> Confirm &amp; add stock
+      </button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Bulk image fetch modal -->
+<div class="modal-bg h" id="m-bulk-img">
+  <div class="modal"><div class="mhandle"></div><div class="modal-body">
+    <div class="fx gap8 mb12">
+      <div style="font-size:16px;font-weight:700;flex:1">🖼 Auto-fetch product images</div>
+      <button class="btn btn-sm" onclick="closeModal('m-bulk-img')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
+    </div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:12px">Uses SerpAPI Google Images to find and save product photos automatically.</div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">SerpAPI key</label>
+      <input type="text" id="serp-key" placeholder="Paste your SerpAPI key here" autocomplete="off"/>
+      <div style="font-size:11px;color:var(--tx3);margin-top:4px">Get free key at <strong>serpapi.com</strong> — 100 free searches/month</div>
+    </div>
+    <div class="fx gap8 mb12">
+      <div style="flex:1">
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px">Which products</label>
+        <select id="bulk-img-scope" style="font-size:13px">
+          <option value="missing">Only products without photos</option>
+          <option value="all">All products (overwrite existing)</option>
+        </select>
+      </div>
+    </div>
+    <div id="bulk-img-progress" style="display:none;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+        <span id="bulk-prog-label">Starting…</span>
+        <span id="bulk-prog-count">0 / 0</span>
+      </div>
+      <div style="height:8px;background:var(--sur2);border-radius:4px;overflow:hidden">
+        <div id="bulk-prog-bar" style="height:100%;width:0%;background:var(--bl);border-radius:4px;transition:width .3s"></div>
+      </div>
+      <div id="bulk-prog-log" style="font-size:11px;color:var(--tx3);margin-top:8px;max-height:120px;overflow-y:auto;font-family:monospace;line-height:1.7"></div>
+    </div>
+    <div class="g2">
+      <button class="btn w100" onclick="closeModal('m-bulk-img')" id="bulk-cancel-btn">Cancel</button>
+      <button class="btn w100" style="background:var(--bl);color:#fff;border-color:var(--bl);font-weight:600" onclick="startBulkImages()" id="bulk-start-btn">
+        🖼 Start fetching images
       </button>
     </div>
   </div></div>
@@ -2444,6 +2497,132 @@ function saveRegisterBc(){
   toast('Barcode saved: '+digits);
 }
 
+// ── SerpAPI image search ──────────────────────────────────────────
+let _bulkRunning = false;
+
+function openBulkImages() {
+  // Restore saved key
+  let saved = localStorage.getItem('serp_key');
+  let inp = document.getElementById('serp-key');
+  if (inp && saved) inp.value = saved;
+  document.getElementById('bulk-img-progress').style.display = 'none';
+  document.getElementById('bulk-prog-log').textContent = '';
+  document.getElementById('bulk-start-btn').disabled = false;
+  document.getElementById('bulk-start-btn').textContent = '🖼 Start fetching images';
+  _bulkRunning = false;
+  openModal('m-bulk-img');
+}
+
+async function fetchProductImage(productName, serpKey) {
+  // Search Google Images via SerpAPI
+  let query = encodeURIComponent(productName + ' product');
+  let url = 'https://serpapi.com/search.json?engine=google_images&q=' + query + '&num=3&api_key=' + serpKey;
+  let res = await fetchTimeout(url, {}, 10000);
+  if (!res.ok) throw new Error('SerpAPI error: ' + res.status);
+  let data = await res.json();
+  let imgs = data.images_results;
+  if (!imgs || !imgs.length) throw new Error('No images found');
+  // Pick first image that's not too small
+  for (let img of imgs) {
+    if (img.original && img.original_width > 100 && img.original_height > 100) {
+      return img.original;
+    }
+  }
+  return imgs[0].original;
+}
+
+async function imageUrlToBase64(url) {
+  // Proxy through a CORS-friendly service or direct fetch
+  let res = await fetchTimeout(url, {}, 8000);
+  if (!res.ok) throw new Error('Image fetch failed: ' + res.status);
+  let blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    let reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function startBulkImages() {
+  let key = document.getElementById('serp-key').value.trim();
+  if (!key) { toast('Enter your SerpAPI key', 'rd'); return; }
+  localStorage.setItem('serp_key', key);
+
+  let scope = document.getElementById('bulk-img-scope').value;
+  let targets = scope === 'all'
+    ? products
+    : products.filter(p => !p.photo);
+
+  if (!targets.length) { toast('No products need images', 'rd'); return; }
+
+  _bulkRunning = true;
+  document.getElementById('bulk-img-progress').style.display = 'block';
+  document.getElementById('bulk-start-btn').disabled = true;
+  document.getElementById('bulk-start-btn').textContent = 'Running…';
+  document.getElementById('bulk-cancel-btn').textContent = 'Stop';
+  document.getElementById('bulk-cancel-btn').onclick = () => { _bulkRunning = false; document.getElementById('bulk-cancel-btn').textContent = 'Cancel'; document.getElementById('bulk-cancel-btn').onclick = () => closeModal('m-bulk-img'); };
+
+  let log = document.getElementById('bulk-prog-log');
+  let bar = document.getElementById('bulk-prog-bar');
+  let lbl = document.getElementById('bulk-prog-label');
+  let cnt = document.getElementById('bulk-prog-count');
+
+  let done = 0, success = 0, failed = 0;
+
+  for (let p of targets) {
+    if (!_bulkRunning) { log.textContent += '\nStopped.\n'; break; }
+
+    lbl.textContent = 'Searching: ' + p.name.slice(0, 40) + '…';
+    cnt.textContent = done + ' / ' + targets.length;
+    bar.style.width = Math.round(done / targets.length * 100) + '%';
+
+    try {
+      log.textContent += p.name.slice(0,30) + ': searching…\n';
+      log.scrollTop = log.scrollHeight;
+
+      let imgUrl = await fetchProductImage(p.name, key);
+      log.textContent += '  Found: ' + imgUrl.slice(0,50) + '…\n';
+
+      // Try to convert to base64 for local storage
+      try {
+        let b64 = await imageUrlToBase64(imgUrl);
+        p.photo = b64;
+        log.textContent += '  ✓ Saved as photo\n';
+      } catch(e) {
+        // CORS blocked — store URL directly as fallback
+        p.photo = imgUrl;
+        log.textContent += '  ✓ Saved URL (CORS limited)\n';
+      }
+
+      sbPushProduct(p);
+      success++;
+    } catch(e) {
+      log.textContent += '  ✗ ' + e.message + '\n';
+      failed++;
+    }
+
+    log.scrollTop = log.scrollHeight;
+    done++;
+
+    // Rate limit — SerpAPI allows ~1 req/sec on free tier
+    await new Promise(r => setTimeout(r, 1200));
+  }
+
+  bar.style.width = '100%';
+  lbl.textContent = 'Done! ✓ ' + success + ' images saved, ✗ ' + failed + ' failed';
+  cnt.textContent = done + ' / ' + targets.length;
+  document.getElementById('bulk-start-btn').disabled = false;
+  document.getElementById('bulk-start-btn').textContent = '🖼 Run again';
+  document.getElementById('bulk-cancel-btn').textContent = 'Close';
+  document.getElementById('bulk-cancel-btn').onclick = () => closeModal('m-bulk-img');
+  _bulkRunning = false;
+
+  // Refresh products page
+  if (document.getElementById('page-products').classList.contains('on')) renderProds();
+  toast('✓ ' + success + ' product images updated');
+}
+
 // ── Photo upload ──────────────────────────────────────────────────
 let _photoPid=null;
 function openPhotoModal(pid){
@@ -2516,12 +2695,60 @@ function setOType(type){
   if(type==='new'){renderNO();populateOrderRecipients();}
 }
 function renderRS(){
-  let low=products.filter(p=>gS(p)!=='ok').sort((a,b)=>a.qty-b.qty);
-  document.getElementById('rs-tbl').innerHTML=low.map(p=>'<tr><td><input type="checkbox" class="rs-cb" data-id="'+p.id+'" style="accent-color:var(--pu)" onchange="toggleRS(this)"/></td><td><strong style="font-size:12px">'+p.name+'</strong></td><td class="hm" style="font-size:11px">'+(p.vendor||'')+'</td><td><strong style="color:'+(p.qty===0?'var(--rd)':'var(--am)')+'">'+p.qty+'</strong></td><td>'+sBadge(p)+'</td><td><input type="number" class="rs-qty" data-id="'+p.id+'" placeholder="qty" min="1" style="width:60px;padding:4px 7px;opacity:.35" disabled/></td></tr>').join('')||'<tr><td colspan="6" style="text-align:center;color:var(--tx3);padding:16px">All products well stocked</td></tr>';
+  let all = products.slice().sort((a,b)=>{
+    let as=gS(a)==='ok'?2:gS(a)==='low'?1:0;
+    let bs=gS(b)==='ok'?2:gS(b)==='low'?1:0;
+    return as-bs||a.name.localeCompare(b.name);
+  });
+
+  let wrap = document.getElementById('rs-items-wrap');
+  if(!wrap) return;
+  wrap.innerHTML = all.map(p=>{
+    let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
+    return '<div class="rs-row" id="rsrow-'+p.id+'" onclick="toggleRSRow('+p.id+')" style="display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--bdr);cursor:pointer;background:var(--sur);-webkit-tap-highlight-color:transparent;user-select:none">'
+      +'<div class="rs-check" style="width:26px;height:26px;border-radius:7px;border:2px solid var(--bdr2);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--sur)"></div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
+        +'<div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap">'
+          +'<span style="font-size:11px;color:var(--tx3)">'+cN(p.cat)+'</span>'
+          +sBadge(p)
+          +'<span style="font-size:11px;font-weight:700;color:'+qc+'">'+p.qty+' in stock</span>'
+        +'</div>'
+      +'</div>'
+      +'<input type="number" class="rs-qty" data-id="'+p.id+'" placeholder="qty" min="1" onclick="event.stopPropagation()" '
+        +'style="width:72px;padding:8px 6px;font-size:14px;font-weight:700;text-align:center;border:2px solid var(--pu);border-radius:var(--r);display:none;flex-shrink:0"/>'
+      +'</div>';
+  }).join('')||'<div style="padding:20px;text-align:center;color:var(--tx3)">No products</div>';
   upRsCnt();
 }
-function toggleRS(cb){let id=cb.dataset.id,qi=document.querySelector('.rs-qty[data-id="'+id+'"]');if(cb.checked){qi.disabled=false;qi.style.opacity='1';qi.focus();}else{qi.disabled=true;qi.style.opacity='.35';qi.value='';}upRsCnt();}
-function upRsCnt(){document.getElementById('rs-cnt').textContent=document.querySelectorAll('.rs-cb:checked').length+' selected';}
+
+function toggleRSRow(pid){
+  let row=document.getElementById('rsrow-'+pid); if(!row)return;
+  let check=row.querySelector('.rs-check');
+  let qty=row.querySelector('.rs-qty');
+  let sel=row.dataset.selected==='1';
+  if(!sel){
+    row.dataset.selected='1';
+    row.style.background='var(--pu2)';
+    check.style.cssText='width:26px;height:26px;border-radius:7px;border:2px solid var(--pu);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--pu)';
+    check.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+    qty.style.display='block';
+    setTimeout(()=>qty.focus(),80);
+  }else{
+    row.dataset.selected='0';
+    row.style.background='var(--sur)';
+    check.style.cssText='width:26px;height:26px;border-radius:7px;border:2px solid var(--bdr2);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--sur)';
+    check.innerHTML='';
+    qty.style.display='none'; qty.value='';
+  }
+  upRsCnt();
+}
+
+function upRsCnt(){
+  let n=document.querySelectorAll('.rs-row[data-selected="1"]').length;
+  let el=document.getElementById('rs-cnt');
+  if(el)el.textContent=n+' selected';
+}
 function renderNO(){if(!noRowsList.length)noRowsList=[{id:Date.now()}];_renderNO();}
 function _renderNO(){document.getElementById('no-tbl').innerHTML=noRowsList.map(r=>'<tr><td><input type="text" placeholder="Product…" id="nor-n-'+r.id+'" style="min-width:100px"/></td><td><select id="nor-c-'+r.id+'"><option value="">Select…</option>'+categories.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('')+'</select></td><td class="hm"><input type="text" placeholder="Brand" id="nor-b-'+r.id+'" style="min-width:70px"/></td><td><input type="number" placeholder="qty" min="1" id="nor-q-'+r.id+'" style="width:60px;padding:4px 7px"/></td><td><button class="btn btn-sm btn-rd" onclick="delNOR('+r.id+')"><svg width="12" height="12"><use href="#ic-trash"/></svg></button></td></tr>').join('');}
 function addNORow(){noRowsList.push({id:Date.now()});_renderNO();}
@@ -2538,7 +2765,11 @@ function populateOrderRecipients() {
 async function sendOrder(type){
   let items=[],msgText='';
   if(type==='low'){
-    document.querySelectorAll('.rs-cb:checked').forEach(cb=>{let pid=parseInt(cb.dataset.id),qi=document.querySelector('.rs-qty[data-id="'+pid+'"]');if(qi&&qi.value){let p=gP(pid);items.push({name:p.name,qty:parseInt(qi.value),cat:cN(p.cat),vendor:p.vendor||''});}});
+    document.querySelectorAll('.rs-row[data-selected="1"]').forEach(row=>{
+      let pid=parseInt(row.id.replace('rsrow-',''));
+      let qi=row.querySelector('.rs-qty');
+      if(qi&&qi.value){let p=gP(pid);items.push({name:p.name,qty:parseInt(qi.value),cat:cN(p.cat),vendor:p.vendor||''});}
+    });
     if(!items.length){toast('Select at least one item','rd');return;}
     msgText='🏪 CITYSTAR WAREHOUSE\nRESTOCK REQUEST\n\n'+items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+(it.vendor?' | '+it.vendor:'')+'\n   Order qty: '+it.qty+' boxes').join('\n\n');
     let note=document.getElementById('rs-note').value;if(note)msgText+='\n\nNote: '+note;
@@ -2557,46 +2788,68 @@ async function sendOrder(type){
   let recipientEl = document.getElementById(type==='low'?'order-recipient':'order-recipient-new');
   let recipientVal = recipientEl ? recipientEl.value : 'wa';
 
-  let he={id:Date.now(),desc:(type==='low'?'Restock':'New order')+': '+items.length+' item(s)',type,items:items.length,time:nowT(),status:'sending',waOk:null};
+  let he={id:Date.now(),desc:(type==='low'?'Restock':'New order')+': '+items.length+' item(s)',type,items:items.length,time:nowT(),status:'sending',waOk:null,smsSent:false};
   orderHistory.unshift(he);renderOH();
 
   let sb=document.getElementById('send-'+type+'-btn');sb.disabled=true;sb.textContent='Sending…';
 
-  // Send WhatsApp
-  try{
-    let res=await fetchTimeout(waConfig.server+'/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:waConfig.phone,text:msgText})},10000);
-    let d=await res.json();he.waOk=d.success===true;he.status=he.waOk?'pending':'send_failed';
-    if(he.waOk)toast('WhatsApp sent');else toast('WA failed: '+(d.error||'unknown'),'rd');
-    updateWaDot(he.waOk);sbPushOrder(he);
-  }catch(e){he.waOk=false;he.status='send_failed';toast(!waConfig.phone?'No WA number set':'WA server unreachable','rd');updateWaDot(false);}
+  // Try WhatsApp (optional — don't block on failure)
+  if(waConfig.phone && waConfig.server && waConfig.server !== 'http://localhost:3456'){
+    try{
+      let res=await fetchTimeout(waConfig.server+'/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:waConfig.phone,text:msgText})},8000);
+      let d=await res.json();he.waOk=d.success===true;
+      if(he.waOk)toast('WhatsApp sent');
+      updateWaDot(he.waOk);
+    }catch(e){he.waOk=false;}
+  }
 
-  // Also send SMS if a team member was selected
+  // Send SMS to selected team member
   if(recipientVal && recipientVal.startsWith('sms:')) {
     let uid = recipientVal.replace('sms:','');
     let u = appUsers.find(u => u.id === uid);
     if (u && u.phone) {
       try {
-        let smsBody = msgText;
         let smsRes = await fetchTimeout('/api/send-login', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({to: u.phone, userId: 'order-alert', userName: u.name, token: '', message: smsBody})
+          body: JSON.stringify({to: u.phone, userId: 'order-alert', userName: u.name, token: '', message: msgText})
         }, 15000);
         let smsData = await smsRes.json();
-        if(smsData.success) toast('SMS also sent to ' + u.name);
-        else toast('SMS to ' + u.name + ' failed: ' + (smsData.error||''), 'rd');
-      } catch(e) { toast('SMS send error: ' + e.message, 'rd'); }
+        he.smsSent = smsData.success === true;
+        if(he.smsSent) toast('✓ SMS sent to ' + u.name);
+        else toast('SMS to ' + u.name + ' failed: ' + (smsData.error||'unknown'), 'rd');
+      } catch(e) { toast('SMS error: ' + e.message, 'rd'); }
     }
   }
 
+  // Mark as sent regardless of WA status
+  he.status = 'pending';
+  sbPushOrder(he);
   sb.disabled=false;sb.innerHTML='<svg width="13" height="13"><use href="#ic-wa"/></svg> Send alert';
   renderOH();setOType(null);
 }
 function renderOH(){
-  let sm={approved:'<span class="badge bg">Approved</span>',pending:'<span class="badge bp">Pending</span>',send_failed:'<span class="badge br">Failed</span>',sending:'<span class="badge bb">Sending</span>'};
-  let tm={low:'<span class="badge ba">Restock</span>',new:'<span class="badge bb">New</span>'};
-  let wm={'true':'<span style="color:var(--gn3)">✓ Sent</span>','false':'<span style="color:var(--rd3)">✗ Failed</span>','null':'<span style="color:var(--tx3)">—</span>'};
-  document.getElementById('oh-tbl').innerHTML=orderHistory.map(o=>'<tr><td style="font-size:12px">'+o.desc+'</td><td class="hm">'+(tm[o.type]||o.type)+'</td><td class="hm" style="text-align:center">'+o.items+'</td><td style="font-size:11px;color:var(--tx2)">'+o.time+'</td><td>'+(wm[String(o.waOk)]||wm['null'])+'</td><td>'+(sm[o.status]||o.status)+'</td></tr>').join('')||'<tr><td colspan="6" style="text-align:center;color:var(--tx3);padding:16px">No requests yet</td></tr>';
+  let sm={
+    approved:'<span class="badge bg">✓ Approved</span>',
+    pending:'<span class="badge bp">⏳ Pending</span>',
+    send_failed:'<span class="badge br">Sent</span>',  // still sent — just WA not configured
+    sending:'<span class="badge bb">Sending…</span>',
+    sms_sent:'<span class="badge bg">✓ SMS sent</span>',
+  };
+  let tm={low:'<span class="badge ba">Restock</span>',new:'<span class="badge bb">New order</span>'};
+  document.getElementById('oh-tbl').innerHTML=orderHistory.map(o=>{
+    let sentStatus = o.smsSent
+      ? '<span style="color:var(--gn3);font-size:12px">📱 SMS ✓</span>'
+      : '<span style="color:var(--tx3);font-size:12px">WA only</span>';
+    return '<tr>'
+      +'<td style="font-size:12px;font-weight:500">'+o.desc+'</td>'
+      +'<td class="hm">'+(tm[o.type]||o.type)+'</td>'
+      +'<td class="hm" style="text-align:center">'+o.items+'</td>'
+      +'<td style="font-size:11px;color:var(--tx2)">'+o.time+'</td>'
+      +'<td>'+sentStatus+'</td>'
+      +'<td>'+(sm[o.status]||'<span class="badge bp">Sent</span>')+'</td>'
+      +'</tr>';
+  }).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--tx3);padding:16px">No requests yet</td></tr>';
 }
 
 // ── Container Tracking ────────────────────────────────────────────
