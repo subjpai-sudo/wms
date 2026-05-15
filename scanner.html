@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<title>CityStar Scanner</title>
+<style>
+:root{
+  --pu:#5B47FB;--pu2:rgba(91,71,251,.18);--pu3:#3B2FD9;
+  --bg:#080A10;--sur:#0F1219;--sur2:#171B28;--sur3:#1E2335;
+  --bdr:#252A3E;--bdr2:#323854;
+  --tx:#EEF2FF;--tx2:#8892B8;--tx3:#4A5278;
+  --gn:#22C55E;--gn2:rgba(34,197,94,.12);--gn3:#16A34A;
+  --am:#F59E0B;--am2:rgba(245,158,11,.12);--am3:#D97706;
+  --rd:#EF4444;--rd2:rgba(239,68,68,.12);--rd3:#DC2626;
+  --bl:#3B82F6;--bl2:rgba(59,130,246,.12);
+  --sh:0 16px 48px rgba(0,0,0,.6);
+  --sh-sm:0 4px 16px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+button,input,select{font-family:inherit;-webkit-appearance:none;appearance:none}
+input{user-select:auto}
+
+/* ── TOPBAR ── */
+#topbar{height:52px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(15,18,25,.95);border-bottom:1px solid var(--bdr);flex-shrink:0;backdrop-filter:blur(12px);z-index:50}
+.logo{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px;flex:1;overflow:hidden}
+.logo-ic{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--pu),var(--pu3));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.logo-sub{font-size:10px;font-weight:500;color:var(--tx3);display:block;margin-top:1px}
+#user-chip{font-size:11px;font-weight:600;color:var(--tx2);background:var(--sur2);border:1px solid var(--bdr);border-radius:20px;padding:4px 11px;flex-shrink:0;white-space:nowrap}
+.link-main{font-size:11px;font-weight:600;color:var(--pu);background:var(--pu2);border:1px solid rgba(91,71,251,.25);border-radius:8px;padding:6px 12px;text-decoration:none;flex-shrink:0;white-space:nowrap}
+
+/* ── MODE BAR ── */
+#mode-bar{display:flex;gap:0;flex-shrink:0;border-bottom:1px solid var(--bdr);background:var(--sur)}
+.mode-btn{flex:1;padding:13px 8px;border:none;background:transparent;font-size:14px;font-weight:700;color:var(--tx3);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px;position:relative;letter-spacing:.02em}
+.mode-btn::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0;background:transparent;transition:background .15s}
+.mode-btn.active-in{color:var(--gn);background:var(--gn2)}
+.mode-btn.active-in::after{background:var(--gn)}
+.mode-btn.active-out{color:var(--rd);background:var(--rd2)}
+.mode-btn.active-out::after{background:var(--rd)}
+.mode-ic{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.mode-in .mode-ic{background:var(--gn2)}
+.mode-out .mode-ic{background:var(--rd2)}
+
+/* ── CAMERA ── */
+#cam-area{position:relative;flex-shrink:0;background:#000;overflow:hidden}
+#cam-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+#cam-canvas{display:none}
+
+/* Scan window */
+.scan-window{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.sw-box{position:relative}
+/* Corner markers */
+.sw-box::before,.sw-box::after,
+.sw-tr,.sw-bl{position:absolute;width:44px;height:44px;border-style:solid;transition:border-color .3s}
+.sw-box::before{top:0;left:0;border-width:4px 0 0 4px;border-radius:10px 0 0 0}
+.sw-box::after{bottom:0;right:0;border-width:0 4px 4px 0;border-radius:0 0 10px 0}
+.sw-tr{top:0;right:0;border-width:4px 4px 0 0;border-radius:0 10px 0 0;position:absolute}
+.sw-bl{bottom:0;left:0;border-width:0 0 4px 4px;border-radius:0 0 0 10px;position:absolute}
+.sw-box.idle::before,.sw-box.idle::after,.sw-box.idle .sw-tr,.sw-box.idle .sw-bl{border-color:rgba(255,255,255,.35)}
+.sw-box.reading::before,.sw-box.reading::after,.sw-box.reading .sw-tr,.sw-box.reading .sw-bl{border-color:var(--pu)}
+.sw-box.found::before,.sw-box.found::after,.sw-box.found .sw-tr,.sw-box.found .sw-bl{border-color:var(--gn)}
+/* Scan line */
+@keyframes scanline{0%{top:4px;opacity:1}49%{opacity:1}50%{top:calc(100% - 6px);opacity:0}51%{top:4px;opacity:0}52%{opacity:1}100%{top:calc(100% - 6px);opacity:1}}
+.scan-line{position:absolute;left:6px;right:6px;height:3px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--pu) 30%,#fff 50%,var(--pu) 70%,transparent);box-shadow:0 0 14px 2px var(--pu);animation:scanline 2s linear infinite}
+/* Shade */
+.sw-shade{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.sw-cutout{position:absolute;background:transparent;box-shadow:0 0 0 9999px rgba(0,0,0,.6)}
+
+/* HUD overlay */
+.hud{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(8,10,16,.95) 60%);padding:14px 16px 16px}
+.hud-status{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;min-height:20px}
+.hud-sub{font-size:11px;color:rgba(255,255,255,.45)}
+.hud-row{display:flex;align-items:flex-end;gap:10px}
+.consensus{display:flex;gap:5px;margin-bottom:6px}
+.cdot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.18);transition:all .18s cubic-bezier(.34,1.26,.64,1)}
+.cdot.active{background:var(--pu);box-shadow:0 0 10px var(--pu);transform:scale(1.2)}
+.cdot.done{background:var(--gn);box-shadow:0 0 10px var(--gn);transform:scale(1.15)}
+
+/* ── CONFIRM OVERLAY ── */
+#confirm-ov{position:absolute;inset:0;background:rgba(8,10,16,.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:30;backdrop-filter:blur(6px)}
+#confirm-ov.show{display:flex}
+.co-bc{font-family:monospace;font-size:36px;font-weight:900;color:var(--gn);letter-spacing:4px;text-align:center}
+.co-lbl{font-size:12px;color:var(--tx3)}
+.co-row{display:flex;gap:12px;width:100%;max-width:380px;padding:0 20px}
+.co-btn{flex:1;padding:18px;border-radius:16px;border:none;font-size:17px;font-weight:800;cursor:pointer;transition:transform .1s;letter-spacing:.01em}
+.co-btn:active{transform:scale(.95)}
+.co-use{background:var(--gn);color:#000}
+.co-retry{background:var(--sur2);color:var(--tx);border:1px solid var(--bdr2)}
+
+/* ── MATCH PANEL ── */
+#match-panel{position:absolute;inset:0;background:rgba(8,10,16,.96);display:none;flex-direction:column;z-index:31;backdrop-filter:blur(10px)}
+#match-panel.show{display:flex}
+.mp-top{display:flex;gap:14px;align-items:flex-start;padding:20px 18px 14px}
+.mp-photo{width:80px;height:80px;border-radius:16px;object-fit:cover;flex-shrink:0;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden}
+.mp-photo img{width:100%;height:100%;object-fit:cover;border-radius:16px}
+.mp-name{font-size:17px;font-weight:700;color:var(--tx);line-height:1.3;margin-bottom:5px}
+.mp-cat{font-size:12px;color:var(--tx3);margin-bottom:8px}
+.mp-stock-row{display:flex;gap:6px;flex-wrap:wrap}
+.mp-stock-pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+.mp-qty-area{padding:8px 18px 10px;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
+.mp-qty-lbl{font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.qty-row{display:flex;align-items:center;gap:12px}
+.qbtn{width:60px;height:60px;border-radius:14px;border:1.5px solid var(--bdr2);background:var(--sur2);color:var(--tx);font-size:30px;font-weight:400;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;flex-shrink:0}
+.qbtn:active{background:var(--sur3);transform:scale(.94)}
+.qnum{flex:1;text-align:center;font-size:38px;font-weight:900;background:transparent;border:2.5px solid var(--pu);border-radius:14px;padding:10px;color:var(--tx);letter-spacing:-.01em}
+.qnum:focus{outline:none;border-color:var(--pu);box-shadow:0 0 0 4px var(--pu2)}
+.mp-dest-row{padding:10px 18px;display:none}
+.mp-dest-row.show{display:block}
+.dest-tabs{display:flex;gap:8px;margin-bottom:8px}
+.dtab{flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--bdr2);background:var(--sur2);color:var(--tx3);font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:all .12s}
+.dtab.on.shop{border-color:var(--gn);background:var(--gn2);color:var(--gn)}
+.dtab.on.del{border-color:var(--bl);background:var(--bl2);color:var(--bl)}
+.dest-inp{width:100%;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:10px;padding:10px 14px;font-size:14px;color:var(--tx)}
+.dest-inp:focus{border-color:var(--pu);outline:none}
+.mp-actions{display:flex;gap:10px;padding:12px 18px 32px;margin-top:auto}
+.mp-cancel{flex:0 0 70px;padding:17px;border-radius:14px;border:1.5px solid var(--bdr2);background:var(--sur2);color:var(--tx2);font-size:14px;font-weight:600;cursor:pointer;transition:all .12s}
+.mp-cancel:active{opacity:.7}
+.mp-go{flex:1;padding:17px;border-radius:14px;border:none;font-size:17px;font-weight:800;cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.01em}
+.mp-go:active{transform:scale(.97)}
+.mp-go.in{background:var(--gn);color:#000}
+.mp-go.out{background:var(--rd);color:#fff}
+
+/* ── NOT FOUND ── */
+#nf-panel{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:32}
+#nf-panel.show{display:flex}
+.nf-hdr{padding:16px 16px 12px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.nf-hdr-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.nf-warn{width:36px;height:36px;border-radius:10px;background:var(--am2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.nf-bc{font-family:monospace;font-size:18px;font-weight:700;color:var(--am)}
+.nf-bc-sub{font-size:11px;color:var(--tx3);margin-top:2px}
+.nf-search{width:100%;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:12px;padding:12px 16px;font-size:16px;color:var(--tx);letter-spacing:.01em}
+.nf-search:focus{border-color:var(--pu);outline:none;box-shadow:0 0 0 3px var(--pu2)}
+.nf-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.nf-cat{padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em;background:var(--sur);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:2}
+.nf-cat-count{font-weight:400;opacity:.6}
+.nf-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--bdr);cursor:pointer;transition:background .08s;-webkit-tap-highlight-color:transparent}
+.nf-row:active{background:var(--sur2)}
+.nf-thumb{width:48px;height:48px;border-radius:12px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden}
+.nf-thumb img{width:100%;height:100%;object-fit:cover}
+.nf-row-name{font-size:14px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-row-meta{font-size:11px;color:var(--tx3);margin-top:2px;display:flex;align-items:center;gap:5px}
+.nf-bc-tag{font-family:monospace;font-size:9px;color:var(--gn3);background:var(--gn2);padding:1px 5px;border-radius:4px}
+.nf-qty{font-size:20px;font-weight:900;flex-shrink:0}
+.nf-close{padding:12px 16px 28px;flex-shrink:0;border-top:1px solid var(--bdr)}
+.nf-close-btn{width:100%;padding:15px;border-radius:12px;border:1.5px solid var(--bdr2);background:var(--sur2);color:var(--tx3);font-size:15px;font-weight:600;cursor:pointer}
+
+/* ── MANUAL BAR ── */
+#manual-bar{display:flex;gap:8px;padding:10px 14px;background:var(--sur);border-top:1px solid var(--bdr);flex-shrink:0}
+.man-inp{flex:1;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:12px;padding:11px 14px;font-size:15px;color:var(--tx);font-weight:500}
+.man-inp:focus{border-color:var(--pu);outline:none;box-shadow:0 0 0 3px var(--pu2)}
+.man-inp::placeholder{color:var(--tx3);font-weight:400}
+.man-go{padding:11px 18px;border-radius:12px;border:none;background:var(--pu);color:#fff;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0;white-space:nowrap}
+.man-go:active{opacity:.8}
+
+/* ── LOG ── */
+#log-area{background:var(--sur);border-top:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden;flex:1;min-height:0}
+.log-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.log-hdr-title{font-size:13px;font-weight:700;flex:1}
+.log-pills{display:flex;gap:6px}
+.log-pill{font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px}
+.lp-in{background:var(--gn2);color:var(--gn)}
+.lp-out{background:var(--rd2);color:var(--rd)}
+.log-clr{font-size:11px;color:var(--tx3);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px}
+.log-clr:active{background:var(--sur2)}
+#log-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.log-empty{padding:24px;text-align:center;color:var(--tx3);font-size:13px}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.log-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bdr);animation:slideIn .18s ease}
+.log-ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;font-weight:700}
+.log-ic.in{background:var(--gn2);color:var(--gn)}
+.log-ic.out{background:var(--rd2);color:var(--rd)}
+.log-info{flex:1;min-width:0}
+.log-name{font-size:12px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-meta{font-size:10px;color:var(--tx3);margin-top:2px;display:flex;gap:5px;flex-wrap:wrap}
+.log-dest{background:var(--sur2);border-radius:10px;padding:1px 6px}
+.log-qty{font-size:20px;font-weight:900;flex-shrink:0}
+.log-qty.in{color:var(--gn)}
+.log-qty.out{color:var(--rd)}
+.undo-btn{font-size:10px;color:var(--tx3);background:var(--sur2);border:1px solid var(--bdr);border-radius:6px;padding:4px 8px;cursor:pointer;flex-shrink:0}
+.undo-btn:active{opacity:.6}
+
+/* ── BEEP FLASH ── */
+#flash{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:999;transition:opacity .08s}
+#flash.in{background:rgba(34,197,94,.18)}
+#flash.out{background:rgba(239,68,68,.18)}
+
+/* ── SYNC TOAST ── */
+#sync-toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(20px);padding:10px 18px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;z-index:999;opacity:0;transition:all .22s cubic-bezier(.34,1.26,.64,1);pointer-events:none}
+#sync-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.st-ok{background:#0d2210;color:var(--gn);border:1px solid rgba(34,197,94,.3)}
+.st-err{background:var(--rd2);color:var(--rd);border:1px solid rgba(239,68,68,.3)}
+.st-syn{background:var(--pu2);color:var(--pu);border:1px solid rgba(91,71,251,.3)}
+
+/* Layout split */
+.layout-portrait{display:flex;flex-direction:column;height:100%}
+#cam-area{height:45vh;min-height:200px}
+
+@media(orientation:landscape) and (max-height:500px){
+  #cam-area{height:55vh}
+  #log-area{display:none}
+}
+</style>
+</head>
+<body>
+<div id="flash"></div>
+<div id="sync-toast"></div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-ic">🏪</div>
+    <div>
+      <span>CityStar Scanner</span>
+      <span class="logo-sub">Warehouse</span>
+    </div>
+  </div>
+  <div id="user-chip">Loading…</div>
+  <a href="/" class="link-main">← Main app</a>
+</div>
+
+<!-- MODE BAR -->
+<div id="mode-bar">
+  <button class="mode-btn mode-in active-in" id="btn-in" onclick="setMode('in')">
+    <span class="mode-ic">⬇</span> STOCK IN
+  </button>
+  <button class="mode-btn mode-out" id="btn-out" onclick="setMode('out')">
+    <span class="mode-ic">⬆</span> STOCK OUT
+  </button>
+</div>
+
+<!-- CAMERA AREA -->
+<div id="cam-area">
+  <video id="cam-video" autoplay playsinline muted></video>
+  <canvas id="cam-canvas"></canvas>
+
+  <!-- Scan window overlay -->
+  <div class="scan-window" id="scan-window">
+    <div class="sw-box idle" id="sw-box">
+      <div class="sw-shade"></div>
+      <div class="sw-tr"></div>
+      <div class="sw-bl"></div>
+      <div class="scan-line" id="scan-line"></div>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="consensus" id="cdots">
+      <div class="cdot" id="cd0"></div>
+      <div class="cdot" id="cd1"></div>
+      <div class="cdot" id="cd2"></div>
+    </div>
+    <div class="hud-status" id="hud-status">Starting camera…</div>
+    <div class="hud-sub" id="hud-sub">Hold barcode inside the frame</div>
+  </div>
+
+  <!-- Overlays inside cam -->
+  <div id="confirm-ov">
+    <div class="co-lbl">Scanned barcode</div>
+    <div class="co-bc" id="co-bc"></div>
+    <div class="co-lbl" id="co-sub"></div>
+    <div class="co-row">
+      <button class="co-btn co-use" onclick="acceptBarcode()">✓  Use this</button>
+      <button class="co-btn co-retry" onclick="retryScan()">↻  Retry</button>
+    </div>
+  </div>
+
+  <div id="match-panel">
+    <div class="mp-top">
+      <div class="mp-photo" id="mp-photo">📦</div>
+      <div style="flex:1;min-width:0">
+        <div class="mp-name" id="mp-name"></div>
+        <div class="mp-cat" id="mp-cat"></div>
+        <div class="mp-stock-row">
+          <span class="mp-stock-pill" id="mp-stock-pill"></span>
+          <span class="mp-stock-pill" id="mp-status-pill"></span>
+        </div>
+      </div>
+    </div>
+    <div class="mp-qty-area">
+      <div class="mp-qty-lbl" id="mp-qty-lbl">Quantity to add</div>
+      <div class="qty-row">
+        <button class="qbtn" onclick="adjQ(-1)">−</button>
+        <input type="number" class="qnum" id="mp-qty" value="1" min="1" inputmode="numeric"/>
+        <button class="qbtn" onclick="adjQ(1)">+</button>
+      </div>
+    </div>
+    <div class="mp-dest-row" id="mp-dest-row">
+      <div class="dest-tabs">
+        <button class="dtab on shop" id="dtab-shop" onclick="setDest('shop')">🏪 Shop</button>
+        <button class="dtab del" id="dtab-del" onclick="setDest('delivery')">🚚 Delivery</button>
+      </div>
+      <input type="text" class="dest-inp" id="dest-name" placeholder="Name (optional)…" autocomplete="off"/>
+    </div>
+    <div class="mp-actions">
+      <button class="mp-cancel" onclick="cancelMatch()">✕</button>
+      <button class="mp-go in" id="mp-go" onclick="confirmMatch()">
+        <span id="mp-go-ic">⬇</span> <span id="mp-go-txt">Confirm Stock In</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="nf-panel">
+    <div class="nf-hdr">
+      <div class="nf-hdr-top">
+        <div class="nf-warn">⚠</div>
+        <div>
+          <div class="nf-bc" id="nf-bc-txt"></div>
+          <div class="nf-bc-sub">Not found — tap product to link barcode</div>
+        </div>
+        <button onclick="closeNF()" style="margin-left:auto;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;color:var(--tx2);padding:6px 11px;font-size:13px;cursor:pointer">✕</button>
+      </div>
+      <input type="search" class="nf-search" id="nf-search" placeholder="Search product…" oninput="renderNF(this.value)" autocomplete="off" autocorrect="off"/>
+    </div>
+    <div class="nf-list" id="nf-list"></div>
+    <div class="nf-close">
+      <button class="nf-close-btn" onclick="closeNF()">Cancel — skip this barcode</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANUAL BAR -->
+<div id="manual-bar">
+  <input type="text" class="man-inp" id="man-inp" placeholder="Type barcode or product name…"
+    autocomplete="off" autocorrect="off" autocapitalize="off"
+    onkeydown="if(event.key==='Enter')doManual()"
+    oninput="onManualInput(this.value)"/>
+  <button class="man-go" onclick="doManual()">Search</button>
+</div>
+
+<!-- LOG -->
+<div id="log-area">
+  <div class="log-hdr">
+    <div class="log-hdr-title">Session log</div>
+    <div class="log-pills">
+      <span class="log-pill lp-in" id="stat-in">⬇ 0</span>
+      <span class="log-pill lp-out" id="stat-out">⬆ 0</span>
+    </div>
+    <button class="log-clr" onclick="clearLog()">Clear</button>
+  </div>
+  <div id="log-list"><div class="log-empty">Scan a product to start logging</div></div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────
+const SB_URL = 'https://ilyaqubsrpjrfgekwonw.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseWFxdWJzcnBqcmZnZWt3b253Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NTczNzMsImV4cCI6MjA5NDMzMzM3M30.EMp_EDJwzfbYgNEOeiXdjiB-GFjAEsAkRgTWb5ixF5M';
+let categories = [{"id": "canned_myanmar", "name": "Myanmar Canned", "icon": "can", "subs": [{"id": "ready", "name": "READY"}, {"id": "best", "name": "BEST"}, {"id": "hmg", "name": "HMG"}, {"id": "eain_chat", "name": "EAIN CHAT"}, {"id": "tomo", "name": "TOMO"}, {"id": "win", "name": "WIN"}, {"id": "ma_toke_ma", "name": "MA TOKE MA"}]}, {"id": "dry_fish", "name": "Dry Fish", "icon": "fish", "subs": [{"id": "mtg", "name": "MTG"}]}, {"id": "pickled_tea", "name": "Pickled Tea", "icon": "leaf", "subs": [{"id": "phoe_htaung", "name": "PHOE HTAUNG"}, {"id": "pin_pyo_ywet", "name": "PIN PYO YWET"}]}, {"id": "gold_snacks", "name": "Snacks", "icon": "star", "subs": [{"id": "gold", "name": "GOLD"}]}, {"id": "hmwe_powder", "name": "HMWE Powder", "icon": "grain", "subs": [{"id": "hmwe", "name": "HMWE"}]}, {"id": "tea_coffee", "name": "Tea & Coffee", "icon": "coffee", "subs": [{"id": "happy", "name": "HAPPY"}, {"id": "premier", "name": "PREMIER"}]}, {"id": "a1_spice", "name": "Spices", "icon": "flame", "subs": [{"id": "a1", "name": "A1"}, {"id": "thar_lon_thu", "name": "THAR LON THU"}]}, {"id": "rice", "name": "Rice", "icon": "grain", "subs": [{"id": "shwebo", "name": "SHWEBO"}, {"id": "yadanar_toe", "name": "YADANAR TOE"}, {"id": "thai", "name": "THAI"}, {"id": "kandil", "name": "KANDIL"}]}];
+let products   = [{"id": 2, "name": "FRIED MYEIK SHRIMP PASTE 160g", "sku": "DRY_-002", "cat": "dry_fish", "sub": "mtg", "qty": 2, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-01"}, {"id": 6, "name": "FRIED FISH SAUCE With TAMARIND 160g", "sku": "DRY_-006", "cat": "dry_fish", "sub": "mtg", "qty": 6, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 7, "name": "DRIED HEADLESS ANCHOVY 160g", "sku": "DRY_-007", "cat": "dry_fish", "sub": "mtg", "qty": 147, "threshold": 20, "vendor": "MTG", "lastUpdated": "2026-04-28"}, {"id": 8, "name": "DRIED LOTIA CHOPPED 160g", "sku": "DRY_-008", "cat": "dry_fish", "sub": "mtg", "qty": 4, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-12"}, {"id": 10, "name": "DRIED SHOL (Roasted & Crispy) 160g", "sku": "DRY_-010", "cat": "dry_fish", "sub": "mtg", "qty": 35, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-08"}, {"id": 12, "name": "DRIED SHRIMP POWDER 160g", "sku": "DRY_-012", "cat": "dry_fish", "sub": "mtg", "qty": 31, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-14"}, {"id": 13, "name": "SPICY FRIED DRIED ANCHOVY 160g", "sku": "DRY_-013", "cat": "dry_fish", "sub": "mtg", "qty": 7, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-13"}, {"id": 17, "name": "SPICY FRIED DRIED LOTIA 160g", "sku": "DRY_-017", "cat": "dry_fish", "sub": "mtg", "qty": 21, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 18, "name": "DRIED LOTIA (Roasted & Crispy) 160g", "sku": "DRY_-018", "cat": "dry_fish", "sub": "mtg", "qty": 36, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 32, "name": "READY CHICKPEA CURRY 155g", "sku": "READ-032", "cat": "canned_myanmar", "sub": "ready", "qty": 30, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 33, "name": "READY SARDINES IN TOMATO SAUCE 190g", "sku": "READ-033", "cat": "canned_myanmar", "sub": "ready", "qty": 31, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 34, "name": "READY BEEF CURRY 425g", "sku": "READ-034", "cat": "canned_myanmar", "sub": "ready", "qty": 41, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 35, "name": "READY BEEF CURRY 150g", "sku": "READ-035", "cat": "canned_myanmar", "sub": "ready", "qty": 83, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 36, "name": "READY GOAT MEAT CURRY 150g", "sku": "READ-036", "cat": "canned_myanmar", "sub": "ready", "qty": 84, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 37, "name": "READY Stir-Fried Fish Curry 150g", "sku": "READ-037", "cat": "canned_myanmar", "sub": "ready", "qty": 9, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-08"}, {"id": 38, "name": "READY Nga Gyin with Fermented Soybeans 145g", "sku": "READ-038", "cat": "canned_myanmar", "sub": "ready", "qty": 30, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 40, "name": "READY Sweet & Sour Fried Fish (ROHU) 155g", "sku": "READ-040", "cat": "canned_myanmar", "sub": "ready", "qty": 10, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-04-20"}, {"id": 41, "name": "READY Fish Sauce Curry 155g", "sku": "READ-041", "cat": "canned_myanmar", "sub": "ready", "qty": 3, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 42, "name": "READY Fish Cakes In Curry 155g", "sku": "READ-042", "cat": "canned_myanmar", "sub": "ready", "qty": 89, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-12"}, {"id": 43, "name": "READY Hot & Spicy Fried Fish (ROHU) 130g", "sku": "READ-043", "cat": "canned_myanmar", "sub": "ready", "qty": 95, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-12"}, {"id": 44, "name": "READY STEAMED YELLOWPEA 340g", "sku": "READ-044", "cat": "canned_myanmar", "sub": "ready", "qty": 283, "threshold": 30, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 139, "name": "READY CHICKEN CURRY WITH CHICKPEA 425g", "sku": "READ-139", "cat": "canned_myanmar", "sub": "ready", "qty": 53, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 140, "name": "READY CHICKEN CURRY WITH BAMBOO SHOOT 425g", "sku": "READ-140", "cat": "canned_myanmar", "sub": "ready", "qty": 39, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-14"}, {"id": 141, "name": "READY CHICKPEA CURRY 400g", "sku": "READ-141", "cat": "canned_myanmar", "sub": "ready", "qty": 105, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 142, "name": "READY GOAT MEAT CURRY 425g", "sku": "READ-142", "cat": "canned_myanmar", "sub": "ready", "qty": 14, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 143, "name": "READY Hot & Spicy Fried Fish 280g", "sku": "READ-143", "cat": "canned_myanmar", "sub": "ready", "qty": 17, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-10"}, {"id": 144, "name": "READY STEAMED HILSHA 380g", "sku": "READ-144", "cat": "canned_myanmar", "sub": "ready", "qty": 104, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 145, "name": "READY STEAMED NGAGYIN 380g", "sku": "READ-145", "cat": "canned_myanmar", "sub": "ready", "qty": 52, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 146, "name": "READY Fish Cakes In Curry 400g", "sku": "READ-146", "cat": "canned_myanmar", "sub": "ready", "qty": 34, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 147, "name": "READY MACKEREL IN TOMATO SAUCE 425g", "sku": "READ-147", "cat": "canned_myanmar", "sub": "ready", "qty": 35, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 148, "name": "READY FRIED ACACIA CONCINNA LEAVES 400g", "sku": "READ-148", "cat": "canned_myanmar", "sub": "ready", "qty": 3, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 149, "name": "READY FRIED ROSELLE LEAF 400g", "sku": "READ-149", "cat": "canned_myanmar", "sub": "ready", "qty": 173, "threshold": 30, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 150, "name": "READY Fish Sauce Curry 400g", "sku": "READ-150", "cat": "canned_myanmar", "sub": "ready", "qty": 29, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-14"}, {"id": 47, "name": "BEST BOILED JENGKOL BEAN 490g", "sku": "BEST-047", "cat": "canned_myanmar", "sub": "best", "qty": 162, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 51, "name": "BEST ROASTED CATFISH CHILLI PASTE 460g", "sku": "BEST-051", "cat": "canned_myanmar", "sub": "best", "qty": 7, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 52, "name": "BEST CATFISH SOUR BAMBOO SHOT CURRY 375g", "sku": "BEST-052", "cat": "canned_myanmar", "sub": "best", "qty": 50, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-12"}, {"id": 53, "name": "BEST COTTON MILK PLANT LEAVES 360g", "sku": "BEST-053", "cat": "canned_myanmar", "sub": "best", "qty": 4, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 58, "name": "BEST TAMARIND LEAVES 125g", "sku": "BEST-058", "cat": "canned_myanmar", "sub": "best", "qty": 11, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-05-11"}, {"id": 59, "name": "BEST GOA BEAN ROOT 265g", "sku": "BEST-059", "cat": "canned_myanmar", "sub": "best", "qty": 1, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 60, "name": "BEST GINGER WORT FLOWER 355g", "sku": "BEST-060", "cat": "canned_myanmar", "sub": "best", "qty": 29, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-11"}, {"id": 62, "name": "BEST FRIED PEA AND BAMBOO SHOOT 365g", "sku": "BEST-062", "cat": "canned_myanmar", "sub": "best", "qty": 19, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-13"}, {"id": 63, "name": "BEST BAKED FISH STICK 135g", "sku": "BEST-063", "cat": "canned_myanmar", "sub": "best", "qty": 10, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 64, "name": "BEST FRIED JENGKOL BEAN 245g", "sku": "BEST-064", "cat": "canned_myanmar", "sub": "best", "qty": 193, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-10"}, {"id": 66, "name": "BEST MALAPHU 405g", "sku": "BEST-066", "cat": "canned_myanmar", "sub": "best", "qty": 36, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-04-20"}, {"id": 68, "name": "BEST ROSELLE LEAVES SOUP PASTE 430g", "sku": "BEST-068", "cat": "canned_myanmar", "sub": "best", "qty": 13, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-06"}, {"id": 138, "name": "BEST FISH PASTE CURRY 405g", "sku": "BEST-138", "cat": "canned_myanmar", "sub": "best", "qty": 175, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 164, "name": "BEST DUCK EGGS OILY CURRY 375g", "sku": "BEST-164", "cat": "canned_myanmar", "sub": "best", "qty": 72, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 165, "name": "BEST FERMENTED TOFU 405g", "sku": "BEST-165", "cat": "canned_myanmar", "sub": "best", "qty": 43, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-10"}, {"id": 166, "name": "BEST COCONUT MILK NOODLE SOUP 405g", "sku": "BEST-166", "cat": "canned_myanmar", "sub": "best", "qty": 26, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 167, "name": "BEST VEGETARIAN MIXED FRUIT BEAN CURRY 360g", "sku": "BEST-167", "cat": "canned_myanmar", "sub": "best", "qty": 32, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-14"}, {"id": 168, "name": "BEST MOHINGAR PASTE 385g", "sku": "BEST-168", "cat": "canned_myanmar", "sub": "best", "qty": 4, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-08"}, {"id": 169, "name": "BEST TAMARIND LEAVES 405g", "sku": "BEST-169", "cat": "canned_myanmar", "sub": "best", "qty": 171, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-14"}, {"id": 171, "name": "EAIN CHAT ASSORTED VEGETABLE & BEAN CURRY 430g", "sku": "EAIN-171", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 75, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-14"}, {"id": 173, "name": "EAIN CHAT FISH PASTE SAUCE 400g", "sku": "EAIN-173", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 45, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-14"}, {"id": 174, "name": "EAIN CHAT FISH PASTE SAUCE (WITHOUT SHRIMP) 400g", "sku": "EAIN-174", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 72, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-11"}, {"id": 170, "name": "EAIN CHAT COCONUT NOODLE SOUP 400g", "sku": "EAIN-170", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 22, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-13"}, {"id": 70, "name": "HMG Green Chillies Fish Paste 350g", "sku": "HMG_-070", "cat": "canned_myanmar", "sub": "hmg", "qty": 316, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-10"}, {"id": 71, "name": "HMG Mawlamyaing Mohinga Paste 360g", "sku": "HMG_-071", "cat": "canned_myanmar", "sub": "hmg", "qty": 217, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-08"}, {"id": 72, "name": "HMG Stir Fried Roselle Leaves with Fish 400g", "sku": "HMG_-072", "cat": "canned_myanmar", "sub": "hmg", "qty": 270, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-13"}, {"id": 79, "name": "PHOE HTAUNG BRAND SHWE HTOO 320g", "sku": "PHOE-079", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 123, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 80, "name": "PHOE HTAUNG LAY YAUNG CHEL SPECIAL 320g", "sku": "PHOE-080", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 250, "threshold": 30, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-06"}, {"id": 81, "name": "PHOE HTAUNG THAEDAW PAE KYI PU 320g", "sku": "PHOE-081", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 96, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-04-28"}, {"id": 82, "name": "PHOE HTAUNG CHINESE FRIED BEANS 320g", "sku": "PHOE-082", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 49, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 83, "name": "PHOE HTAUNG PICKLE TEA SHU-SHAE 360g", "sku": "PHOE-083", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 348, "threshold": 30, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-08"}, {"id": 84, "name": "PHOE HTAUNG PICKLED TEA (SWEET) 360g", "sku": "PHOE-084", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 105, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 85, "name": "PHOE HTAUNG PICKLED TEA (SPICY) 360g", "sku": "PHOE-085", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 128, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 86, "name": "PHOE HTAUNG PICKLED TEA (KYET CHAY NI) 360g", "sku": "PHOE-086", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 55, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 87, "name": "PT ZAYAM BOILED TEA LEAVES 400g", "sku": "PHOE-087", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 75, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-08"}, {"id": 88, "name": "PT PICKLED TEA LEAVES (SWEET) 160g", "sku": "PHOE-088", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 2, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-10"}, {"id": 89, "name": "PT PICKLED TEA LEAVES (SPICY) 160g", "sku": "PHOE-089", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 4, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-10"}, {"id": 90, "name": "PT PICKLED TEA LEAVES (SHU-SHAE) 160g", "sku": "PHOE-090", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 17, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-01"}, {"id": 183, "name": "PIN PYO YWET PICKLED TEA LEAF SWEET 360g", "sku": "PIN_-183", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 3, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-05-08"}, {"id": 184, "name": "PIN PYO YWET PICKLED TEA LEAF SPICY 360g", "sku": "PIN_-184", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 29, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-04-20"}, {"id": 185, "name": "PIN PYO YWET PICKLED TEA LEAF SHU-SHAE 360g", "sku": "PIN_-185", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 17, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-05-12"}, {"id": 186, "name": "MA TOKE MA SPECIAL PAE PU KYAW 400g", "sku": "WIN_-186", "cat": "canned_myanmar", "sub": "ma_toke_ma", "qty": 5, "threshold": 15, "vendor": "MA TOKE MA", "lastUpdated": "2026-05-06"}, {"id": 159, "name": "WIN SPECIAL PICKLED TEA & VARIOUS FRIED PEA 400g", "sku": "MT_O-159", "cat": "canned_myanmar", "sub": "win", "qty": 306, "threshold": 30, "vendor": "WIN", "lastUpdated": "2026-04-28"}, {"id": 160, "name": "WIN PICKLED TEA & VARIOUS FRIED PEA 400g", "sku": "MT_O-160", "cat": "canned_myanmar", "sub": "win", "qty": 79, "threshold": 20, "vendor": "WIN", "lastUpdated": "2026-05-11"}, {"id": 74, "name": "TOMO Rakhine Fried Fish Paste 320g", "sku": "TOMO-074", "cat": "canned_myanmar", "sub": "tomo", "qty": 36, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-04-28"}, {"id": 75, "name": "TOMO Fried Fish Sauce With Prawn 320g", "sku": "TOMO-075", "cat": "canned_myanmar", "sub": "tomo", "qty": 24, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-12"}, {"id": 178, "name": "TOMO Fried Fish Sauce With Marian 60g", "sku": "TOMO-178", "cat": "canned_myanmar", "sub": "tomo", "qty": 38, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-12"}, {"id": 179, "name": "TOMO Fried Fish Sauce 60g", "sku": "TOMO-179", "cat": "canned_myanmar", "sub": "tomo", "qty": 34, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-14"}, {"id": 180, "name": "TOMO Rakhine Fried Fish Paste 60g", "sku": "TOMO-180", "cat": "canned_myanmar", "sub": "tomo", "qty": 38, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-06"}, {"id": 153, "name": "GOLD PEA & BEAN CRUNCHY STICK (SPICY)", "sku": "GOLD-153", "cat": "gold_snacks", "sub": "gold", "qty": 87, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-13"}, {"id": 154, "name": "GOLD PEA & BEAN CRUNCHY STICK (Natural)", "sku": "GOLD-154", "cat": "gold_snacks", "sub": "gold", "qty": 46, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-08"}, {"id": 155, "name": "GOLD BAYARKYAW", "sku": "GOLD-155", "cat": "gold_snacks", "sub": "gold", "qty": 161, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-13"}, {"id": 156, "name": "GOLD CHICK PEA STICK", "sku": "GOLD-156", "cat": "gold_snacks", "sub": "gold", "qty": 44, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-12"}, {"id": 21, "name": "HMWE MON HIN KHAR POWDER 150g", "sku": "HMWE-021", "cat": "hmwe_powder", "sub": "hmwe", "qty": 4, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-12"}, {"id": 22, "name": "HMWE RICE NOODLE 350g", "sku": "HMWE-022", "cat": "hmwe_powder", "sub": "hmwe", "qty": 296, "threshold": 30, "vendor": "HMWE", "lastUpdated": "2026-05-11"}, {"id": 24, "name": "HMWE CHICKPEA POWDER (BAYA KYAW)", "sku": "HMWE-024", "cat": "hmwe_powder", "sub": "hmwe", "qty": 4, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-04-20"}, {"id": 27, "name": "HMWE CHICKPEA POWDER", "sku": "HMWE-027", "cat": "hmwe_powder", "sub": "hmwe", "qty": 7, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-10"}, {"id": 28, "name": "HMWE ROASTED CHICKPEA POWDER 150g", "sku": "HMWE-028", "cat": "hmwe_powder", "sub": "hmwe", "qty": 31, "threshold": 15, "vendor": "HMWE", "lastUpdated": "2026-05-01"}, {"id": 29, "name": "HMWE TOHU POWDER 150g", "sku": "HMWE-029", "cat": "hmwe_powder", "sub": "hmwe", "qty": 3, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-10"}, {"id": 128, "name": "PREMIER NAMHSAN TEA MIX 20×400g", "sku": "TEA_-128", "cat": "tea_coffee", "sub": "premier", "qty": 114, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-08"}, {"id": 129, "name": "PREMIER INSTANT NUTRITIOUS CEREAL 20×500g", "sku": "TEA_-129", "cat": "tea_coffee", "sub": "premier", "qty": 68, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-01"}, {"id": 130, "name": "PREMIER INSTANT COFFEE MIX 3in1 32×540g", "sku": "TEA_-130", "cat": "tea_coffee", "sub": "premier", "qty": 76, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-13"}, {"id": 127, "name": "HAPPY 3in1 INSTANT COFFEE MIX 20×660g", "sku": "TEA_-127", "cat": "tea_coffee", "sub": "happy", "qty": 41, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-04-20"}, {"id": 161, "name": "HAPPY INSTANT TEA MIX (REGULAR) 20×660g", "sku": "TEA_-161", "cat": "tea_coffee", "sub": "happy", "qty": 201, "threshold": 30, "vendor": "HAPPY", "lastUpdated": "2026-05-12"}, {"id": 162, "name": "HAPPY INSTANT TEA MIX (PHAN SEINT) 20×660g", "sku": "TEA_-162", "cat": "tea_coffee", "sub": "happy", "qty": 16, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-05-06"}, {"id": 163, "name": "HAPPY INSTANT TEA MIX (CHO SEINT) 20×660g", "sku": "TEA_-163", "cat": "tea_coffee", "sub": "happy", "qty": 167, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-04-28"}, {"id": 133, "name": "A1 PREMIUM CHILI FLAKES 200g", "sku": "A1_S-133", "cat": "a1_spice", "sub": "a1", "qty": 29, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-01"}, {"id": 134, "name": "A1 PREMIUM CHILI FLAKES 100g", "sku": "A1_S-134", "cat": "a1_spice", "sub": "a1", "qty": 93, "threshold": 20, "vendor": "A1", "lastUpdated": "2026-05-12"}, {"id": 135, "name": "A1 PREMIUM CHILI POWDER 100g", "sku": "A1_S-135", "cat": "a1_spice", "sub": "a1", "qty": 83, "threshold": 20, "vendor": "A1", "lastUpdated": "2026-05-13"}, {"id": 136, "name": "A1 ROASTED CHILI POWDER 100g", "sku": "A1_S-136", "cat": "a1_spice", "sub": "a1", "qty": 16, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-12"}, {"id": 137, "name": "A1 PREMIUM PAPRIKA POWDER 100g", "sku": "A1_S-137", "cat": "a1_spice", "sub": "a1", "qty": 48, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-11"}, {"id": 175, "name": "THAR LON THU ROASTED CHILI POWDER 85g", "sku": "A1_S-175", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 15, "threshold": 10, "vendor": "THAR LON THU", "lastUpdated": "2026-05-06"}, {"id": 176, "name": "THAR LON THU CHILI FLAKES 85g", "sku": "A1_S-176", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 110, "threshold": 20, "vendor": "THAR LON THU", "lastUpdated": "2026-04-20"}, {"id": 177, "name": "THAR LON THU CHILI POWDER 85g", "sku": "A1_S-177", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 20, "threshold": 10, "vendor": "THAR LON THU", "lastUpdated": "2026-05-06"}, {"id": 131, "name": "SHWEBO PEARL RICE 20kg (4bags × 5kg)", "sku": "RICE-131", "cat": "rice", "sub": "shwebo", "qty": 22, "threshold": 5, "vendor": "SHWEBO", "lastUpdated": "2026-05-01"}, {"id": 132, "name": "YADANAR TOE RICE 20kg (4bags × 5kg)", "sku": "RICE-132", "cat": "rice", "sub": "yadanar_toe", "qty": 60, "threshold": 5, "vendor": "YADANAR TOE", "lastUpdated": "2026-05-08"}, {"id": 187, "name": "THAI JASMINE RICE 20kg (4bags × 5kg)", "sku": "RICE-187", "cat": "rice", "sub": "thai", "qty": 13, "threshold": 5, "vendor": "THAI", "lastUpdated": "2026-05-14"}, {"id": 181, "name": "KANDIL CLASSIC BASMATI RICE", "sku": "RICE-181", "cat": "rice", "sub": "kandil", "qty": 0, "threshold": 5, "vendor": "KANDIL", "lastUpdated": "2026-05-01"}];
+
+// ── STATE ─────────────────────────────────────────────────────────
+let mode = 'in', dest = 'shop';
+let currentUser = 'Scanner';
+let sbClient = null;
+let _stream = null, _quagga = false, _raf = null;
+let _buf = [], _locked = false, _pendingRaw = null, _pendingProd = null;
+let _inTotal = 0, _outTotal = 0;
+const REQUIRED = 3;
+
+// ── HELPERS ───────────────────────────────────────────────────────
+const gP  = id => products.find(p => p.id == id);
+const gC  = id => categories.find(c => c.id === id);
+const cN  = id => { let c=gC(id); return c?c.name:id; };
+const sN  = (c,s) => { let cat=gC(c); if(!cat)return s; let sub=cat.subs.find(x=>x.id===s); return sub?sub.name:s; };
+const gS  = p => p.qty===0?'out':p.qty<=p.threshold?'low':'ok';
+const bcD = v => String(v||'').replace(/\D/g,'');
+const nowT = () => { let d=new Date(); return [d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':'); };
+
+function findByBc(raw) {
+  let d = bcD(raw); if (d.length < 4) return null;
+  let h = products.find(p => p.barcode && bcD(p.barcode)===d); if (h) return h;
+  return products.find(p => {
+    if (!p.barcode) return false;
+    let sb = bcD(p.barcode); if (sb.length<4) return false;
+    return (d.startsWith(sb) && d.length-sb.length<=4) || (sb.startsWith(d) && sb.length-d.length<=4);
+  }) || null;
+}
+
+function fuzzy(q, max=20) {
+  if (!q||q.length<1) return [];
+  let ql = q.toLowerCase();
+  return products.map(p => {
+    let nl = p.name.toLowerCase();
+    let s = nl===ql?100:nl.startsWith(ql)?90:nl.includes(ql)?70:0;
+    if (!s) {
+      let qw=ql.split(/\s+/),nw=nl.split(/\s+/);
+      s=Math.round(qw.filter(w=>w.length>1&&nw.some(n=>n.includes(w)||w.includes(n))).length/Math.max(qw.length,1)*50);
+    }
+    return {p,s};
+  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,max).map(x=>x.p);
+}
+
+// ── AUDIO + HAPTICS ───────────────────────────────────────────────
+let _actx = null;
+function beep(type) {
+  // Flash
+  let fl = document.getElementById('flash');
+  fl.className = type==='in'?'in':'out';
+  fl.style.opacity='1';
+  setTimeout(()=>{fl.style.opacity='0'; setTimeout(()=>fl.className='',100);},120);
+  // Vibrate
+  if (navigator.vibrate) navigator.vibrate(type==='in'?[70]:[40,20,40]);
+  // Tone
+  try {
+    if (!_actx) _actx = new (window.AudioContext||window.webkitAudioContext)();
+    if (_actx.state==='suspended') _actx.resume();
+    let o=_actx.createOscillator(), g=_actx.createGain();
+    o.connect(g); g.connect(_actx.destination);
+    o.type='sine';
+    if (type==='in') {
+      o.frequency.setValueAtTime(660,_actx.currentTime);
+      o.frequency.setValueAtTime(880,_actx.currentTime+0.07);
+    } else {
+      o.frequency.setValueAtTime(520,_actx.currentTime);
+      o.frequency.setValueAtTime(380,_actx.currentTime+0.07);
+    }
+    g.gain.setValueAtTime(0.35,_actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,_actx.currentTime+0.22);
+    o.start(_actx.currentTime); o.stop(_actx.currentTime+0.22);
+  } catch(e) {}
+}
+
+// ── MODE ──────────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-in').className  = 'mode-btn mode-in'  + (m==='in'?' active-in':'');
+  document.getElementById('btn-out').className = 'mode-btn mode-out' + (m==='out'?' active-out':'');
+  // match panel
+  let go = document.getElementById('mp-go');
+  go.className = 'mp-go '+m;
+  document.getElementById('mp-go-ic').textContent  = m==='in'?'⬇':'⬆';
+  document.getElementById('mp-go-txt').textContent = m==='in'?'Confirm Stock In':'Confirm Stock Out';
+  document.getElementById('mp-qty-lbl').textContent = m==='in'?'Quantity to add':'Quantity to remove';
+  // dest row only for out
+  document.getElementById('mp-dest-row').className = 'mp-dest-row'+(m==='out'?' show':'');
+}
+
+function setDest(d) {
+  dest = d;
+  document.getElementById('dtab-shop').className = 'dtab shop'+(d==='shop'?' on':'');
+  document.getElementById('dtab-del').className  = 'dtab del' +(d==='delivery'?' on':'');
+  document.getElementById('dest-name').placeholder = d==='shop'?'Shop name (optional)…':'Customer name (optional)…';
+}
+
+// ── CAMERA ────────────────────────────────────────────────────────
+function setSWState(state) {
+  document.getElementById('sw-box').className = 'sw-box '+state;
+}
+
+let _camStarted = false;
+async function startCamera() {
+  let v = document.getElementById('cam-video');
+  let cw = document.getElementById('cam-area');
+  setTimeout(resizeScanWindow, 200);
+  window.addEventListener('resize', resizeScanWindow);
+
+  // Check basic support
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showCamError('Camera not supported', 'This browser blocks camera access. Use Chrome or Safari, or type barcodes manually below.');
+    return;
+  }
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    showCamError('HTTPS required', 'Camera only works on https:// — open the Vercel link, not a local file.');
+    return;
+  }
+
+  setStatus('Requesting camera…', 'Tap "Allow" when prompted');
+  try {
+    _stream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false
+    });
+  } catch(e1) {
+    try {
+      _stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    } catch(e2) {
+      try {
+        // Last resort — any camera
+        _stream = await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+      } catch(e3) {
+        let name = e3.name || e2.name || e1.name || '';
+        if (name === 'NotAllowedError' || name === 'SecurityError') {
+          showCamError('Camera permission denied', 'Tap the camera/lock icon in your browser address bar → allow camera → tap Retry.');
+        } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+          showCamError('No camera found', 'No camera detected on this device. Use manual input below.');
+        } else if (name === 'NotReadableError') {
+          showCamError('Camera in use', 'Another app is using the camera. Close it and tap Retry.');
+        } else {
+          showCamError('Camera error: ' + (name||'unknown'), 'Try closing other camera apps, then tap Retry.');
+        }
+        return;
+      }
+    }
+  }
+  _camStarted = true;
+  hideCamError();
+  v.style.display = 'block';
+  v.srcObject = _stream;
+  try { await v.play(); } catch(e) {}
+  setStatus('Ready to scan','Point barcode at frame');
+  setSWState('idle');
+
+  if ('BarcodeDetector' in window) {
+    try {
+      let supported = await BarcodeDetector.getSupportedFormats();
+      let fmts = ['ean_13','ean_8','code_128','code_39','upc_a','upc_e'].filter(f=>supported.includes(f));
+      if (!fmts.length) fmts = ['ean_13','ean_8','code_128','code_39'];
+      let det = new BarcodeDetector({formats:fmts});
+      let tick = async () => {
+        if (!_locked) {
+          try {
+            let codes = await det.detect(v);
+            if (codes.length) _onScan(codes[0].rawValue);
+          } catch(e) {}
+        }
+        _raf = requestAnimationFrame(tick);
+      };
+      _raf = requestAnimationFrame(tick);
+      return;
+    } catch(e) {}
+  }
+  // Quagga fallback
+  setStatus('Loading scanner…','One moment');
+  await new Promise(res=>{
+    if(window.Quagga){res();return;}
+    let s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js';
+    s.onload=res; s.onerror=res; document.head.appendChild(s);
+  });
+  if (!window.Quagga) {
+    // Keep native camera showing even without barcode lib
+    setStatus('Scanner library blocked','Camera works — type barcode manually below');
+    return;
+  }
+  if (_stream) { _stream.getTracks().forEach(t=>t.stop()); _stream=null; }
+  v.srcObject=null; v.style.display='none';
+  Quagga.init({
+    inputStream:{name:'Live',type:'LiveStream',target:cw,
+      constraints:{facingMode:'environment',width:{min:640},height:{min:480}}},
+    decoder:{readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader'],multiple:false},
+    locate:true,numOfWorkers:0,frequency:15
+  }, err=>{
+    if(err){setStatus('Camera works — type barcode below','Scanner library error');return;}
+    Quagga.start(); _quagga=true;
+    setStatus('Ready to scan','Point barcode at frame');
+    let qv=cw.querySelector('video');
+    if(qv)qv.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block';
+    Quagga.onDetected(data=>{
+      if(_locked)return;
+      let errs=data.codeResult.decodedCodes.filter(c=>c.error!==undefined);
+      let avg=errs.length?errs.reduce((s,c)=>s+c.error,0)/errs.length:1;
+      if(avg>0.26)return;
+      if(data.codeResult.code?.length>=4) _onScan(data.codeResult.code);
+    });
+  });
+}
+
+function resizeScanWindow() {
+  let cw = document.getElementById('cam-area');
+  let box = document.getElementById('sw-box');
+  let w = cw.offsetWidth, h = cw.offsetHeight;
+  let bw = Math.round(Math.min(w * 0.88, 500));
+  let bh = Math.round(Math.min(h * 0.38, 140));
+  box.style.width  = bw+'px';
+  box.style.height = bh+'px';
+  // cutout for shade
+  let sw = document.querySelector('.sw-shade');
+  if(sw) {
+    let top  = Math.round((h-bh)/2);
+    let left = Math.round((w-bw)/2);
+    sw.style.clipPath = `polygon(0 0,{w}px 0,{w}px {h}px,0 {h}px,0 {top}px,{left}px {top}px,{left}px ${top+bh}px,${left+bw}px ${top+bh}px,${left+bw}px {top}px,0 {top}px)`.replace(/\{(\w+)\}/g,(_,k)=>({w,h,top,left})[k]);
+  }
+}
+
+// ── SCAN PIPELINE ─────────────────────────────────────────────────
+function setStatus(main, sub) {
+  document.getElementById('hud-status').textContent = main||'';
+  document.getElementById('hud-sub').textContent    = sub||'';
+}
+function resetDots() {
+  for(let i=0;i<3;i++) document.getElementById('cd'+i).className='cdot';
+}
+function _onScan(raw) {
+  if (_locked) return;
+  let d = bcD(raw); if (!d||d.length<4) return;
+  _buf.push(d);
+  if (_buf.length > REQUIRED*3) _buf = _buf.slice(-REQUIRED*3);
+  let last=_buf[_buf.length-1], cnt=0;
+  for(let i=_buf.length-1;i>=0;i--){ if(_buf[i]===last)cnt++; else break; }
+  // Update dots
+  for(let i=0;i<3;i++) {
+    let el=document.getElementById('cd'+i);
+    el.className='cdot'+(i<cnt?(cnt>=REQUIRED?' done':' active'):'');
+  }
+  setStatus('Reading: '+raw, 'Hold steady…');
+  setSWState('reading');
+  if (cnt>=REQUIRED&&!_locked) {
+    _locked=true; _buf=[];
+    let hit = findByBc(raw);
+    if (hit) {
+      beep(mode);
+      setSWState('found');
+      openMatch(hit);
+    } else {
+      setSWState('idle');
+      _showConfirm(raw);
+    }
+  }
+}
+function _showConfirm(raw) {
+  _pendingRaw = raw;
+  document.getElementById('co-bc').textContent = raw;
+  document.getElementById('co-sub').textContent = raw.length + ' digit barcode';
+  document.getElementById('confirm-ov').classList.add('show');
+}
+function acceptBarcode() {
+  document.getElementById('confirm-ov').classList.remove('show');
+  let hit = findByBc(_pendingRaw);
+  if (hit) { beep(mode); openMatch(hit); }
+  else openNF(_pendingRaw);
+}
+function retryScan() {
+  document.getElementById('confirm-ov').classList.remove('show');
+  _locked=false; _buf=[];
+  resetDots(); setSWState('idle');
+  setStatus('Ready to scan','Point barcode at frame');
+}
+function resetScan() {
+  _locked=false; _buf=[];
+  resetDots(); setSWState('idle');
+  setStatus('Ready to scan','Point barcode at frame');
+}
+
+// ── MATCH PANEL ───────────────────────────────────────────────────
+function openMatch(p) {
+  _pendingProd = p;
+  let ph = document.getElementById('mp-photo');
+  if (p.photo) {
+    ph.innerHTML = '<img src="'+p.photo+'" alt="">';
+  } else {
+    ph.textContent = categoryEmoji(p.cat);
+  }
+  document.getElementById('mp-name').textContent = p.name;
+  document.getElementById('mp-cat').textContent  = cN(p.cat)+' › '+sN(p.cat,p.sub)+' · '+p.sku;
+  let s=gS(p);
+  let sc=s==='ok'?'#22C55E':s==='low'?'#F59E0B':'#EF4444';
+  let sb=s==='ok'?'✓ In stock':s==='low'?'⚠ Low stock':'✗ Out';
+  document.getElementById('mp-stock-pill').textContent=p.qty+' boxes';
+  document.getElementById('mp-stock-pill').style.cssText='background:rgba(255,255,255,.06);color:var(--tx2);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700';
+  document.getElementById('mp-status-pill').textContent=sb;
+  document.getElementById('mp-status-pill').style.cssText='background:transparent;color:'+sc+';padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700';
+  document.getElementById('mp-qty').value=1;
+  document.getElementById('mp-panel-bc') && (document.getElementById('mp-panel-bc').textContent = p.barcode||'');
+  document.getElementById('match-panel').classList.add('show');
+  setTimeout(()=>document.getElementById('mp-qty').select(),80);
+}
+function adjQ(d) {
+  let inp=document.getElementById('mp-qty');
+  inp.value=Math.max(1,(parseInt(inp.value)||0)+d);
+}
+function cancelMatch() {
+  document.getElementById('match-panel').classList.remove('show');
+  _pendingProd=null; resetScan();
+}
+function confirmMatch() {
+  let qty=parseInt(document.getElementById('mp-qty').value)||1;
+  let p=_pendingProd; if(!p)return;
+  if(mode==='out'&&qty>p.qty){syncToast('Only '+p.qty+' in stock','err');return;}
+  let dn=document.getElementById('dest-name').value.trim();
+  let actDest=mode==='out'?dest:null;
+  let actDestName=mode==='out'?(dn||null):null;
+  if(mode==='in') p.qty+=qty; else p.qty-=qty;
+  p.lastUpdated=new Date().toISOString().slice(0,10);
+  document.getElementById('match-panel').classList.remove('show');
+  addToLog(p,qty,actDest,actDestName);
+  sbPushProduct(p);
+  sbPushActivity({type:mode,prod:p.name,qty,time:nowT(),user:currentUser,dest:actDest,destName:actDestName});
+  _pendingProd=null; resetScan();
+}
+
+// ── NOT FOUND ─────────────────────────────────────────────────────
+function openNF(raw) {
+  _pendingRaw=raw;
+  document.getElementById('nf-bc-txt').textContent=raw;
+  document.getElementById('nf-search').value='';
+  renderNF('');
+  document.getElementById('nf-panel').classList.add('show');
+  setTimeout(()=>document.getElementById('nf-search').focus(),200);
+}
+function closeNF() {
+  document.getElementById('nf-panel').classList.remove('show');
+  resetScan();
+}
+function renderNF(q) {
+  let ll = document.getElementById('nf-list');
+  if (q.length>0) {
+    // search results, no grouping
+    let res=fuzzy(q,30);
+    if(!res.length){ll.innerHTML='<div class="log-empty">No products found</div>';return;}
+    ll.innerHTML=res.map(p=>nfRow(p)).join('');
+    return;
+  }
+  // Grouped by category
+  let html='';
+  for(let cat of categories){
+    let cp=products.filter(p=>p.cat===cat.id); if(!cp.length)continue;
+    html+='<div class="nf-cat">'+cat.name+' <span class="nf-cat-count">('+cp.length+')</span></div>';
+    for(let sub of cat.subs){
+      let sp=cp.filter(p=>p.sub===sub.id); if(!sp.length)continue;
+      sp.forEach(p=>{html+=nfRow(p);});
+    }
+  }
+  ll.innerHTML=html||'<div class="log-empty">No products</div>';
+}
+function nfRow(p) {
+  let s=gS(p);
+  let qc=s==='ok'?'var(--gn)':s==='low'?'var(--am)':'var(--rd)';
+  let ph=p.photo?'<img src="'+p.photo+'" alt="" onerror="this.parentNode.textContent=\'📦\'">':categoryEmoji(p.cat);
+  let bctag=p.barcode?'<span class="nf-bc-tag">'+p.barcode+'</span>':'';
+  return '<div class="nf-row" onclick="nfPick('+p.id+')">'
+    +'<div class="nf-thumb">'+ph+'</div>'
+    +'<div style="flex:1;min-width:0">'
+      +'<div class="nf-row-name">'+p.name+'</div>'
+      +'<div class="nf-row-meta">'+sN(p.cat,p.sub)+bctag+'</div>'
+    +'</div>'
+    +'<div class="nf-qty" style="color:'+qc+'">'+p.qty+'</div>'
+    +'</div>';
+}
+function nfPick(pid) {
+  let p=gP(pid); if(!p)return;
+  // Link barcode
+  if(_pendingRaw) {
+    p.barcode=bcD(_pendingRaw);
+    sbPushProduct(p);
+    syncToast('Barcode linked → '+p.name.split(' ').slice(0,3).join(' '),'ok');
+  }
+  document.getElementById('nf-panel').classList.remove('show');
+  beep(mode); openMatch(p);
+}
+
+// ── MANUAL INPUT ──────────────────────────────────────────────────
+let _manT=null;
+function onManualInput(v) {
+  clearTimeout(_manT);
+  if(v.trim().length>2) _manT=setTimeout(()=>doManual(),700);
+}
+function doManual() {
+  let val=document.getElementById('man-inp').value.trim(); if(!val)return;
+  document.getElementById('man-inp').value='';
+  let d=bcD(val);
+  if(d.length>=4 && d.length/Math.max(val.length,1)>0.6) {
+    let hit=findByBc(val);
+    if(hit){beep(mode);openMatch(hit);}
+    else openNF(val);
+  } else {
+    let res=fuzzy(val,20);
+    if(res.length===1){beep(mode);openMatch(res[0]);}
+    else if(res.length>1){openNF(val); setTimeout(()=>{let s=document.getElementById('nf-search');s.value=val;renderNF(val);},50);}
+    else syncToast('Not found: '+val,'err');
+  }
+}
+
+// ── LOG ───────────────────────────────────────────────────────────
+function addToLog(p, qty, actDest, actDestName) {
+  let isIn=mode==='in';
+  if(isIn) _inTotal+=qty; else _outTotal+=qty;
+  document.getElementById('stat-in').textContent  = '⬇ '+_inTotal;
+  document.getElementById('stat-out').textContent = '⬆ '+_outTotal;
+  let ll=document.getElementById('log-list');
+  let qc=isIn?'var(--gn)':'var(--rd)';
+  let sign=isIn?'+':'-';
+  let s=gS(p);
+  let stockAfter='<span style="color:'+qc+';font-weight:700">'+p.qty+'</span> left';
+  let destHtml=actDest?'<span class="log-dest">'+(actDest==='shop'?'🏪':'🚚')+(actDestName?' '+actDestName:'')+'</span>':'';
+  let div=document.createElement('div');
+  div.className='log-row';
+  div.innerHTML=
+    '<div class="log-ic '+( isIn?'in':'out')+'">'+( isIn?'⬇':'⬆')+'</div>'
+    +'<div class="log-info">'
+      +'<div class="log-name">'+p.name+'</div>'
+      +'<div class="log-meta"><span>'+nowT()+'</span>'+destHtml+'<span>'+stockAfter+'</span></div>'
+    +'</div>'
+    +'<div class="log-qty '+(isIn?'in':'out')+'">'+sign+qty+'</div>'
+    +'<button class="undo-btn" data-pid="'+p.id+'" data-qty="'+qty+'" data-mode="'+mode+'" onclick="undoRow(this)">Undo</button>';
+  let first=ll.firstChild;
+  if(first&&first.classList&&first.classList.contains('log-empty')) ll.innerHTML='';
+  ll.insertBefore(div,ll.firstChild);
+  while(ll.children.length>80) ll.removeChild(ll.lastChild);
+}
+function undoRow(btn) {
+  let pid=parseInt(btn.dataset.pid), qty=parseInt(btn.dataset.qty), m=btn.dataset.mode;
+  let p=gP(pid); if(!p)return;
+  if(m==='in') p.qty-=qty; else p.qty+=qty;
+  p.lastUpdated=new Date().toISOString().slice(0,10);
+  sbPushProduct(p);
+  btn.closest('.log-row').style.cssText='opacity:.35;text-decoration:line-through';
+  btn.textContent='Undone'; btn.disabled=true;
+  syncToast('Undone — '+p.name.split(' ').slice(0,2).join(' '),'ok');
+}
+function clearLog() {
+  document.getElementById('log-list').innerHTML='<div class="log-empty">Scan a product to start logging</div>';
+  _inTotal=0; _outTotal=0;
+  document.getElementById('stat-in').textContent='⬇ 0';
+  document.getElementById('stat-out').textContent='⬆ 0';
+}
+
+// ── CATEGORY EMOJI ────────────────────────────────────────────────
+function categoryEmoji(cat) {
+  let m={canned_myanmar:'🥫',dry_fish:'🐟',pickled_tea:'🍵',gold_snacks:'🍿',hmwe_powder:'🌾',tea_coffee:'☕',a1_spice:'🌶',rice:'🍚'};
+  return m[cat]||'📦';
+}
+
+// ── SYNC TOAST ────────────────────────────────────────────────────
+let _stT=null;
+function syncToast(msg,type) {
+  let el=document.getElementById('sync-toast');
+  el.textContent=msg; el.className='show st-'+(type||'ok');
+  clearTimeout(_stT); _stT=setTimeout(()=>el.className='',2800);
+}
+
+// ── SUPABASE ──────────────────────────────────────────────────────
+async function sbInit() {
+  await new Promise((res,rej)=>{
+    if(window.supabase){res();return;}
+    let s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    s.onload=res; s.onerror=rej; document.head.appendChild(s);
+  });
+  sbClient=window.supabase.createClient(SB_URL,SB_KEY);
+  syncToast('Connecting…','syn');
+  await sbPull();
+  sbSubscribe();
+}
+async function sbPull() {
+  if(!sbClient)return;
+  try {
+    let {data:prods}=await sbClient.from('products').select('id,name,sku,cat,sub,qty,threshold,vendor,barcode,last_updated,photo');
+    if(prods&&prods.length>=10) {
+      let valid=prods.filter(r=>r.id&&r.name&&categories.some(c=>c.id===r.cat));
+      if(valid.length>=10) {
+        products=valid.map(r=>({id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,lastUpdated:r.last_updated,photo:r.photo||undefined}));
+      }
+    }
+    // Get user from URL param
+    let uid=new URLSearchParams(window.location.search).get('uid');
+    let {data:setts}=await sbClient.from('settings').select('value').eq('key','app_users').single();
+    if(setts?.value) {
+      let users=JSON.parse(setts.value);
+      let u=uid?users.find(u=>u.id===uid):users[0];
+      if(u){ currentUser=u.name; document.getElementById('user-chip').textContent=u.name; }
+    }
+    syncToast('✓ '+products.length+' products loaded','ok');
+  } catch(e) { syncToast('Offline — using local data','err'); }
+}
+async function sbPushProduct(p) {
+  if(!sbClient)return;
+  try {
+    await sbClient.from('products').upsert({id:p.id,name:p.name,sku:p.sku,cat:p.cat,sub:p.sub,qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',barcode:p.barcode||null,last_updated:p.lastUpdated||null,photo:p.photo||null});
+    syncToast('✓ Synced','ok');
+  } catch(e){ syncToast('Sync failed','err'); }
+}
+async function sbPushActivity(a) {
+  if(!sbClient)return;
+  try{
+    await sbClient.from('activity').insert({type:a.type,prod:a.prod,qty:a.qty,time:a.time,user:a.user||null,dest:a.dest||null,dest_name:a.destName||null});
+  }catch(e){}
+}
+function sbSubscribe() {
+  if(!sbClient)return;
+  sbClient.channel('scanner-rt')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'products'},payload=>{
+      let r=payload.new, idx=products.findIndex(p=>p.id==r.id);
+      if(idx>=0) products[idx].qty=r.qty||0;
+    }).subscribe();
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────
+setMode('in');
+setDest('shop');
+startCamera();
+sbInit();
+</script>
+</body>
+</html>
