@@ -2603,21 +2603,21 @@ function openBulkImages() {
 }
 
 async function fetchProductImage(productName, serpKey) {
-  // Search Google Images via SerpAPI
-  let query = encodeURIComponent(productName + ' product');
-  let url = 'https://serpapi.com/search.json?engine=google_images&q=' + query + '&num=3&api_key=' + serpKey;
-  let res = await fetchTimeout(url, {}, 10000);
-  if (!res.ok) throw new Error('SerpAPI error: ' + res.status);
-  let data = await res.json();
-  let imgs = data.images_results;
-  if (!imgs || !imgs.length) throw new Error('No images found');
-  // Pick first image that's not too small
-  for (let img of imgs) {
-    if (img.original && img.original_width > 100 && img.original_height > 100) {
-      return img.original;
-    }
+  // Call our Vercel proxy — SerpAPI blocks direct browser requests (CORS)
+  let q = productName + ' product food myanmar';
+  let url = '/api/search-image?q=' + encodeURIComponent(q) + '&key=' + encodeURIComponent(serpKey);
+  let res = await fetchTimeout(url, {}, 15000);
+  if (!res.ok) {
+    let err = {};
+    try { err = await res.json(); } catch(e) {}
+    throw new Error(err.error || 'Search API error ' + res.status);
   }
-  return imgs[0].original;
+  let data = await res.json();
+  let imgs = data.images || [];
+  if (!imgs.length) throw new Error('No images found');
+  // Pick largest image with valid dimensions
+  let best = imgs.find(img => img.w > 150 && img.h > 150) || imgs[0];
+  return best.url;
 }
 
 async function imageUrlToBase64(url) {
