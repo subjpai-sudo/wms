@@ -361,6 +361,7 @@ create policy "anon rt" on rack_transactions
   </div>
   <div id="cam-wrap">
     <video id="cam-video" autoplay playsinline muted></video>
+    <canvas id="cam-canvas" style="display:none"></canvas>
     <div class="scan-win"><div class="sw-box" id="sw-box"><div class="sw-tr"></div><div class="sw-bl"></div><div class="sw-line"></div></div></div>
     <div class="cam-hud">
       <div class="consensus"><div class="cdot" id="cd0"></div><div class="cdot" id="cd1"></div><div class="cdot" id="cd2"></div></div>
@@ -766,12 +767,34 @@ function fallbackCopy(t){
 
 // ── CAMERA ──
 let _camStream=null,_camTimer=null,_camLocked=false,_camBuf=[];
+let _jsQR=null, _quaggaOn=false;
+
+// Load jsQR — pure JS QR decoder, works on ALL phones (no BarcodeDetector needed)
+async function loadJsQR(){
+  if(window.jsQR){_jsQR=window.jsQR;return;}
+  await new Promise((res,rej)=>{
+    let s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+    s.onload=()=>{_jsQR=window.jsQR;res();};
+    s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+// Capture a frame from video into canvas and return ImageData
+function grabFrame(v,canvas){
+  if(!v||v.readyState<2||v.videoWidth===0)return null;
+  canvas.width=v.videoWidth;
+  canvas.height=v.videoHeight;
+  let ctx=canvas.getContext('2d');
+  ctx.drawImage(v,0,0);
+  return ctx.getImageData(0,0,canvas.width,canvas.height);
+}
+
 async function openCam(ctx){
   _scanCtx=ctx; _camLocked=false; _camBuf=[];
   document.getElementById('cam-title').textContent=
-    ctx==='rackqr'?'Scan rack QR':ctx==='setup'?'Scan product to place':ctx==='stock'?'Scan to find location':'Scan';
+    ctx==='rackqr'?'📷 Scan rack QR code':ctx==='setup'?'📷 Scan product barcode':ctx==='stock'?'📷 Find product location':'📷 Scan';
   document.getElementById('cam-sheet').classList.add('show');
-  // auto-start if allowed before
   let allowed=localStorage.getItem('cam_ok')==='1';
   try{if(navigator.permissions&&navigator.permissions.query){let s=await navigator.permissions.query({name:'camera'});if(s.state==='granted')allowed=true;if(s.state==='denied')allowed=false;}}catch(e){}
   if(allowed){document.getElementById('cam-gate2').style.display='none';startCam();}
@@ -781,53 +804,163 @@ function closeCam(){
   document.getElementById('cam-sheet').classList.remove('show');
   if(_camTimer){clearInterval(_camTimer);_camTimer=null;}
   if(_camStream){_camStream.getTracks().forEach(t=>t.stop());_camStream=null;}
-  let v=document.getElementById('cam-video');if(v)v.srcObject=null;
+  if(_quaggaOn){try{Quagga.stop();}catch(e){}  _quaggaOn=false;}
+  let v=document.getElementById('cam-video');if(v){v.srcObject=null;v.load();}
 }
 async function startCam(){
   let v=document.getElementById('cam-video');
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){document.getElementById('cam-status').textContent='No camera — type below';return;}
-  document.getElementById('cam-status').textContent='Requesting camera…';
-  try{_camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920}},audio:false});}
-  catch(e){try{_camStream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});}catch(e2){document.getElementById('cam-status').textContent='Camera blocked — type below';document.getElementById('cam-gate2').style.display='flex';return;}}
+  let canvas=document.getElementById('cam-canvas');
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    document.getElementById('cam-status').textContent='No camera — type below';return;
+  }
+  document.getElementById('cam-status').textContent='Starting camera…';
+  // Try rear camera first, fall back to any
+  try{_camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});}
+  catch(e){try{_camStream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});}
+  catch(e2){
+    document.getElementById('cam-status').textContent='Camera blocked — type below';
+    document.getElementById('cam-gate2').style.display='flex';
+    document.getElementById('cam-gate2').querySelector('button').textContent='↻ Retry';
+    return;
+  }}
   try{localStorage.setItem('cam_ok','1');}catch(e){}
   document.getElementById('cam-gate2').style.display='none';
-  v.srcObject=_camStream; try{await v.play();}catch(e){}
-  document.getElementById('cam-status').textContent='Point at barcode / QR';
-  let det=null;
+  v.srcObject=_camStream;
+  await new Promise(res=>{v.onloadedmetadata=res;setTimeout(res,2000);});
+  try{await v.play();}catch(e){}
+  await new Promise(res=>setTimeout(res,400)); // let first frames settle
+
+  // ── STRATEGY 1: BarcodeDetector (Chrome Android, Safari 17+)
+  let nativeDetector=null;
   if('BarcodeDetector' in window){
-    try{let sup=await BarcodeDetector.getSupportedFormats();
-      let want=['qr_code','ean_13','ean_8','code_128','code_39','upc_a','upc_e'].filter(x=>sup.includes(x));
-      if(!want.length)want=['qr_code','ean_13','code_128'];
-      det=new BarcodeDetector({formats:want});}catch(e){}
+    try{
+      let sup=await BarcodeDetector.getSupportedFormats();
+      let formats=['qr_code','ean_13','ean_8','code_128','code_39','upc_a','upc_e'].filter(f=>sup.includes(f));
+      if(!formats.length)formats=['ean_13','ean_8','code_128','code_39'];
+      nativeDetector=new BarcodeDetector({formats});
+      // Quick test to make sure it actually works
+      await Promise.race([nativeDetector.detect(v),new Promise(r=>setTimeout(r,500))]);
+    }catch(e){nativeDetector=null;}
   }
-  if(!det){
-    await new Promise(r=>{if(window.Quagga){r();return;}let s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js';s.onload=r;s.onerror=r;document.head.appendChild(s);});
-    document.getElementById('cam-status').textContent='Point at barcode (QR needs newer phone)';
+
+  // ── STRATEGY 2: jsQR (pure JS, works on ALL phones for QR codes)
+  let jsqrOk=false;
+  try{await loadJsQR();jsqrOk=!!_jsQR;}catch(e){}
+
+  // ── STRATEGY 3: Quagga (1D barcodes only, not QR)
+  let quaggaOk=false;
+  if(!nativeDetector){
+    try{
+      if(!window.Quagga){
+        await new Promise((res,rej)=>{let s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+      }
+      quaggaOk=!!window.Quagga;
+    }catch(e){}
   }
+
+  // Status message
+  if(nativeDetector){
+    document.getElementById('cam-status').textContent='Ready — point at QR or barcode';
+  }else if(jsqrOk&&quaggaOk){
+    document.getElementById('cam-status').textContent='Ready — QR codes and barcodes supported';
+  }else if(jsqrOk){
+    document.getElementById('cam-status').textContent='Ready — QR supported. Barcodes: type below.';
+  }else{
+    document.getElementById('cam-status').textContent='Ready — point at barcode (type rack code manually)';
+  }
+
   if(_camTimer)clearInterval(_camTimer);
   let busy=false,stuck=0;
+
+  // Quagga setup (init once, runs its own loop)
+  if(!nativeDetector&&quaggaOk&&!_quaggaOn){
+    let cw=document.getElementById('cam-wrap');
+    // Stop raw stream — Quagga takes over the camera
+    _camStream.getTracks().forEach(t=>t.stop()); _camStream=null;
+    v.srcObject=null;
+    Quagga.init({
+      inputStream:{name:'Live',type:'LiveStream',target:cw,
+        constraints:{facingMode:'environment',width:{min:640},height:{min:480}}},
+      decoder:{readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader'],multiple:false},
+      locate:true,numOfWorkers:0,frequency:15
+    },err=>{
+      if(err){document.getElementById('cam-status').textContent='Barcode scanner failed — type below';return;}
+      Quagga.start();_quaggaOn=true;
+      let qv=cw.querySelector('video');
+      if(qv)qv.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block';
+      Quagga.onDetected(d=>{
+        if(_camLocked)return;
+        let errs=d.codeResult.decodedCodes.filter(c=>c.error!==undefined);
+        let avg=errs.length?errs.reduce((s,c)=>s+c.error,0)/errs.length:1;
+        if(avg>0.26)return;
+        if(d.codeResult.code&&d.codeResult.code.length>=4)onCamScan(d.codeResult.code);
+      });
+    });
+    // Even with Quagga for barcodes, use jsQR for QR codes via setInterval on canvas
+    if(jsqrOk){
+      // Quagga has its own video; we'll need to grab from it
+      _camTimer=setInterval(()=>{
+        if(_camLocked)return;
+        let qv=document.getElementById('cam-wrap').querySelector('video');
+        if(!qv||qv.readyState<2)return;
+        let frame=grabFrame(qv,canvas);
+        if(!frame)return;
+        try{
+          let code=_jsQR(frame.data,frame.width,frame.height,{inversionAttempts:'dontInvert'});
+          if(code&&code.data)onCamScan(code.data);
+        }catch(e){}
+      },200);
+    }
+    return;
+  }
+
+  // Native BarcodeDetector or jsQR-only path
   _camTimer=setInterval(async()=>{
     if(_camLocked){busy=false;stuck=0;return;}
-    if(!_camStream||!v.srcObject||v.readyState<2)return;
-    if(busy){if(++stuck>5){busy=false;stuck=0;}return;}
+    if(!_camStream||!v.srcObject){return;}
+    if(v.readyState<2){return;}
+    if(busy){if(++stuck>8){busy=false;stuck=0;}return;}
     busy=true;stuck=0;
     try{
-      if(det){let c=await Promise.race([det.detect(v),new Promise(r=>setTimeout(()=>r(null),800))]);if(c&&c.length)onCamScan(c[0].rawValue);}
+      if(nativeDetector){
+        // Native handles both QR and barcodes
+        let codes=await Promise.race([
+          nativeDetector.detect(v),
+          new Promise(r=>setTimeout(()=>r(null),800))
+        ]);
+        if(codes&&codes.length)onCamScan(codes[0].rawValue);
+      }else if(jsqrOk){
+        // jsQR for QR codes from canvas frames
+        let frame=grabFrame(v,canvas);
+        if(frame){
+          let code=_jsQR(frame.data,frame.width,frame.height,{inversionAttempts:'dontInvert'});
+          if(code&&code.data)onCamScan(code.data);
+        }
+      }
     }catch(e){}
     busy=false;
-  },170);
+  },200);
 }
 function onCamScan(raw){
   if(_camLocked||!raw)return;
   let val=String(raw).trim();
+  // QR codes fire once reliably — accept immediately
+  // 1D barcodes need consensus (3 reads)
+  let isQR=val.startsWith('CSRACK:')||val.length>30||(val.startsWith('http')||val.includes(':'));
+  if(isQR){
+    _camLocked=true;_camBuf=[];
+    for(let i=0;i<3;i++)document.getElementById('cd'+i).className='cdot done';
+    document.getElementById('sw-box').className='sw-box done';
+    handleScan(val);
+    return;
+  }
+  // 1D barcode consensus
   _camBuf.push(val);
   if(_camBuf.length>9)_camBuf=_camBuf.slice(-9);
   let last=_camBuf[_camBuf.length-1],cnt=0;
   for(let i=_camBuf.length-1;i>=0;i--){if(_camBuf[i]===last)cnt++;else break;}
   for(let i=0;i<3;i++)document.getElementById('cd'+i).className='cdot'+(i<cnt?(cnt>=3?' done':' active'):'');
-  // QR codes resolve in 2 (they're reliable); barcodes need 3
-  let need=val.startsWith('CSRACK:')?2:3;
-  if(cnt>=need){
+  if(cnt>=3){
     _camLocked=true;_camBuf=[];
     document.getElementById('sw-box').className='sw-box done';
     handleScan(val);
@@ -840,13 +973,20 @@ function camManual(){
   handleScan(v);
 }
 function handleScan(val){
-  // Rack QR?
+  // Rack QR? Accept CSRACK:RN format
   if(val.startsWith('CSRACK:')){
     let rk=val.split(':')[1];
+    if(!rk||!rk.match(/^R\d+$/)){
+      toast('Invalid rack QR code: '+val,'err');
+      setTimeout(()=>{_camLocked=false;document.getElementById('sw-box').className='sw-box';},900);
+      return;
+    }
+    // Auto-extend RACK_COUNT if this rack is higher than current setting
+    let rNum=parseInt(rk.slice(1));
+    if(rNum>RACK_COUNT){ RACK_COUNT=rNum; saveLocal(); }
     beep('set');
     closeCam();
-    if(rackList().includes(rk)){openRack(rk);}
-    else{toast('Unknown rack: '+rk,'err');}
+    openRack(rk);
     return;
   }
   // Product barcode
