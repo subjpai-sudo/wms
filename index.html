@@ -1316,7 +1316,9 @@ const ROLE_COLORS = {owner:'#c0392b', admin:'#4c3fff', operator:'#1a7a4a'};
 const ROLE_LABELS = {owner:'Owner', admin:'Admin', operator:'Operator'};
 
 function initPin() {
-  // Focus name input on load
+  // Try to restore a saved session (persists across page loads/refreshes)
+  if (_restoreSession()) return; // already logged in — skip PIN screen
+  // No session — show name input
   setTimeout(() => {
     let inp = document.getElementById('pin-name-inp');
     if (inp) inp.focus();
@@ -1531,8 +1533,37 @@ function pinChangeCancel() {
 }
 
 // ── Core login ────────────────────────────────────────────────────
-function _doLogin(u) {
+const WMS_SESSION_KEY = 'wms_active_session_v1';
+
+function _saveSession(u) {
+  try {
+    localStorage.setItem(WMS_SESSION_KEY, JSON.stringify({
+      id: u.id, name: u.name, role: u.role,
+      color: u.color, savedAt: Date.now()
+    }));
+  } catch(e) {}
+}
+function _clearSession() {
+  try { localStorage.removeItem(WMS_SESSION_KEY); } catch(e) {}
+}
+function _restoreSession() {
+  try {
+    let raw = localStorage.getItem(WMS_SESSION_KEY);
+    if (!raw) return false;
+    let sess = JSON.parse(raw);
+    // Session valid for 30 days
+    if (Date.now() - sess.savedAt > 30 * 24 * 60 * 60 * 1000) { _clearSession(); return false; }
+    // Find matching user in users list
+    let u = appUsers.find(x => x.id === sess.id);
+    if (!u) { _clearSession(); return false; }
+    _doLogin(u, true); // restore without re-saving
+    return true;
+  } catch(e) { return false; }
+}
+
+function _doLogin(u, _skipSave) {
   currentRole = u.role; currentUser = u.name; currentUserId = u.id;
+  if (!_skipSave) _saveSession(u);
   let col = u.color || ROLE_COLORS[currentRole] || '#4c3fff';
   let ini = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   document.body.className = 'role-' + currentRole;
@@ -1549,10 +1580,11 @@ function _doLogin(u) {
   let sNi = document.querySelector('.ni[data-page="settings"]');
   if (sNi) sNi.style.display = opOnly ? 'none' : '';
   refreshDash();
-  toast('Welcome, ' + currentUser + '!');
+  if (!_skipSave) toast('Welcome, ' + currentUser + '!');
 }
 
 function lockApp() {
+  _clearSession(); // erase persistent session on explicit logout
   _pinEntry = ''; _pinTarget = null; _pinAttempts = 0;
   _pinChangeEntry = ''; _pinChangeFirst = ''; _pinChangeStep = 1;
   currentRole = ''; currentUser = ''; currentUserId = '';

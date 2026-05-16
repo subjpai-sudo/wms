@@ -505,7 +505,14 @@ async function startCamera(){
   _camStarted=true;
   try{localStorage.setItem('cam_ok','1');}catch(e){}
   document.getElementById('cam-gate').style.display='none';
-  v.style.display='block'; v.srcObject=_stream;
+  v.style.display='block';
+  v.srcObject=_stream;
+  // Wait for video to actually be ready before starting detection
+  await new Promise(res=>{
+    if(v.readyState>=2){res();return;}
+    v.onloadeddata=()=>res();
+    setTimeout(res,3000); // fallback timeout
+  });
   try{await v.play();}catch(e){}
   setSW('idle');
   document.getElementById('cam-status').textContent='Point barcode at frame';
@@ -519,24 +526,22 @@ async function startCamera(){
       let detecting=false, stuckCount=0;
       _scanTimer=setInterval(async()=>{
         if(_locked){detecting=false;stuckCount=0;return;}
-        if(!_stream||!v.srcObject||v.readyState<2){return;}
-        // If detect() got stuck on a previous call, force-clear after 5 ticks (~1s)
+        if(!_stream||!v.srcObject){return;}
+        // Clear stuck detect() calls after ~1.2s
         if(detecting){
-          stuckCount++;
-          if(stuckCount>5){ detecting=false; stuckCount=0; }
+          if(++stuckCount>7){ detecting=false; stuckCount=0; }
           return;
         }
         detecting=true; stuckCount=0;
         try{
-          // Race detect against a 800ms timeout so it can never hang the loop
           let c=await Promise.race([
             det.detect(v),
-            new Promise(r=>setTimeout(()=>r(null),800))
+            new Promise(r=>setTimeout(()=>r(null),1000))
           ]);
           if(c&&c.length)onScan(c[0].rawValue);
         }catch(e){}
         detecting=false;
-      },170);
+      },120); // faster polling = quicker reads
       return;
     }catch(e){}
   }
@@ -755,11 +760,29 @@ function restartCamera(){
 
 // ── SHELF LABEL PDF ───────────────────────────────────────────────
 let _libsLoaded=false;
-function loadLib(src){return new Promise((res,rej)=>{let s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+function loadLib(src){
+  return new Promise((res,rej)=>{
+    // Check if already loaded by inspecting the DOM
+    if(document.querySelector('script[src="'+src+'"]')&&window.jspdf){res();return;}
+    let s=document.createElement('script');
+    s.src=src;
+    s.onload=()=>setTimeout(res,50); // small delay so globals register
+    s.onerror=()=>rej(new Error('Failed to load: '+src));
+    document.head.appendChild(s);
+  });
+}
 async function ensureLibs(){
-  if(_libsLoaded)return;
-  if(!window.JsBarcode)await loadLib('https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js');
-  if(!window.jspdf)await loadLib('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js');
+  if(_libsLoaded&&window.JsBarcode&&window.jspdf)return;
+  _libsLoaded=false;
+  // Load sequentially to avoid race conditions
+  if(!window.JsBarcode){
+    await loadLib('https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js');
+    if(!window.JsBarcode) throw new Error('JsBarcode failed to load');
+  }
+  if(!window.jspdf){
+    await loadLib('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js');
+    if(!window.jspdf) throw new Error('jsPDF failed to load');
+  }
   _libsLoaded=true;
 }
 function genBarcodeFor(p){
@@ -784,8 +807,15 @@ async function openLabels(){
   let sel=document.getElementById('lbl-cat');
   sel.innerHTML='<option value="">All categories</option>'+categories.map(c=>'<option value="'+c.id+'">'+c.name+' ('+products.filter(p=>p.cat===c.id).length+')</option>').join('');
   document.getElementById('labels-modal').style.display='flex';
-  await ensureLibs();
-  renderLabelPreview();
+  let prev=document.getElementById('lbl-preview');
+  prev.innerHTML='<div style="padding:24px;text-align:center;color:#555">Loading barcode library…</div>';
+  try{
+    await ensureLibs();
+    renderLabelPreview();
+  }catch(e){
+    prev.innerHTML='<div style="padding:24px;text-align:center;color:#c00"><b>Could not load barcode library</b><br><span style="font-size:12px">Check internet connection and try again</span></div>';
+    return;
+  }
   sel.onchange=renderLabelPreview;
   document.getElementById('lbl-scope').onchange=renderLabelPreview;
 }
@@ -817,13 +847,21 @@ function renderLabelPreview(){
   });
 }
 async function downloadLabelsPDF(){
-  await ensureLibs();
   let btn=document.getElementById('lbl-dl-btn');
-  btn.textContent='Generating…';btn.disabled=true;
+  btn.textContent='Loading libs…';btn.disabled=true;
+  try{
+    await ensureLibs();
+  }catch(e){
+    toast('Could not load PDF library — check internet connection','err');
+    btn.textContent='⬇  Download PDF';btn.disabled=false;
+    return;
+  }
+  btn.textContent='Generating…';
   let list=labelProducts();
-  if(!list.length){toast('No products to label','err');btn.textContent='⬇  Download PDF';btn.disabled=false;return;}
-  let {jsPDF}=window.jspdf;
-  let doc=new jsPDF({unit:'mm',format:'a4'});
+  if(!list.length){toast('No products to label — change scope or category','err');btn.textContent='⬇  Download PDF';btn.disabled=false;return;}
+  try{
+    let {jsPDF}=window.jspdf;
+    let doc=new jsPDF({unit:'mm',format:'a4'});
   let pageW=210,pageH=297,margin=12,cols=2,gap=6;
   let labelW=(pageW-margin*2-gap*(cols-1))/cols; // ~87mm
   let labelH=46;
@@ -886,10 +924,15 @@ async function downloadLabelsPDF(){
   }
   let fname='CityStar-Shelf-Labels';
   let cf=document.getElementById('lbl-cat').value;
-  if(cf){let cn=categories.find(c=>c.id===cf);if(cn)fname+='-'+cn.name.replace(/\\s+/g,'-');}
+  if(cf){let cn=categories.find(c=>c.id===cf);if(cn)fname+='-'+cn.name.replace(/\s+/g,'-');}
   doc.save(fname+'.pdf');
   btn.textContent='⬇  Download PDF';btn.disabled=false;
   toast('✓ PDF downloaded ('+list.length+' labels)','ok');
+  }catch(genErr){
+    console.error('PDF gen error:',genErr);
+    toast('PDF generation failed: '+genErr.message,'err');
+    btn.textContent='⬇  Download PDF';btn.disabled=false;
+  }
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────

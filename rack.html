@@ -196,6 +196,29 @@ input{user-select:auto}
 .gs-tx b{font-size:14px;font-weight:700;display:block;margin-bottom:3px}
 .gs-tx span{font-size:12px;color:var(--tx2);line-height:1.5}
 .dl-btn{width:100%;padding:16px;border-radius:13px;border:none;background:var(--am);color:#000;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
+/* ── STOCK TRACKER TABLE ── */
+.rack-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px}
+.rack-table th{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;padding:8px 12px;text-align:left;border-bottom:2px solid var(--bdr);white-space:nowrap}
+.rack-table td{padding:11px 12px;border-bottom:1px solid var(--bdr);vertical-align:middle}
+.rack-table tr:last-child td{border-bottom:none}
+.rack-table tr:hover td{background:var(--sur2);cursor:pointer}
+.rt-name{font-size:13px;font-weight:600;color:var(--tx);line-height:1.3}
+.rt-sku{font-size:10px;color:var(--tx3);margin-top:1px}
+.rt-qty{font-size:18px;font-weight:800;text-align:right;white-space:nowrap}
+.rt-bar-wrap{width:100px;min-width:80px}
+.rt-bar-bg{height:8px;background:var(--sur3);border-radius:4px;overflow:hidden;margin-top:4px}
+.rt-bar-fill{height:100%;border-radius:4px;transition:width .3s}
+.rt-pct{font-size:10px;color:var(--tx3);text-align:right}
+.rt-status{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;white-space:nowrap}
+.rs-ok{background:var(--gn2);color:var(--gn)}
+.rs-low{background:var(--am2);color:var(--am)}
+.rs-out{background:var(--rd2);color:var(--rd)}
+.cat-hdr-row td{background:var(--sur2);font-size:11px;font-weight:800;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;padding:7px 12px;border-top:2px solid var(--bdr)}
+.cat-hdr-row:hover td{background:var(--sur2);cursor:default}
+.rack-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.rs-card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:12px;text-align:center}
+.rs-card-n{font-size:22px;font-weight:900;line-height:1}
+.rs-card-l{font-size:10px;color:var(--tx3);margin-top:3px;font-weight:600;text-transform:uppercase}
 </style>
 </head>
 <body>
@@ -482,16 +505,54 @@ function rdTab(t){
 function renderRackProducts(){
   let ps=prodsInRack(curRack);
   let el=document.getElementById('rd-products');
-  if(!ps.length){el.innerHTML='<div class="empty"><div class="empty-ic">📭</div><div class="empty-t">No products in this rack yet</div><div class="empty-s">Use Setup to assign products here</div></div>';return;}
-  // group by category for readability
+  if(!ps.length){
+    el.innerHTML='<div class="empty"><div class="empty-ic">📭</div><div class="empty-t">No products in this rack yet</div><div class="empty-s">Use Setup → assign products to this rack</div></div>';
+    return;
+  }
+  // Summary cards
+  let total=ps.length;
+  let lowCount=ps.filter(p=>p.qty>0&&p.qty<=p.threshold).length;
+  let outCount=ps.filter(p=>p.qty===0).length;
+  let okCount=total-lowCount-outCount;
+  let h='<div class="rack-summary">'
+    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--gn)">'+okCount+'</div><div class="rs-card-l">In stock</div></div>'
+    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--am)">'+lowCount+'</div><div class="rs-card-l">Low stock</div></div>'
+    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--rd)">'+outCount+'</div><div class="rs-card-l">Out</div></div>'
+    +'</div>';
+  // Table
+  h+='<div style="overflow-x:auto"><table class="rack-table">'
+    +'<thead><tr>'
+    +'<th>Product</th>'
+    +'<th style="text-align:right">Stock</th>'
+    +'<th>Level</th>'
+    +'<th>Status</th>'
+    +'</tr></thead><tbody>';
+  // Group by category
   let byCat={};
   ps.forEach(p=>{(byCat[p.cat]=byCat[p.cat]||[]).push(p);});
-  let h='';
   categories.forEach(c=>{
     if(!byCat[c.id])return;
-    h+='<div class="loc-lbl">'+c.name+' · '+byCat[c.id].length+' items</div>';
-    byCat[c.id].forEach(p=>{h+=prodCard(p);});
+    let catPs=byCat[c.id];
+    h+='<tr class="cat-hdr-row"><td colspan="4">'+c.name+' ('+catPs.length+')</td></tr>';
+    catPs.sort((a,b)=>a.qty-b.qty).forEach(p=>{
+      let pct=p.threshold>0?Math.round((p.qty/Math.max(p.qty,p.threshold*2))*100):0;
+      pct=Math.min(pct,100);
+      let barColor=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
+      let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
+      let statusTxt=p.qty===0?'Out of stock':p.qty<=p.threshold?'Reorder soon':'OK';
+      let statusCls=p.qty===0?'rs-out':p.qty<=p.threshold?'rs-low':'rs-ok';
+      h+='<tr onclick="openProd('+p.id+')">'
+        +'<td><div class="rt-name">'+p.name+'</div><div class="rt-sku">'+p.sku+(p.barcode?' · '+p.barcode:'')+'</div></td>'
+        +'<td class="rt-qty" style="color:'+qc+'">'+p.qty+'</td>'
+        +'<td class="rt-bar-wrap">'
+          +'<div class="rt-pct">'+p.qty+'/'+p.threshold+'</div>'
+          +'<div class="rt-bar-bg"><div class="rt-bar-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>'
+        +'</td>'
+        +'<td><span class="rt-status '+statusCls+'">'+statusTxt+'</span></td>'
+        +'</tr>';
+    });
   });
+  h+='</tbody></table></div>';
   el.innerHTML=h;
 }
 function prodCard(p){
@@ -528,18 +589,57 @@ function openProd(pid){
   let p=gP(pid); if(!p)return;
   _stockProd=p;
   let loc=rackOf(p.id);
+  // Find last stock movement for this product
+  let lastTx=txLog.filter(t=>t.pid===p.id&&(t.type==='in'||t.type==='out')).sort((a,b)=>new Date(b.at)-new Date(a.at))[0];
+  let lastMover=lastTx?lastTx.user:'—';
+  let lastMove=lastTx?fmtDate(lastTx.at):'Never';
+  let lastMoveType=lastTx?(lastTx.type==='in'?'⬇ Stocked in':'⬆ Stocked out'):'';
+  // Stock bar
+  let pct=p.threshold>0?Math.round((p.qty/Math.max(p.qty,p.threshold*2))*100):0;
+  pct=Math.min(pct,100);
+  let barColor=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
+  let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
   document.getElementById('m-title').textContent=p.name;
-  document.getElementById('m-sub').textContent=cN(p.cat)+' › '+sN(p.cat,p.sub)+' · '+p.sku;
+  document.getElementById('m-sub').textContent=cN(p.cat)+' › '+sN(p.cat,p.sub);
   document.getElementById('m-body').innerHTML=
-    '<div class="loc-big"><div class="loc-big-l">📍 Location</div><div class="loc-big-v">'+(loc?'Rack '+loc.slice(1):'—')+'</div><div class="loc-big-n">'+(loc?'Stored on Rack '+loc.slice(1):'Not assigned — use Setup to place it')+'</div></div>'
-    +'<div style="display:flex;gap:10px;text-align:center;margin:14px 0">'
-    +'<div style="flex:1;background:var(--sur2);border-radius:12px;padding:14px"><div style="font-size:26px;font-weight:900;color:'+(p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)')+'">'+p.qty+'</div><div style="font-size:11px;color:var(--tx3)">In stock</div></div>'
-    +'<div style="flex:1;background:var(--sur2);border-radius:12px;padding:14px"><div style="font-size:26px;font-weight:900">'+p.threshold+'</div><div style="font-size:11px;color:var(--tx3)">Min level</div></div>'
+    // Photo banner
+    (p.photo?'<div style="height:120px;border-radius:12px;overflow:hidden;margin-bottom:14px"><img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.display=\'none\'"></div>':'')
+    // Location
+    +'<div class="loc-big" style="margin-bottom:12px"><div class="loc-big-l">📍 Location</div><div class="loc-big-v">'+(loc?'Rack '+loc.slice(1):'—')+'</div><div class="loc-big-n">'+(loc?'Stored on Rack '+loc.slice(1):'Not assigned — use Setup')+'</div></div>'
+    // Info grid
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'
+      +'<div style="background:var(--sur2);border-radius:11px;padding:12px">'
+        +'<div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">In stock</div>'
+        +'<div style="font-size:28px;font-weight:900;color:'+qc+'">'+p.qty+'</div>'
+        +'<div style="font-size:10px;color:var(--tx3)">min: '+p.threshold+'</div>'
+      +'</div>'
+      +'<div style="background:var(--sur2);border-radius:11px;padding:12px">'
+        +'<div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">SKU</div>'
+        +'<div style="font-size:13px;font-weight:700;font-family:monospace;color:var(--tx)">'+p.sku+'</div>'
+        +'<div style="font-size:10px;color:var(--tx3);margin-top:4px">'+cN(p.cat)+'</div>'
+      +'</div>'
     +'</div>'
-    +'<div style="background:var(--bl2);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:13px;font-size:12px;color:var(--tx2);line-height:1.5;margin-top:6px">ℹ️ This app shows <b style="color:var(--bl)">where</b> products are stored. To stock in or out, use the <b>Main app</b> — it shows this same rack location while you scan.</div>';
+    // Stock bar
+    +'<div style="margin-bottom:12px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-bottom:4px"><span>Stock level</span><span>'+Math.round(pct)+'%</span></div>'
+      +'<div style="height:10px;background:var(--sur3);border-radius:5px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:5px;transition:width .4s"></div></div>'
+    +'</div>'
+    // Barcode
+    +(p.barcode?'<div style="background:var(--sur2);border-radius:11px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Barcode</div><div style="font-size:15px;font-weight:700;font-family:monospace;color:var(--gn)">'+p.barcode+'</div></div><span style="font-size:22px">✓</span></div>':'<div style="background:var(--rd2);border-radius:11px;padding:10px 12px;margin-bottom:8px;font-size:12px;color:var(--rd)">⚠ No barcode — use Register app to scan one</div>')
+    // Last movement
+    +'<div style="background:var(--sur2);border-radius:11px;padding:12px;margin-bottom:8px">'
+      +'<div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Last movement</div>'
+      +'<div style="font-size:13px;font-weight:600;color:var(--tx)">'+(lastMoveType?lastMoveType+' · ':'')+'<span style="color:var(--tx2)">'+lastMove+'</span></div>'
+      +'<div style="font-size:11px;color:var(--tx3);margin-top:3px">by '+lastMover+'</div>'
+    +'</div>'
+    // Last updated
+    +'<div style="font-size:11px;color:var(--tx3);text-align:center">Last stock update: '+(p.lastUpdated||'—')+'</div>'
+    +'<div style="background:var(--bl2);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--tx2);line-height:1.5;margin-top:10px">💡 Stock in / out → use the <b>Main app</b>. It shows "Rack '+( loc?loc.slice(1):'—')+'" while scanning.</div>';
   document.getElementById('m-foot').innerHTML=
     '<button class="act-btn ab-sec" onclick="closeModal()" style="flex:1">Close</button>'
-    +(loc?'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Change rack</button>':'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Assign rack</button>');
+    +(loc
+      ?'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Change rack</button>'
+      :'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Assign rack</button>');
   document.getElementById('modal').classList.add('show');
 }
 function reassignFromModal(pid){
