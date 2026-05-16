@@ -146,10 +146,14 @@ input{user-select:auto}
     <div class="logo-ic">🏪</div>
     <div>CityStar Register<small>Rapid barcode mode</small></div>
   </div>
-  <button onclick="restartCamera()" title="Restart camera" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;color:var(--tx2);padding:6px 10px;font-size:13px;cursor:pointer;flex-shrink:0">↻</button>
-  <button onclick="openLabels()" style="font-size:11px;font-weight:700;color:var(--am);background:var(--am2);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:6px 10px;cursor:pointer;flex-shrink:0">🏷</button>
+  <button id="sync-btn" onclick="syncToDb()" title="Sync barcodes to database" style="font-size:12px;font-weight:800;background:var(--gn2);color:var(--gn);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:6px 12px;cursor:pointer;flex-shrink:0">✓ Synced</button>
+  <button onclick="restartCamera()" title="Restart camera" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;color:var(--tx2);padding:6px 9px;font-size:13px;cursor:pointer;flex-shrink:0">↻</button>
+  <button onclick="openLabels()" title="Shelf labels PDF" style="font-size:13px;background:var(--am2);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:6px 9px;cursor:pointer;flex-shrink:0">🏷</button>
   <div id="prog-chip" onclick="openCatSheet()">0 / 111</div>
-  <a href="/" class="link-main">←</a>
+</div>
+<div style="display:flex;gap:0;background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0">
+  <div style="flex:1;padding:7px 14px;font-size:11px;color:var(--tx3)" id="sync-hint">Barcodes save instantly on this device. Tap <b style="color:var(--gn)">Sync</b> to push to warehouse database.</div>
+  <a href="/" style="padding:7px 14px;font-size:11px;font-weight:600;color:var(--pu);text-decoration:none;flex-shrink:0;border-left:1px solid var(--bdr)">← Main app</a>
 </div>
 
 <!-- LABELS MODAL -->
@@ -285,11 +289,18 @@ const bcD=v=>String(v||'').replace(/\D/g,'');
 
 function regCount(){ return products.filter(p=>p.barcode&&bcD(p.barcode).length>=4).length; }
 
+let _lastSubKey=null;
 function render(){
   if(idx<0)idx=0;
   if(idx>=SEQ.length){ showDone(); return; }
   let item=SEQ[idx];
   let p=gP(item.pid);
+  // Detect moving to a new vendor/category → nudge to sync pending barcodes
+  let subKey=item.cat+'|'+item.sub;
+  if(_lastSubKey && _lastSubKey!==subKey && pendingCount()>0){
+    toast('📦 '+pendingCount()+' barcodes ready — tap Sync to save to DB','syn');
+  }
+  _lastSubKey=subKey;
   // breadcrumb
   document.getElementById('cb-cat').textContent=item.catName;
   document.getElementById('cb-sub').textContent=item.subName;
@@ -342,16 +353,20 @@ function goPrev(){ if(idx>0){idx--;render();} }
 function regBarcode(raw){
   let item=SEQ[idx]; let p=gP(item.pid);
   let d=bcD(raw);
-  if(d.length<4){ toast('Barcode too short','err'); return; }
+  if(d.length<4){ toast('Barcode too short','err'); _locked=false; setSW('idle'); return; }
   // Check duplicate
   let dup=products.find(x=>x.id!==p.id&&x.barcode&&bcD(x.barcode)===d);
   if(dup){
-    if(!confirm('⚠ This barcode is already on:\n"'+dup.name+'"\n\nReassign to "'+p.name+'"?')) return;
-    dup.barcode=null; sbPushProduct(dup);
+    if(!confirm('⚠ This barcode is already on:\n"'+dup.name+'"\n\nReassign to "'+p.name+'"?')){
+      _locked=false; _buf=[]; setSW('idle');
+      return;
+    }
+    dup.barcode=null;
+    _pendingSync[dup.id]=null; // mark cleared for sync too
+    saveLocalBarcodes();
   }
-  p.barcode=d;
-  p.lastUpdated=new Date().toISOString().slice(0,10);
-  sbPushProduct(p);
+  // Save instantly to local storage — never fails, never blocks
+  saveBarcodeLocal(p,d);
   beep();
   toast('✓ '+d+' → '+p.name.split(' ').slice(0,3).join(' '),'ok');
   // Auto-advance to the NEXT product that still needs a barcode
@@ -374,8 +389,12 @@ function rescan(){
 function clearBc(){
   let p=gP(SEQ[idx].pid);
   if(!confirm('Remove barcode from "'+p.name+'"?')) return;
-  p.barcode=null; sbPushProduct(p); render();
-  toast('Barcode cleared','syn');
+  p.barcode=null;
+  _pendingSync[p.id]=null;
+  saveLocalBarcodes();
+  updateSyncBtn();
+  render();
+  toast('Barcode cleared — Sync to update DB','syn');
 }
 function toggleManual(){
   let mb=document.getElementById('man-bar');
@@ -427,8 +446,25 @@ function jumpTo(catId,subId){
 // ── DONE SCREEN ───────────────────────────────────────────────────
 function showDone(){
   let total=products.length, done=regCount();
-  document.getElementById('done-msg').textContent=done+' of '+total+' products have barcodes. '+(total-done)+' still missing.';
-  document.getElementById('done-screen').classList.add('show');
+  let pend=pendingCount();
+  let msg=done+' of '+total+' products have barcodes. '+(total-done)+' still missing.';
+  if(pend>0) msg+='\n\n⚠ '+pend+' barcodes are saved on this device but NOT yet synced to the database. Tap "Sync now" below.';
+  document.getElementById('done-msg').textContent=msg;
+  document.getElementById('done-msg').style.whiteSpace='pre-line';
+  // Show sync button on done screen if pending
+  let ds=document.getElementById('done-screen');
+  let oldBtn=document.getElementById('done-sync-btn');
+  if(oldBtn)oldBtn.remove();
+  if(pend>0){
+    let b=document.createElement('button');
+    b.id='done-sync-btn';
+    b.textContent='⇧ Sync '+pend+' barcodes now';
+    b.style.cssText='background:var(--am);color:#000;border:none;border-radius:13px;padding:15px 28px;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px';
+    b.onclick=()=>{ syncToDb(); };
+    let ref=document.querySelector('#done-screen button');
+    ds.insertBefore(b, ref);
+  }
+  ds.classList.add('show');
 }
 function closeDone(){
   document.getElementById('done-screen').classList.remove('show');
@@ -574,32 +610,133 @@ function toast(m,t){
 }
 
 // ── SUPABASE ──────────────────────────────────────────────────────
-async function sbInit(){
-  await new Promise((res,rej)=>{ if(window.supabase){res();return;} let s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
-  sbClient=window.supabase.createClient(SB_URL,SB_KEY);
+// ── LOCAL STORAGE (offline-first, primary source of truth) ────────
+const REG_KEY='citystar_barcodes_v1';
+let _pendingSync={}; // {productId: barcode} not yet pushed to DB
+
+function loadLocalBarcodes(){
   try{
-    let {data}=await sbClient.from('products').select('id,name,sku,cat,sub,qty,threshold,vendor,barcode,last_updated,photo');
+    let raw=localStorage.getItem(REG_KEY);
+    if(!raw)return;
+    let saved=JSON.parse(raw); // {pid: barcode}
+    for(let pid in saved){
+      let p=gP(parseInt(pid));
+      if(p && saved[pid]) p.barcode=saved[pid];
+    }
+  }catch(e){}
+  // restore pending sync queue
+  try{ let q=localStorage.getItem(REG_KEY+'_pending'); if(q)_pendingSync=JSON.parse(q)||{}; }catch(e){_pendingSync={};}
+}
+function saveLocalBarcodes(){
+  try{
+    let map={};
+    products.forEach(p=>{ if(p.barcode&&bcD(p.barcode).length>=4) map[p.id]=p.barcode; });
+    localStorage.setItem(REG_KEY,JSON.stringify(map));
+    localStorage.setItem(REG_KEY+'_pending',JSON.stringify(_pendingSync));
+  }catch(e){}
+}
+function pendingCount(){ return Object.keys(_pendingSync).length; }
+function updateSyncBtn(){
+  let n=pendingCount();
+  let b=document.getElementById('sync-btn');
+  if(!b)return;
+  if(n>0){
+    b.textContent='⇧ Sync '+n;
+    b.style.background='var(--am)';
+    b.style.color='#000';
+  }else{
+    b.textContent='✓ Synced';
+    b.style.background='var(--gn2)';
+    b.style.color='var(--gn)';
+  }
+}
+
+let _dataReady=true; // ALWAYS ready — we work offline, scan anytime
+let _dbConnected=false;
+
+async function sbInit(){
+  // Load local barcodes FIRST so the app works instantly offline
+  loadLocalBarcodes();
+  buildSeq();
+  let i=SEQ.findIndex(s=>{let p=gP(s.pid);return !(p.barcode&&bcD(p.barcode).length>=4);});
+  idx=i>=0?i:0;
+  render();
+  updateSyncBtn();
+
+  // Then try DB in the BACKGROUND — never blocks scanning
+  try{
+    await new Promise((res,rej)=>{ if(window.supabase){res();return;} let s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js'; s.onload=res; s.onerror=rej; setTimeout(rej,8000); document.head.appendChild(s); });
+    sbClient=window.supabase.createClient(SB_URL,SB_KEY);
+    let {data,error}=await sbClient.from('products').select('id,name,sku,cat,sub,barcode');
+    if(error) throw error;
     if(data&&data.length>=10){
       let valid=data.filter(r=>r.id&&r.name&&categories.some(c=>c.id===r.cat));
       if(valid.length>=10){
-        products=valid.map(r=>({id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,lastUpdated:r.last_updated,photo:r.photo||undefined}));
+        // Merge: keep our LOCAL barcodes (they're newest), only fill in
+        // barcodes from DB for products we haven't touched locally
+        valid.forEach(r=>{
+          let p=gP(r.id);
+          if(p && !p.barcode && r.barcode && !_pendingSync[r.id]){
+            p.barcode=r.barcode;
+          }
+        });
+        // Refresh name/sku/cat from DB (in case products changed) but keep barcodes
+        valid.forEach(r=>{
+          let p=gP(r.id);
+          if(p){ p.name=r.name; p.sku=r.sku||p.sku; p.cat=r.cat; p.sub=r.sub; }
+        });
         buildSeq();
-        // jump to first missing barcode
-        let i=SEQ.findIndex(s=>{let p=gP(s.pid);return !(p.barcode&&bcD(p.barcode).length>=4);});
-        idx=i>=0?i:0;
+        saveLocalBarcodes();
         render();
-        toast('✓ '+products.length+' products loaded','ok');
+        _dbConnected=true;
+        let withBc=products.filter(p=>p.barcode&&bcD(p.barcode).length>=4).length;
+        toast('✓ Connected · '+withBc+' barcodes total','ok');
       }
     }
-    sbClient.channel('reg-rt').on('postgres_changes',{event:'UPDATE',schema:'public',table:'products'},pl=>{
-      let r=pl.new,p=gP(r.id);
-      if(p){p.barcode=r.barcode||undefined;}
-    }).subscribe();
-  }catch(e){ toast('Offline — local data','syn'); }
+  }catch(e){
+    _dbConnected=false;
+    toast('Offline mode — barcodes saved locally, Sync later','syn');
+  }
 }
-async function sbPushProduct(p){
-  if(!sbClient)return;
-  try{ await sbClient.from('products').upsert({id:p.id,name:p.name,sku:p.sku,cat:p.cat,sub:p.sub,qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',barcode:p.barcode||null,last_updated:p.lastUpdated||null,photo:p.photo||null}); }catch(e){}
+
+// Save barcode LOCALLY only (instant, never fails). Mark for sync.
+function saveBarcodeLocal(p,code){
+  p.barcode=code;
+  p.lastUpdated=new Date().toISOString().slice(0,10);
+  _pendingSync[p.id]=code;
+  saveLocalBarcodes();
+  updateSyncBtn();
+}
+
+// Manual sync — push all pending barcodes to DB
+async function syncToDb(){
+  let pend=Object.keys(_pendingSync);
+  if(!pend.length){ toast('Nothing to sync — all up to date','ok'); return; }
+  if(!sbClient){
+    try{
+      if(!window.supabase) await new Promise((res,rej)=>{let s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+      sbClient=window.supabase.createClient(SB_URL,SB_KEY);
+    }catch(e){ toast('Cannot connect to database','err'); return; }
+  }
+  let b=document.getElementById('sync-btn');
+  b.textContent='Syncing…'; b.disabled=true;
+  let ok=0, fail=0;
+  for(let pid of pend){
+    let p=gP(parseInt(pid));
+    if(!p){ delete _pendingSync[pid]; continue; }
+    try{
+      let {error}=await sbClient.from('products')
+        .update({barcode:p.barcode||null,last_updated:p.lastUpdated||null})
+        .eq('id',p.id);
+      if(error){ fail++; }
+      else { ok++; delete _pendingSync[pid]; }
+    }catch(e){ fail++; }
+  }
+  saveLocalBarcodes();
+  b.disabled=false;
+  updateSyncBtn();
+  if(fail===0) toast('✓ Synced '+ok+' barcodes to database','ok');
+  else toast('Synced '+ok+', '+fail+' failed — tap Sync to retry','err');
 }
 
 // ── RESTART CAMERA ────────────────────────────────────────────────
@@ -689,7 +826,7 @@ async function downloadLabelsPDF(){
   let doc=new jsPDF({unit:'mm',format:'a4'});
   let pageW=210,pageH=297,margin=12,cols=2,gap=6;
   let labelW=(pageW-margin*2-gap*(cols-1))/cols; // ~87mm
-  let labelH=42;
+  let labelH=46;
   let pad=4;
   let x=margin,y=margin,col=0,lastCat=null;
   for(let p of list){
@@ -704,40 +841,45 @@ async function downloadLabelsPDF(){
     }
     if(y+labelH>pageH-margin){doc.addPage();y=margin;col=0;x=margin;}
     let bc=genBarcodeFor(p);
-    // Generate barcode at a controlled aspect ratio
+    // Generate ONLY the bars (no text) — we draw the number ourselves below
     let canvas=document.createElement('canvas');
     try{
-      JsBarcode(canvas,bc,{format:'CODE128',width:2,height:60,displayValue:true,fontSize:18,margin:8,textMargin:2});
+      JsBarcode(canvas,bc,{format:'CODE128',width:2,height:80,displayValue:false,margin:0});
     }catch(e){continue;}
     let img=canvas.toDataURL('image/png');
-    let imgRatio=canvas.height/canvas.width; // height/width
+    let barRatio=canvas.height/canvas.width; // height/width of bars only
 
     // Card border
-    doc.setDrawColor(150,150,150);doc.setLineWidth(0.4);
+    doc.setDrawColor(140,140,140);doc.setLineWidth(0.4);
     doc.roundedRect(x,y,labelW,labelH,2,2,'S');
+
+    let cx=x+labelW/2;
 
     // Product name (top, max 2 lines, centered)
     doc.setTextColor(0,0,0);doc.setFontSize(8.5);doc.setFont(undefined,'bold');
     let nl=doc.splitTextToSize(p.name,labelW-pad*2);
-    let nameLines=nl.slice(0,2);
-    let nameY=y+5;
-    doc.text(nameLines,x+labelW/2,nameY,{align:'center',lineHeightFactor:1.15});
+    doc.text(nl.slice(0,2),cx,y+5,{align:'center',lineHeightFactor:1.15});
 
-    // Barcode — fit WIDTH to label, keep aspect ratio, never overflow
-    let bcMaxW=labelW-pad*2;
-    let bcMaxH=20;
-    let bcW=bcMaxW;
-    let bcH=bcW*imgRatio;
-    if(bcH>bcMaxH){ bcH=bcMaxH; bcW=bcH/imgRatio; }
-    let bcX=x+(labelW-bcW)/2;
-    let bcY=y+labelH-bcH-6; // leave room for meta line below
-    doc.addImage(img,'PNG',bcX,bcY,bcW,bcH);
+    // Barcode bars — fixed box, centered, never overflow
+    let barBoxW=labelW-pad*2-6;   // leave 3mm side margins inside card
+    let barBoxH=16;               // fixed bar height
+    let barW=barBoxW;
+    let barH=barW*barRatio;
+    if(barH>barBoxH){ barH=barBoxH; barW=barH/barRatio; }
+    if(barW>barBoxW){ barW=barBoxW; barH=barW*barRatio; }
+    let barX=cx-barW/2;
+    let barY=y+14;
+    doc.addImage(img,'PNG',barX,barY,barW,barH);
 
-    // Meta line (bottom)
-    doc.setFontSize(6.5);doc.setFont(undefined,'normal');doc.setTextColor(100,100,100);
+    // Barcode NUMBER — drawn by jsPDF, guaranteed inside the card
+    doc.setFontSize(10);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
+    doc.text(bc,cx,barY+barH+5,{align:'center'});
+
+    // Meta line (vendor · SKU) at very bottom
+    doc.setFontSize(6.5);doc.setFont(undefined,'normal');doc.setTextColor(110,110,110);
     let cat=categories.find(c=>c.id===p.cat);
     let sub=cat?cat.subs.find(s=>s.id===p.sub):null;
-    doc.text((sub?sub.name:'')+'  ·  '+p.sku,x+labelW/2,y+labelH-2.5,{align:'center'});
+    doc.text((sub?sub.name:'')+'  ·  '+p.sku,cx,y+labelH-2.5,{align:'center'});
 
     col++;
     if(col>=cols){col=0;x=margin;y+=labelH+gap;}else{x+=labelW+gap;}
@@ -751,7 +893,8 @@ async function downloadLabelsPDF(){
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────
-render();
+// sbInit() loads local barcodes, builds sequence, and renders.
+// No blocking — barcodes work offline immediately.
 sbInit();
 (async function(){
   let gate=document.getElementById('cam-gate');
