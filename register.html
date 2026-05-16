@@ -354,8 +354,17 @@ function regBarcode(raw){
   sbPushProduct(p);
   beep();
   toast('✓ '+d+' → '+p.name.split(' ').slice(0,3).join(' '),'ok');
-  // Auto-advance after short delay
-  setTimeout(()=>{ idx++; render(); }, 550);
+  // Auto-advance to the NEXT product that still needs a barcode
+  setTimeout(()=>{
+    let next=idx+1;
+    while(next<SEQ.length){
+      let np=gP(SEQ[next].pid);
+      if(!(np.barcode&&bcD(np.barcode).length>=4))break;
+      next++;
+    }
+    idx=next;
+    render();
+  }, 600);
 }
 function rescan(){
   let p=gP(SEQ[idx].pid);
@@ -458,6 +467,7 @@ async function startCamera(){
     }
   }
   _camStarted=true;
+  try{localStorage.setItem('cam_ok','1');}catch(e){}
   document.getElementById('cam-gate').style.display='none';
   v.style.display='block'; v.srcObject=_stream;
   try{await v.play();}catch(e){}
@@ -469,20 +479,28 @@ async function startCamera(){
       let f=['ean_13','ean_8','code_128','code_39','upc_a','upc_e'].filter(x=>sup.includes(x));
       if(!f.length)f=['ean_13','ean_8','code_128','code_39'];
       let det=new BarcodeDetector({formats:f});
-      // Use setInterval (self-recovering) instead of rAF chain that dies on error
       if(_scanTimer)clearInterval(_scanTimer);
-      let detecting=false;
+      let detecting=false, stuckCount=0;
       _scanTimer=setInterval(async()=>{
-        if(_locked||detecting)return;
-        if(!_stream||!v.srcObject){return;}
-        if(v.readyState<2){return;}
-        detecting=true;
+        if(_locked){detecting=false;stuckCount=0;return;}
+        if(!_stream||!v.srcObject||v.readyState<2){return;}
+        // If detect() got stuck on a previous call, force-clear after 5 ticks (~1s)
+        if(detecting){
+          stuckCount++;
+          if(stuckCount>5){ detecting=false; stuckCount=0; }
+          return;
+        }
+        detecting=true; stuckCount=0;
         try{
-          let c=await det.detect(v);
+          // Race detect against a 800ms timeout so it can never hang the loop
+          let c=await Promise.race([
+            det.detect(v),
+            new Promise(r=>setTimeout(()=>r(null),800))
+          ]);
           if(c&&c.length)onScan(c[0].rawValue);
         }catch(e){}
         detecting=false;
-      },180);
+      },170);
       return;
     }catch(e){}
   }
@@ -649,16 +667,16 @@ function renderLabelPreview(){
     let bc=genBarcodeFor(p);
     let cat=categories.find(c=>c.id===p.cat);
     let sub=cat?cat.subs.find(s=>s.id===p.sub):null;
-    html+='<div style="display:inline-block;width:48%;margin:1%;border:1px solid #ccc;border-radius:6px;padding:8px;text-align:center;vertical-align:top;box-sizing:border-box">'
-      +'<div style="font-size:9px;font-weight:700;color:#000;line-height:1.2;margin-bottom:4px;min-height:22px">'+p.name+'</div>'
-      +'<svg class="lbl-bc" data-code="'+bc+'"></svg>'
-      +'<div style="font-size:8px;color:#666;margin-top:2px">'+(sub?sub.name:'')+' · '+p.sku+'</div>'
+    html+='<div style="display:inline-block;width:47%;margin:1.5%;border:1px solid #999;border-radius:8px;padding:10px;text-align:center;vertical-align:top;box-sizing:border-box;background:#fff">'
+      +'<div style="font-size:10px;font-weight:700;color:#000;line-height:1.2;margin-bottom:6px;min-height:24px;overflow:hidden">'+p.name+'</div>'
+      +'<div style="width:100%;overflow:hidden"><svg class="lbl-bc" data-code="'+bc+'" style="max-width:100%;height:auto;display:block;margin:0 auto"></svg></div>'
+      +'<div style="font-size:8px;color:#666;margin-top:4px">'+(sub?sub.name:'')+' · '+p.sku+'</div>'
       +'</div>';
   });
   if(list.length>60)html+='<div style="color:#999;font-size:11px;padding:10px;text-align:center">Preview limited to 60 — PDF includes all '+list.length+'</div>';
   prev.innerHTML=html;
   prev.querySelectorAll('.lbl-bc').forEach(svg=>{
-    try{JsBarcode(svg,svg.dataset.code,{format:'CODE128',width:1.4,height:38,fontSize:11,margin:2});}catch(e){}
+    try{JsBarcode(svg,svg.dataset.code,{format:'CODE128',width:1.6,height:42,displayValue:true,fontSize:13,margin:4});}catch(e){}
   });
 }
 async function downloadLabelsPDF(){
@@ -669,34 +687,58 @@ async function downloadLabelsPDF(){
   if(!list.length){toast('No products to label','err');btn.textContent='⬇  Download PDF';btn.disabled=false;return;}
   let {jsPDF}=window.jspdf;
   let doc=new jsPDF({unit:'mm',format:'a4'});
-  let pageW=210,pageH=297,margin=10,cols=3,gap=4;
-  let labelW=(pageW-margin*2-gap*(cols-1))/cols,labelH=32;
+  let pageW=210,pageH=297,margin=12,cols=2,gap=6;
+  let labelW=(pageW-margin*2-gap*(cols-1))/cols; // ~87mm
+  let labelH=42;
+  let pad=4;
   let x=margin,y=margin,col=0,lastCat=null;
   for(let p of list){
     if(p.cat!==lastCat){
       if(col!==0){col=0;x=margin;y+=labelH+gap;}
-      if(y+10>pageH-margin){doc.addPage();y=margin;}
-      doc.setFillColor(40,40,40);doc.rect(margin,y,pageW-margin*2,7,'F');
-      doc.setTextColor(255,255,255);doc.setFontSize(10);doc.setFont(undefined,'bold');
+      if(y+12>pageH-margin){doc.addPage();y=margin;}
+      doc.setFillColor(35,35,40);doc.roundedRect(margin,y,pageW-margin*2,8,1,1,'F');
+      doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont(undefined,'bold');
       let cn=categories.find(c=>c.id===p.cat);cn=cn?cn.name:p.cat;
-      doc.text(cn.toUpperCase(),margin+2,y+5);
-      y+=7+gap;lastCat=p.cat;
+      doc.text(cn.toUpperCase(),margin+3,y+5.5);
+      y+=8+gap;lastCat=p.cat;
     }
     if(y+labelH>pageH-margin){doc.addPage();y=margin;col=0;x=margin;}
     let bc=genBarcodeFor(p);
+    // Generate barcode at a controlled aspect ratio
     let canvas=document.createElement('canvas');
-    try{JsBarcode(canvas,bc,{format:'CODE128',width:2,height:50,fontSize:14,margin:4});}catch(e){continue;}
+    try{
+      JsBarcode(canvas,bc,{format:'CODE128',width:2,height:60,displayValue:true,fontSize:18,margin:8,textMargin:2});
+    }catch(e){continue;}
     let img=canvas.toDataURL('image/png');
-    doc.setDrawColor(180,180,180);doc.setLineWidth(0.3);
-    doc.roundedRect(x,y,labelW,labelH,1.5,1.5,'S');
-    doc.setTextColor(0,0,0);doc.setFontSize(7);doc.setFont(undefined,'bold');
-    let nl=doc.splitTextToSize(p.name,labelW-4);
-    doc.text(nl.slice(0,2),x+labelW/2,y+4,{align:'center'});
-    doc.addImage(img,'PNG',x+3,y+9,labelW-6,14);
-    doc.setFontSize(5.5);doc.setFont(undefined,'normal');doc.setTextColor(90,90,90);
+    let imgRatio=canvas.height/canvas.width; // height/width
+
+    // Card border
+    doc.setDrawColor(150,150,150);doc.setLineWidth(0.4);
+    doc.roundedRect(x,y,labelW,labelH,2,2,'S');
+
+    // Product name (top, max 2 lines, centered)
+    doc.setTextColor(0,0,0);doc.setFontSize(8.5);doc.setFont(undefined,'bold');
+    let nl=doc.splitTextToSize(p.name,labelW-pad*2);
+    let nameLines=nl.slice(0,2);
+    let nameY=y+5;
+    doc.text(nameLines,x+labelW/2,nameY,{align:'center',lineHeightFactor:1.15});
+
+    // Barcode — fit WIDTH to label, keep aspect ratio, never overflow
+    let bcMaxW=labelW-pad*2;
+    let bcMaxH=20;
+    let bcW=bcMaxW;
+    let bcH=bcW*imgRatio;
+    if(bcH>bcMaxH){ bcH=bcMaxH; bcW=bcH/imgRatio; }
+    let bcX=x+(labelW-bcW)/2;
+    let bcY=y+labelH-bcH-6; // leave room for meta line below
+    doc.addImage(img,'PNG',bcX,bcY,bcW,bcH);
+
+    // Meta line (bottom)
+    doc.setFontSize(6.5);doc.setFont(undefined,'normal');doc.setTextColor(100,100,100);
     let cat=categories.find(c=>c.id===p.cat);
     let sub=cat?cat.subs.find(s=>s.id===p.sub):null;
-    doc.text((sub?sub.name:'')+' · '+p.sku,x+labelW/2,y+labelH-2,{align:'center'});
+    doc.text((sub?sub.name:'')+'  ·  '+p.sku,x+labelW/2,y+labelH-2.5,{align:'center'});
+
     col++;
     if(col>=cols){col=0;x=margin;y+=labelH+gap;}else{x+=labelW+gap;}
   }
@@ -712,13 +754,26 @@ async function downloadLabelsPDF(){
 render();
 sbInit();
 (async function(){
+  let gate=document.getElementById('cam-gate');
+  // 1. If Permissions API says granted → start immediately
   try{
     if(navigator.permissions&&navigator.permissions.query){
       let st=await navigator.permissions.query({name:'camera'});
       if(st.state==='granted'){ startCamera(); return; }
+      if(st.state==='denied'){
+        camErr('Camera blocked','Enable camera for this site in browser settings, then tap Retry.');
+        return;
+      }
     }
   }catch(e){}
-  document.getElementById('cam-gate').style.display='flex';
+  // 2. iOS Safari has no Permissions API. If user allowed before (saved flag),
+  //    try to start silently — the browser remembers the grant for the site.
+  if(localStorage.getItem('cam_ok')==='1'){
+    startCamera();
+    return;
+  }
+  // 3. First ever visit → show the tap-to-enable gate
+  gate.style.display='flex';
 })();
 </script>
 </body>
