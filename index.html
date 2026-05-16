@@ -338,6 +338,9 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   <button class="ni" data-page="products" onclick="nav('products')"><svg width="16" height="16"><use href="#ic-pkg"/></svg> Products</button>
   <button class="ni" id="ni-cats" data-page="cats" onclick="nav('cats')"><svg width="16" height="16"><use href="#ic-folder"/></svg> Categories</button>
   <div class="sep"></div>
+  <button class="ni" onclick="location.href='rack.html'"><svg width="16" height="16"><use href="#ic-pkg"/></svg> Racks</button>
+  <button class="ni" onclick="location.href='register.html'"><svg width="16" height="16"><use href="#ic-in"/></svg> Register barcodes</button>
+  <div class="sep"></div>
   <button class="ni" id="ni-orders" data-page="orders" onclick="nav('orders')"><svg width="16" height="16"><use href="#ic-send"/></svg> Order request</button>
   <button class="ni" id="ni-containers" data-page="containers" onclick="nav('containers')"><svg width="16" height="16"><use href="#ic-pkg"/></svg> Containers</button>
   <div class="sep"></div>
@@ -795,6 +798,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
     <div id="si-m-photo"></div>
     <div class="modal-body">
       <div class="fx gap8 mb12"><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:700;line-height:1.3" id="si-m-name"></div><div style="font-size:12px;color:var(--tx2);margin-top:2px" id="si-m-meta"></div><div style="font-size:11px;color:var(--am3);margin-top:2px" id="si-m-bc"></div></div><button class="btn btn-sm" onclick="closeModal('m-si')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
+      <div id="si-m-loc" style="display:none;background:#eaf2ff;border:1px solid #b9d4ff;border-radius:var(--r);padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:10px"><div style="font-size:22px">📍</div><div><div style="font-size:11px;color:#3163c4;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Put it on</div><div style="font-size:17px;font-weight:800;color:#1a3f8a" id="si-m-loc-v">Rack —</div></div></div>
       <div class="g3 mb14">
         <div style="background:var(--sur2);border-radius:var(--r);padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;line-height:1" id="si-m-qty">0</div><div style="font-size:10px;color:var(--tx3);margin-top:2px">in stock</div></div>
         <div style="background:var(--sur2);border-radius:var(--r);padding:8px;text-align:center"><div id="si-m-stat" style="font-size:12px;font-weight:500"></div><div style="font-size:10px;color:var(--tx3);margin-top:2px">status</div></div>
@@ -880,6 +884,7 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
         </div>
         <button class="btn btn-sm" onclick="closeModal('m-so')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
       </div>
+      <div id="so-m-loc" style="display:none;background:#fff1e8;border:1px solid #ffd3b3;border-radius:var(--r);padding:10px 12px;margin-bottom:12px;align-items:center;gap:10px"><div style="font-size:22px">📍</div><div><div style="font-size:11px;color:#b85c00;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Pick from</div><div style="font-size:17px;font-weight:800;color:#8a3f00" id="so-m-loc-v">Rack —</div></div></div>
       <div class="g2 mb14" style="gap:8px">
         <div style="background:var(--sur2);border-radius:var(--r);padding:8px;text-align:center">
           <div style="font-size:18px;font-weight:800;line-height:1" id="so-m-qty">0</div>
@@ -1274,6 +1279,7 @@ function fuzzy(q, pool, lim) {
 // ── App State ─────────────────────────────────────────────────────
 let currentRole = '', currentUser = '', currentUserId = '';
 let siProdId = null, soProdId = null, currentOType = null;
+window.rackMap = window.rackMap || {};
 let waConfig = {server: 'http://localhost:3456', phone: ''};
 let noRowsList = [];
 
@@ -2069,6 +2075,10 @@ function openSI(pid){
   document.getElementById('si-m-name').textContent=p.name;
   document.getElementById('si-m-meta').textContent=cN(p.cat)+' › '+sN(p.cat,p.sub)+' · '+p.sku;
   document.getElementById('si-m-bc').textContent=p.barcode?'Barcode: '+p.barcode:'⚠ No barcode registered';
+  let siLoc=window.rackMap&&window.rackMap[p.id];
+  let siLocEl=document.getElementById('si-m-loc');
+  if(siLoc){siLocEl.style.display='flex';document.getElementById('si-m-loc-v').textContent='Rack '+String(siLoc).replace(/^R/,'');}
+  else{siLocEl.style.display='none';}
   document.getElementById('si-m-qty').textContent=p.qty+' boxes';
   document.getElementById('si-m-stat').innerHTML=statHtml;
   let updEl=document.getElementById('si-m-upd');if(updEl){updEl.textContent=fmtDate(p.lastUpdated);updEl.className='lu '+dateAge(p.lastUpdated);}
@@ -2108,6 +2118,10 @@ function selectSO(id){
   else{photoEl.innerHTML='<div style="height:90px;background:linear-gradient(135deg,'+cl[0]+','+cl[0]+'99);border-radius:var(--rx) var(--rx) 0 0;display:flex;align-items:center;justify-content:center"><div style="width:56px;height:56px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.1)"><svg width="26" height="26" style="color:'+cl[1]+';opacity:.7"><use href="#ic-pkg"/></svg></div></div>';}
   document.getElementById('so-m-name').textContent=p.name;
   document.getElementById('so-m-meta').textContent=cN(p.cat)+' › '+sN(p.cat,p.sub);
+  let soLoc=window.rackMap&&window.rackMap[p.id];
+  let soLocEl=document.getElementById('so-m-loc');
+  if(soLoc){soLocEl.style.display='flex';document.getElementById('so-m-loc-v').textContent='Rack '+String(soLoc).replace(/^R/,'');}
+  else{soLocEl.style.display='none';}
   document.getElementById('so-m-qty').textContent=p.qty+' boxes';
   document.getElementById('so-m-stat').innerHTML=p.qty===0?'<span class="badge br">Out</span>':p.qty<=p.threshold?'<span class="badge ba">Low</span>':'<span class="badge bg">OK</span>';
   document.getElementById('so-qty2').value='';
@@ -3206,6 +3220,11 @@ async function sbPull() {
     if(!ae&&acts&&acts.length){activity=acts.map(r=>({type:r.type,prod:r.prod,qty:r.qty,time:r.time,user:r.user,dest:r.dest,destName:r.dest_name}));renderActFeed();renderDestTracker();}
     let {data:orders,error:oe}=await sbClient.from('order_history').select('*').order('created_at',{ascending:false}).limit(50);
     if(!oe&&orders&&orders.length){orderHistory=orders.map(r=>({id:r.id,desc:r.description,type:r.type,items:r.items,time:r.time,waOk:r.wa_ok,status:r.status}));}
+    // Rack locations (from rack.html's rack_assignments table)
+    try{
+      let {data:ra,error:rae}=await sbClient.from('rack_assignments').select('product_id,rack');
+      if(!rae&&ra){window.rackMap={};ra.forEach(row=>{window.rackMap[row.product_id]=row.rack;});}
+    }catch(e){/* table may not exist yet — locations just won't show */}
     let {data:cats,error:ce}=await sbClient.from('categories').select('*');
     if(!ce&&cats&&cats.length>=5){categories=cats.map(r=>({id:r.id,name:r.name,subs:r.subs||[]}));}
     let {data:setts,error:se}=await sbClient.from('settings').select('*');

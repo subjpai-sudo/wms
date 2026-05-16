@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<title>CityStar — Rack System</title>
+<style>
+:root{
+  --pu:#5B47FB;--pu2:rgba(91,71,251,.16);--pu3:#3B2FD9;
+  --bg:#080A10;--sur:#0F1219;--sur2:#171B28;--sur3:#1E2335;
+  --bdr:#252A3E;--bdr2:#323854;
+  --tx:#EEF2FF;--tx2:#8892B8;--tx3:#4A5278;
+  --gn:#22C55E;--gn2:rgba(34,197,94,.14);--gn3:#16A34A;
+  --am:#F59E0B;--am2:rgba(245,158,11,.14);
+  --rd:#EF4444;--rd2:rgba(239,68,68,.14);
+  --bl:#3B82F6;--bl2:rgba(59,130,246,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+button,input,select{font-family:inherit;-webkit-appearance:none;appearance:none}
+input{user-select:auto}
+
+/* TOPBAR */
+#topbar{height:50px;display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0;z-index:50}
+.logo{font-size:14px;font-weight:800;flex:1;display:flex;align-items:center;gap:7px}
+.logo-ic{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--pu),var(--pu3));display:flex;align-items:center;justify-content:center;font-size:13px}
+.logo small{display:block;font-size:9px;font-weight:500;color:var(--tx3);margin-top:1px}
+#sync-btn{font-size:12px;font-weight:800;background:var(--gn2);color:var(--gn);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:6px 12px;cursor:pointer;flex-shrink:0}
+.link-main{font-size:11px;font-weight:600;color:var(--pu);background:var(--pu2);border:1px solid rgba(91,71,251,.25);border-radius:8px;padding:6px 11px;text-decoration:none;flex-shrink:0}
+
+/* PAGES */
+.page{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;flex-direction:column}
+.page.show{display:flex}
+.page-pad{padding:16px}
+
+/* BOTTOM NAV */
+#botnav{display:flex;background:var(--sur);border-top:1px solid var(--bdr);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;padding:9px 4px 10px;border:none;background:transparent;color:var(--tx3);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;transition:color .15s}
+.nav-btn .ni{font-size:20px;line-height:1}
+.nav-btn.on{color:var(--pu)}
+
+/* SECTION HEAD */
+.sec-h{font-size:18px;font-weight:800;margin-bottom:4px}
+.sec-sub{font-size:12px;color:var(--tx3);margin-bottom:16px}
+
+/* RACK GRID */
+.rack-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.rack-card{background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:16px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.rack-card:active{transform:scale(.97);border-color:var(--pu)}
+.rack-card-ic{width:42px;height:42px;border-radius:11px;background:var(--pu2);display:flex;align-items:center;justify-content:center;font-size:21px;margin-bottom:10px}
+.rack-card-name{font-size:16px;font-weight:800;margin-bottom:3px}
+.rack-card-meta{font-size:11px;color:var(--tx3)}
+.rack-card-count{position:absolute;top:14px;right:14px;font-size:11px;font-weight:800;color:var(--gn);background:var(--gn2);padding:3px 9px;border-radius:20px}
+.rack-card-count.empty{color:var(--tx3);background:var(--sur2)}
+
+/* SCAN STRIP */
+.scan-cta{display:flex;align-items:center;gap:12px;background:var(--pu2);border:1px solid rgba(91,71,251,.3);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:16px}
+.scan-cta-ic{width:40px;height:40px;border-radius:11px;background:var(--pu);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.scan-cta-tx{flex:1}
+.scan-cta-tx b{font-size:14px;font-weight:700;display:block}
+.scan-cta-tx span{font-size:11px;color:var(--tx2)}
+
+/* PRODUCT CARD */
+.prod-card{display:flex;align-items:center;gap:12px;background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all .12s}
+.prod-card:active{transform:scale(.98);border-color:var(--pu)}
+.prod-thumb{width:50px;height:50px;border-radius:11px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden}
+.prod-thumb img{width:100%;height:100%;object-fit:cover}
+.prod-info{flex:1;min-width:0}
+.prod-name{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prod-meta{font-size:11px;color:var(--tx3);margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.loc-tag{font-size:10px;font-weight:800;background:var(--bl2);color:var(--bl);padding:2px 8px;border-radius:6px;letter-spacing:.03em}
+.loc-tag.none{background:var(--am2);color:var(--am)}
+.prod-qty{text-align:right;flex-shrink:0}
+.prod-qty-n{font-size:20px;font-weight:900}
+.prod-qty-l{font-size:9px;color:var(--tx3)}
+
+/* TX LOG */
+.tx-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--bdr)}
+.tx-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;font-weight:800}
+.tx-ic.in{background:var(--gn2);color:var(--gn)}
+.tx-ic.out{background:var(--rd2);color:var(--rd)}
+.tx-ic.set{background:var(--bl2);color:var(--bl)}
+.tx-info{flex:1;min-width:0}
+.tx-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-meta{font-size:10px;color:var(--tx3);margin-top:2px}
+.tx-q{font-size:16px;font-weight:900;flex-shrink:0}
+.tx-q.in{color:var(--gn)}.tx-q.out{color:var(--rd)}.tx-q.set{color:var(--bl)}
+
+/* CAMERA SHEET */
+#cam-sheet{position:fixed;inset:0;background:#000;z-index:300;display:none;flex-direction:column}
+#cam-sheet.show{display:flex}
+.cam-top{height:50px;display:flex;align-items:center;padding:0 14px;background:rgba(15,18,25,.95);flex-shrink:0;z-index:10}
+.cam-top-t{flex:1;font-size:14px;font-weight:700;color:#fff}
+.cam-x{background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;color:var(--tx2);padding:7px 13px;font-size:14px;cursor:pointer}
+#cam-wrap{flex:1;position:relative;overflow:hidden;background:#000}
+#cam-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.scan-win{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.sw-box{position:relative;width:84%;max-width:460px;height:34%}
+.sw-box::before,.sw-box::after,.sw-tr,.sw-bl{position:absolute;width:40px;height:40px;border-style:solid;border-color:var(--pu);transition:border-color .25s}
+.sw-box::before{top:0;left:0;border-width:4px 0 0 4px;border-radius:9px 0 0 0}
+.sw-box::after{bottom:0;right:0;border-width:0 4px 4px 0;border-radius:0 0 9px 0}
+.sw-tr{top:0;right:0;border-width:4px 4px 0 0;border-radius:0 9px 0 0}
+.sw-bl{bottom:0;left:0;border-width:0 0 4px 4px;border-radius:0 0 0 9px}
+.sw-box.done::before,.sw-box.done::after,.sw-box.done .sw-tr,.sw-box.done .sw-bl{border-color:var(--gn)}
+@keyframes scn{0%{top:3px}50%{top:calc(100% - 5px)}100%{top:3px}}
+.sw-line{position:absolute;left:5px;right:5px;height:3px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--pu) 30%,#fff 50%,var(--pu) 70%,transparent);box-shadow:0 0 14px var(--pu);animation:scn 1.8s ease-in-out infinite}
+.cam-hud{position:absolute;bottom:0;left:0;right:0;padding:14px;background:linear-gradient(transparent,rgba(0,0,0,.9));text-align:center;font-size:13px;font-weight:600;color:#fff}
+.consensus{display:flex;gap:5px;justify-content:center;margin-bottom:8px}
+.cdot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.2)}
+.cdot.active{background:var(--pu)}.cdot.done{background:var(--gn)}
+#cam-gate2{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:24px;text-align:center;z-index:20}
+#cam-gate2 button{margin-top:6px;background:var(--pu);color:#fff;border:none;border-radius:13px;padding:15px 32px;font-size:15px;font-weight:700;cursor:pointer}
+.cam-manual{display:flex;gap:8px;padding:10px 14px;background:rgba(15,18,25,.95);flex-shrink:0}
+.cam-manual input{flex:1;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:10px;padding:11px 14px;font-size:15px;color:var(--tx);font-family:monospace}
+.cam-manual button{padding:11px 18px;border-radius:10px;border:none;background:var(--pu);color:#fff;font-weight:700;cursor:pointer}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(8,10,16,.92);z-index:400;display:none;align-items:flex-end;backdrop-filter:blur(4px)}
+.modal.show{display:flex}
+.sheet{background:var(--sur);border-radius:22px 22px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:up .25s ease}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-grab{width:38px;height:4px;background:var(--bdr2);border-radius:3px;margin:10px auto 4px}
+.sheet-h{padding:8px 20px 14px;border-bottom:1px solid var(--bdr)}
+.sheet-h-t{font-size:18px;font-weight:800}
+.sheet-h-s{font-size:12px;color:var(--tx3);margin-top:3px}
+.sheet-body{padding:16px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet-foot{padding:14px 20px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--bdr);display:flex;gap:10px}
+
+/* ACTION BTNS */
+.act-btn{flex:1;padding:17px;border-radius:14px;border:none;font-size:16px;font-weight:800;cursor:pointer;transition:transform .1s;display:flex;align-items:center;justify-content:center;gap:8px}
+.act-btn:active{transform:scale(.97)}
+.ab-in{background:var(--gn);color:#000}
+.ab-out{background:var(--rd);color:#fff}
+.ab-loc{background:var(--bl);color:#fff}
+.ab-sec{background:var(--sur2);color:var(--tx2);border:1.5px solid var(--bdr2);flex:0 0 80px}
+
+/* QTY STEPPER */
+.qty-wrap{display:flex;align-items:center;gap:12px;margin:16px 0}
+.qbtn{width:58px;height:58px;border-radius:13px;border:1.5px solid var(--bdr2);background:var(--sur2);color:var(--tx);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.qbtn:active{background:var(--sur3)}
+.qnum{flex:1;text-align:center;font-size:34px;font-weight:900;background:transparent;border:2.5px solid var(--pu);border-radius:13px;padding:10px;color:var(--tx)}
+.qnum:focus{outline:none}
+
+/* LOCATION PICKER */
+.loc-big{text-align:center;padding:24px 16px;background:var(--bl2);border:1.5px solid rgba(59,130,246,.3);border-radius:16px;margin:14px 0}
+.loc-big-l{font-size:12px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.loc-big-v{font-size:42px;font-weight:900;color:#fff;letter-spacing:.02em}
+.loc-big-n{font-size:13px;color:var(--tx2);margin-top:6px}
+.loc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.loc-opt{padding:13px 6px;border-radius:11px;border:1.5px solid var(--bdr2);background:var(--sur2);color:var(--tx);font-size:14px;font-weight:700;cursor:pointer;text-align:center}
+.loc-opt.on{border-color:var(--pu);background:var(--pu2);color:var(--pu)}
+.loc-lbl{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px}
+
+/* FIELD */
+.fld{width:100%;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:11px;padding:12px 14px;font-size:15px;color:var(--tx);margin-bottom:10px}
+.fld:focus{outline:none;border-color:var(--pu)}
+
+/* EMPTY */
+.empty{padding:40px 20px;text-align:center;color:var(--tx3)}
+.empty-ic{font-size:40px;margin-bottom:10px}
+.empty-t{font-size:15px;font-weight:600;margin-bottom:4px;color:var(--tx2)}
+.empty-s{font-size:12px}
+
+/* SEARCH */
+.search-bar{position:relative;margin-bottom:14px}
+.search-bar input{width:100%;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:12px;padding:12px 14px 12px 40px;font-size:15px;color:var(--tx)}
+.search-bar input:focus{outline:none;border-color:var(--pu)}
+.search-bar::before{content:'🔍';position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.5}
+
+/* TOAST + FLASH */
+#flash{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:999;transition:opacity .08s}
+#flash.in{background:rgba(34,197,94,.18)}
+#flash.out{background:rgba(239,68,68,.18)}
+#flash.set{background:rgba(59,130,246,.18)}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);padding:11px 20px;border-radius:20px;font-size:13px;font-weight:700;white-space:nowrap;z-index:999;opacity:0;transition:all .22s;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.t-ok{background:#0d2210;color:var(--gn);border:1px solid rgba(34,197,94,.3)}
+.t-err{background:var(--rd2);color:var(--rd);border:1px solid rgba(239,68,68,.3)}
+.t-syn{background:var(--pu2);color:var(--pu);border:1px solid rgba(91,71,251,.3)}
+
+/* CHIPS */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:8px 14px;border-radius:20px;border:1.5px solid var(--bdr2);background:var(--sur2);color:var(--tx2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.chip.on{border-color:var(--pu);background:var(--pu2);color:var(--pu)}
+
+/* QR GUIDE */
+.guide-step{display:flex;gap:14px;margin-bottom:18px}
+.gs-num{width:30px;height:30px;border-radius:50%;background:var(--pu);color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.gs-tx b{font-size:14px;font-weight:700;display:block;margin-bottom:3px}
+.gs-tx span{font-size:12px;color:var(--tx2);line-height:1.5}
+.dl-btn{width:100%;padding:16px;border-radius:13px;border:none;background:var(--am);color:#000;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
+</style>
+</head>
+<body>
+<div id="flash"></div>
+<div id="toast"></div>
+
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-ic">🏪</div>
+    <div>CityStar Racks<small>Location & transactions</small></div>
+  </div>
+  <button id="sync-btn" onclick="syncAll()">✓ Synced</button>
+  <a href="index.html" class="link-main">🏠 Main</a>
+</div>
+
+<!-- ═══ RACKS PAGE ═══ -->
+<div class="page show" id="pg-racks">
+  <div class="page-pad">
+    <div class="sec-h">Rack System</div>
+    <div class="sec-sub">Tap a rack to see its products & log, or scan a rack QR</div>
+    <div class="scan-cta" onclick="openCam('rackqr')">
+      <div class="scan-cta-ic">📷</div>
+      <div class="scan-cta-tx"><b>Scan rack QR code</b><span>Jump straight to that rack's contents</span></div>
+    </div>
+    <div class="rack-grid" id="rack-grid"></div>
+  </div>
+</div>
+
+<!-- ═══ RACK DETAIL PAGE ═══ -->
+<div class="page" id="pg-rackdetail">
+  <div class="page-pad">
+    <button onclick="nav('racks')" style="background:none;border:none;color:var(--pu);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:12px;padding:0">← All racks</button>
+    <div class="sec-h" id="rd-title">Rack</div>
+    <div class="sec-sub" id="rd-sub"></div>
+    <div class="chips">
+      <div class="chip on" id="rd-tab-prod" onclick="rdTab('prod')">📦 Products</div>
+      <div class="chip" id="rd-tab-log" onclick="rdTab('log')">📋 Transaction log</div>
+    </div>
+    <div id="rd-products"></div>
+    <div id="rd-log" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ═══ STOCK IN/OUT PAGE ═══ -->
+<div class="page" id="pg-stock">
+  <div class="page-pad">
+    <div class="sec-h">Find Location</div>
+    <div class="sec-sub">Scan any product barcode to see which rack it's on</div>
+    <div class="scan-cta" id="st-scan-cta" onclick="openCam('stock')">
+      <div class="scan-cta-ic" id="st-scan-ic">📷</div>
+      <div class="scan-cta-tx"><b>Scan product barcode</b><span>Instantly shows its rack number</span></div>
+    </div>
+    <div style="background:var(--bl2);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:13px;font-size:12px;color:var(--tx2);line-height:1.5;margin-bottom:16px">ℹ️ Stock in / out is done in the <b style="color:var(--bl)">Main app</b> — it shows this same rack location while scanning. This tab is for quick "where is it?" lookups.</div>
+    <div class="loc-lbl">Recently looked up</div>
+    <div id="st-recent"></div>
+  </div>
+</div>
+
+<!-- ═══ SETUP PAGE ═══ -->
+<div class="page" id="pg-setup">
+  <div class="page-pad">
+    <div class="sec-h">Setup Locations</div>
+    <div class="sec-sub">Assign products to a rack & shelf. Barcodes stay unchanged.</div>
+    <div class="scan-cta" onclick="openCam('setup')">
+      <div class="scan-cta-ic">📷</div>
+      <div class="scan-cta-tx"><b>Scan product to place it</b><span>Then pick its rack & shelf</span></div>
+    </div>
+    <div class="search-bar"><input type="search" id="setup-search" placeholder="Or search product by name…" oninput="renderSetupList(this.value)" autocomplete="off"/></div>
+    <div class="chips" id="setup-cat-chips"></div>
+    <div id="setup-list"></div>
+  </div>
+</div>
+
+<!-- ═══ QR PAGE ═══ -->
+<div class="page" id="pg-qr">
+  <div class="page-pad">
+    <div class="sec-h">QR Codes & Guide</div>
+    <div class="sec-sub">Print rack QR labels and stick them on each rack</div>
+    <div style="background:var(--am2);border:1px solid rgba(245,158,11,.35);border-radius:16px;padding:16px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:800;margin-bottom:6px;color:var(--am)">⚙ One-time database setup</div>
+      <div style="font-size:12px;color:var(--tx2);line-height:1.5;margin-bottom:10px">Before first sync, create the rack tables. Open Supabase → SQL Editor → New query → paste this → Run. You only do this once.</div>
+      <pre id="sql-box" style="background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:12px;font-size:10px;color:var(--gn);overflow-x:auto;white-space:pre;line-height:1.5;font-family:monospace">create table if not exists rack_assignments (
+  product_id bigint primary key,
+  rack text not null,
+  updated_at timestamptz default now()
+);
+create table if not exists rack_transactions (
+  id bigint generated always as identity primary key,
+  product_id bigint, product_name text,
+  type text, qty integer default 0,
+  rack text, app_user text,
+  dest text, dest_name text,
+  created_at timestamptz default now()
+);
+alter table rack_assignments enable row level security;
+alter table rack_transactions enable row level security;
+create policy "anon ra" on rack_assignments
+  for all using (true) with check (true);
+create policy "anon rt" on rack_transactions
+  for all using (true) with check (true);</pre>
+      <button onclick="copySQL()" style="width:100%;margin-top:10px;padding:11px;border-radius:10px;border:none;background:var(--am);color:#000;font-size:13px;font-weight:800;cursor:pointer">📋 Copy SQL</button>
+    </div>
+    <div style="background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:18px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:14px">How the rack system works</div>
+      <div class="guide-step"><div class="gs-num">1</div><div class="gs-tx"><b>Run the SQL above (once)</b><span>Creates the rack tables in your database so locations and logs sync across all devices.</span></div></div>
+      <div class="guide-step"><div class="gs-num">2</div><div class="gs-tx"><b>Print rack QR codes</b><span>Download the PDF below and stick one QR on each physical rack (Rack 1, Rack 2…).</span></div></div>
+      <div class="guide-step"><div class="gs-num">3</div><div class="gs-tx"><b>Assign products in Setup</b><span>Scan each product's existing barcode (unchanged), tap which rack it sits on.</span></div></div>
+      <div class="guide-step"><div class="gs-num">4</div><div class="gs-tx"><b>Scan rack QR anytime</b><span>From the Racks tab, scan a rack's QR to instantly see every product on it and its full transaction log.</span></div></div>
+      <div class="guide-step"><div class="gs-num">5</div><div class="gs-tx"><b>Fast stock in / out</b><span>Scan a product barcode — Stock In shows which rack to put it back on, Stock Out shows which rack to pick from.</span></div></div>
+    </div>
+    <div style="background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:18px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">Rack QR labels PDF</div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:6px">One large QR per rack with rack name — for sticking on shelves</div>
+      <div class="loc-lbl">How many racks?</div>
+      <div class="loc-grid" id="qr-rackcount-grid"></div>
+      <button class="dl-btn" onclick="downloadRackQR()">⬇ Download Rack QR PDF</button>
+    </div>
+    <div style="background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:18px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">Product shelf labels PDF</div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:10px">Product barcodes + their assigned rack location</div>
+      <button class="dl-btn" onclick="downloadProductLabels()" style="background:var(--pu);color:#fff">⬇ Download Product Labels PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div id="botnav">
+  <button class="nav-btn" onclick="location.href='index.html'"><span class="ni">🏠</span>Home</button>
+  <button class="nav-btn on" id="nav-racks" onclick="nav('racks')"><span class="ni">🗺️</span>Racks</button>
+  <button class="nav-btn" id="nav-stock" onclick="nav('stock')"><span class="ni">🔍</span>Find</button>
+  <button class="nav-btn" id="nav-setup" onclick="nav('setup')"><span class="ni">📍</span>Setup</button>
+  <button class="nav-btn" id="nav-qr" onclick="nav('qr')"><span class="ni">🏷️</span>QR</button>
+</div>
+
+<!-- CAMERA SHEET -->
+<div id="cam-sheet">
+  <div class="cam-top">
+    <div class="cam-top-t" id="cam-title">Scan</div>
+    <button class="cam-x" onclick="closeCam()">✕ Close</button>
+  </div>
+  <div id="cam-wrap">
+    <video id="cam-video" autoplay playsinline muted></video>
+    <div class="scan-win"><div class="sw-box" id="sw-box"><div class="sw-tr"></div><div class="sw-bl"></div><div class="sw-line"></div></div></div>
+    <div class="cam-hud">
+      <div class="consensus"><div class="cdot" id="cd0"></div><div class="cdot" id="cd1"></div><div class="cdot" id="cd2"></div></div>
+      <div id="cam-status">Point at barcode</div>
+    </div>
+    <div id="cam-gate2">
+      <div style="font-size:44px">📷</div>
+      <div style="font-size:16px;font-weight:700">Tap to start camera</div>
+      <div style="font-size:12px;color:var(--tx2);max-width:280px">Allow camera access when asked. Only asked once.</div>
+      <button onclick="startCam()">📷 Enable camera</button>
+    </div>
+  </div>
+  <div class="cam-manual">
+    <input type="text" id="cam-man-inp" placeholder="Type barcode/rack code…" autocomplete="off" onkeydown="if(event.key==='Enter')camManual()"/>
+    <button onclick="camManual()">Go</button>
+  </div>
+</div>
+
+<!-- ACTION MODAL -->
+<div class="modal" id="modal">
+  <div class="sheet">
+    <div class="sheet-grab"></div>
+    <div class="sheet-h">
+      <div class="sheet-h-t" id="m-title">Product</div>
+      <div class="sheet-h-s" id="m-sub"></div>
+    </div>
+    <div class="sheet-body" id="m-body"></div>
+    <div class="sheet-foot" id="m-foot"></div>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://ilyaqubsrpjrfgekwonw.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseWFxdWJzcnBqcmZnZWt3b253Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NTczNzMsImV4cCI6MjA5NDMzMzM3M30.EMp_EDJwzfbYgNEOeiXdjiB-GFjAEsAkRgTWb5ixF5M';
+let categories=[{"id": "canned_myanmar", "name": "Myanmar Canned", "icon": "can", "subs": [{"id": "ready", "name": "READY"}, {"id": "best", "name": "BEST"}, {"id": "hmg", "name": "HMG"}, {"id": "eain_chat", "name": "EAIN CHAT"}, {"id": "tomo", "name": "TOMO"}, {"id": "win", "name": "WIN"}, {"id": "ma_toke_ma", "name": "MA TOKE MA"}]}, {"id": "dry_fish", "name": "Dry Fish", "icon": "fish", "subs": [{"id": "mtg", "name": "MTG"}]}, {"id": "pickled_tea", "name": "Pickled Tea", "icon": "leaf", "subs": [{"id": "phoe_htaung", "name": "PHOE HTAUNG"}, {"id": "pin_pyo_ywet", "name": "PIN PYO YWET"}]}, {"id": "gold_snacks", "name": "Snacks", "icon": "star", "subs": [{"id": "gold", "name": "GOLD"}]}, {"id": "hmwe_powder", "name": "HMWE Powder", "icon": "grain", "subs": [{"id": "hmwe", "name": "HMWE"}]}, {"id": "tea_coffee", "name": "Tea & Coffee", "icon": "coffee", "subs": [{"id": "happy", "name": "HAPPY"}, {"id": "premier", "name": "PREMIER"}]}, {"id": "a1_spice", "name": "Spices", "icon": "flame", "subs": [{"id": "a1", "name": "A1"}, {"id": "thar_lon_thu", "name": "THAR LON THU"}]}, {"id": "rice", "name": "Rice", "icon": "grain", "subs": [{"id": "shwebo", "name": "SHWEBO"}, {"id": "yadanar_toe", "name": "YADANAR TOE"}, {"id": "thai", "name": "THAI"}, {"id": "kandil", "name": "KANDIL"}]}];
+let products=[{"id": 2, "name": "FRIED MYEIK SHRIMP PASTE 160g", "sku": "DRY_-002", "cat": "dry_fish", "sub": "mtg", "qty": 2, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-01"}, {"id": 6, "name": "FRIED FISH SAUCE With TAMARIND 160g", "sku": "DRY_-006", "cat": "dry_fish", "sub": "mtg", "qty": 6, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 7, "name": "DRIED HEADLESS ANCHOVY 160g", "sku": "DRY_-007", "cat": "dry_fish", "sub": "mtg", "qty": 147, "threshold": 20, "vendor": "MTG", "lastUpdated": "2026-04-28"}, {"id": 8, "name": "DRIED LOTIA CHOPPED 160g", "sku": "DRY_-008", "cat": "dry_fish", "sub": "mtg", "qty": 4, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-12"}, {"id": 10, "name": "DRIED SHOL (Roasted & Crispy) 160g", "sku": "DRY_-010", "cat": "dry_fish", "sub": "mtg", "qty": 35, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-08"}, {"id": 12, "name": "DRIED SHRIMP POWDER 160g", "sku": "DRY_-012", "cat": "dry_fish", "sub": "mtg", "qty": 31, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-14"}, {"id": 13, "name": "SPICY FRIED DRIED ANCHOVY 160g", "sku": "DRY_-013", "cat": "dry_fish", "sub": "mtg", "qty": 7, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-13"}, {"id": 17, "name": "SPICY FRIED DRIED LOTIA 160g", "sku": "DRY_-017", "cat": "dry_fish", "sub": "mtg", "qty": 21, "threshold": 10, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 18, "name": "DRIED LOTIA (Roasted & Crispy) 160g", "sku": "DRY_-018", "cat": "dry_fish", "sub": "mtg", "qty": 36, "threshold": 15, "vendor": "MTG", "lastUpdated": "2026-05-06"}, {"id": 32, "name": "READY CHICKPEA CURRY 155g", "sku": "READ-032", "cat": "canned_myanmar", "sub": "ready", "qty": 30, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 33, "name": "READY SARDINES IN TOMATO SAUCE 190g", "sku": "READ-033", "cat": "canned_myanmar", "sub": "ready", "qty": 31, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 34, "name": "READY BEEF CURRY 425g", "sku": "READ-034", "cat": "canned_myanmar", "sub": "ready", "qty": 41, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 35, "name": "READY BEEF CURRY 150g", "sku": "READ-035", "cat": "canned_myanmar", "sub": "ready", "qty": 83, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 36, "name": "READY GOAT MEAT CURRY 150g", "sku": "READ-036", "cat": "canned_myanmar", "sub": "ready", "qty": 84, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 37, "name": "READY Stir-Fried Fish Curry 150g", "sku": "READ-037", "cat": "canned_myanmar", "sub": "ready", "qty": 9, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-08"}, {"id": 38, "name": "READY Nga Gyin with Fermented Soybeans 145g", "sku": "READ-038", "cat": "canned_myanmar", "sub": "ready", "qty": 30, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 40, "name": "READY Sweet & Sour Fried Fish (ROHU) 155g", "sku": "READ-040", "cat": "canned_myanmar", "sub": "ready", "qty": 10, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-04-20"}, {"id": 41, "name": "READY Fish Sauce Curry 155g", "sku": "READ-041", "cat": "canned_myanmar", "sub": "ready", "qty": 3, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 42, "name": "READY Fish Cakes In Curry 155g", "sku": "READ-042", "cat": "canned_myanmar", "sub": "ready", "qty": 89, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-12"}, {"id": 43, "name": "READY Hot & Spicy Fried Fish (ROHU) 130g", "sku": "READ-043", "cat": "canned_myanmar", "sub": "ready", "qty": 95, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-12"}, {"id": 44, "name": "READY STEAMED YELLOWPEA 340g", "sku": "READ-044", "cat": "canned_myanmar", "sub": "ready", "qty": 283, "threshold": 30, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 139, "name": "READY CHICKEN CURRY WITH CHICKPEA 425g", "sku": "READ-139", "cat": "canned_myanmar", "sub": "ready", "qty": 53, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 140, "name": "READY CHICKEN CURRY WITH BAMBOO SHOOT 425g", "sku": "READ-140", "cat": "canned_myanmar", "sub": "ready", "qty": 39, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-14"}, {"id": 141, "name": "READY CHICKPEA CURRY 400g", "sku": "READ-141", "cat": "canned_myanmar", "sub": "ready", "qty": 105, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-13"}, {"id": 142, "name": "READY GOAT MEAT CURRY 425g", "sku": "READ-142", "cat": "canned_myanmar", "sub": "ready", "qty": 14, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 143, "name": "READY Hot & Spicy Fried Fish 280g", "sku": "READ-143", "cat": "canned_myanmar", "sub": "ready", "qty": 17, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-10"}, {"id": 144, "name": "READY STEAMED HILSHA 380g", "sku": "READ-144", "cat": "canned_myanmar", "sub": "ready", "qty": 104, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 145, "name": "READY STEAMED NGAGYIN 380g", "sku": "READ-145", "cat": "canned_myanmar", "sub": "ready", "qty": 52, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 146, "name": "READY Fish Cakes In Curry 400g", "sku": "READ-146", "cat": "canned_myanmar", "sub": "ready", "qty": 34, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-01"}, {"id": 147, "name": "READY MACKEREL IN TOMATO SAUCE 425g", "sku": "READ-147", "cat": "canned_myanmar", "sub": "ready", "qty": 35, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 148, "name": "READY FRIED ACACIA CONCINNA LEAVES 400g", "sku": "READ-148", "cat": "canned_myanmar", "sub": "ready", "qty": 3, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-11"}, {"id": 149, "name": "READY FRIED ROSELLE LEAF 400g", "sku": "READ-149", "cat": "canned_myanmar", "sub": "ready", "qty": 173, "threshold": 30, "vendor": "READY", "lastUpdated": "2026-05-06"}, {"id": 150, "name": "READY Fish Sauce Curry 400g", "sku": "READ-150", "cat": "canned_myanmar", "sub": "ready", "qty": 29, "threshold": 20, "vendor": "READY", "lastUpdated": "2026-05-14"}, {"id": 47, "name": "BEST BOILED JENGKOL BEAN 490g", "sku": "BEST-047", "cat": "canned_myanmar", "sub": "best", "qty": 162, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 51, "name": "BEST ROASTED CATFISH CHILLI PASTE 460g", "sku": "BEST-051", "cat": "canned_myanmar", "sub": "best", "qty": 7, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 52, "name": "BEST CATFISH SOUR BAMBOO SHOT CURRY 375g", "sku": "BEST-052", "cat": "canned_myanmar", "sub": "best", "qty": 50, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-12"}, {"id": 53, "name": "BEST COTTON MILK PLANT LEAVES 360g", "sku": "BEST-053", "cat": "canned_myanmar", "sub": "best", "qty": 4, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 58, "name": "BEST TAMARIND LEAVES 125g", "sku": "BEST-058", "cat": "canned_myanmar", "sub": "best", "qty": 11, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-05-11"}, {"id": 59, "name": "BEST GOA BEAN ROOT 265g", "sku": "BEST-059", "cat": "canned_myanmar", "sub": "best", "qty": 1, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 60, "name": "BEST GINGER WORT FLOWER 355g", "sku": "BEST-060", "cat": "canned_myanmar", "sub": "best", "qty": 29, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-11"}, {"id": 62, "name": "BEST FRIED PEA AND BAMBOO SHOOT 365g", "sku": "BEST-062", "cat": "canned_myanmar", "sub": "best", "qty": 19, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-13"}, {"id": 63, "name": "BEST BAKED FISH STICK 135g", "sku": "BEST-063", "cat": "canned_myanmar", "sub": "best", "qty": 10, "threshold": 10, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 64, "name": "BEST FRIED JENGKOL BEAN 245g", "sku": "BEST-064", "cat": "canned_myanmar", "sub": "best", "qty": 193, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-10"}, {"id": 66, "name": "BEST MALAPHU 405g", "sku": "BEST-066", "cat": "canned_myanmar", "sub": "best", "qty": 36, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-04-20"}, {"id": 68, "name": "BEST ROSELLE LEAVES SOUP PASTE 430g", "sku": "BEST-068", "cat": "canned_myanmar", "sub": "best", "qty": 13, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-06"}, {"id": 138, "name": "BEST FISH PASTE CURRY 405g", "sku": "BEST-138", "cat": "canned_myanmar", "sub": "best", "qty": 175, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 164, "name": "BEST DUCK EGGS OILY CURRY 375g", "sku": "BEST-164", "cat": "canned_myanmar", "sub": "best", "qty": 72, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-04-28"}, {"id": 165, "name": "BEST FERMENTED TOFU 405g", "sku": "BEST-165", "cat": "canned_myanmar", "sub": "best", "qty": 43, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-10"}, {"id": 166, "name": "BEST COCONUT MILK NOODLE SOUP 405g", "sku": "BEST-166", "cat": "canned_myanmar", "sub": "best", "qty": 26, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-01"}, {"id": 167, "name": "BEST VEGETARIAN MIXED FRUIT BEAN CURRY 360g", "sku": "BEST-167", "cat": "canned_myanmar", "sub": "best", "qty": 32, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-14"}, {"id": 168, "name": "BEST MOHINGAR PASTE 385g", "sku": "BEST-168", "cat": "canned_myanmar", "sub": "best", "qty": 4, "threshold": 15, "vendor": "BEST", "lastUpdated": "2026-05-08"}, {"id": 169, "name": "BEST TAMARIND LEAVES 405g", "sku": "BEST-169", "cat": "canned_myanmar", "sub": "best", "qty": 171, "threshold": 20, "vendor": "BEST", "lastUpdated": "2026-05-14"}, {"id": 171, "name": "EAIN CHAT ASSORTED VEGETABLE & BEAN CURRY 430g", "sku": "EAIN-171", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 75, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-14"}, {"id": 173, "name": "EAIN CHAT FISH PASTE SAUCE 400g", "sku": "EAIN-173", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 45, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-14"}, {"id": 174, "name": "EAIN CHAT FISH PASTE SAUCE (WITHOUT SHRIMP) 400g", "sku": "EAIN-174", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 72, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-11"}, {"id": 170, "name": "EAIN CHAT COCONUT NOODLE SOUP 400g", "sku": "EAIN-170", "cat": "canned_myanmar", "sub": "eain_chat", "qty": 22, "threshold": 20, "vendor": "EAIN CHAT", "lastUpdated": "2026-05-13"}, {"id": 70, "name": "HMG Green Chillies Fish Paste 350g", "sku": "HMG_-070", "cat": "canned_myanmar", "sub": "hmg", "qty": 316, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-10"}, {"id": 71, "name": "HMG Mawlamyaing Mohinga Paste 360g", "sku": "HMG_-071", "cat": "canned_myanmar", "sub": "hmg", "qty": 217, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-08"}, {"id": 72, "name": "HMG Stir Fried Roselle Leaves with Fish 400g", "sku": "HMG_-072", "cat": "canned_myanmar", "sub": "hmg", "qty": 270, "threshold": 30, "vendor": "HMG", "lastUpdated": "2026-05-13"}, {"id": 79, "name": "PHOE HTAUNG BRAND SHWE HTOO 320g", "sku": "PHOE-079", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 123, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 80, "name": "PHOE HTAUNG LAY YAUNG CHEL SPECIAL 320g", "sku": "PHOE-080", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 250, "threshold": 30, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-06"}, {"id": 81, "name": "PHOE HTAUNG THAEDAW PAE KYI PU 320g", "sku": "PHOE-081", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 96, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-04-28"}, {"id": 82, "name": "PHOE HTAUNG CHINESE FRIED BEANS 320g", "sku": "PHOE-082", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 49, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 83, "name": "PHOE HTAUNG PICKLE TEA SHU-SHAE 360g", "sku": "PHOE-083", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 348, "threshold": 30, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-08"}, {"id": 84, "name": "PHOE HTAUNG PICKLED TEA (SWEET) 360g", "sku": "PHOE-084", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 105, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 85, "name": "PHOE HTAUNG PICKLED TEA (SPICY) 360g", "sku": "PHOE-085", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 128, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 86, "name": "PHOE HTAUNG PICKLED TEA (KYET CHAY NI) 360g", "sku": "PHOE-086", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 55, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-12"}, {"id": 87, "name": "PT ZAYAM BOILED TEA LEAVES 400g", "sku": "PHOE-087", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 75, "threshold": 20, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-08"}, {"id": 88, "name": "PT PICKLED TEA LEAVES (SWEET) 160g", "sku": "PHOE-088", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 2, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-10"}, {"id": 89, "name": "PT PICKLED TEA LEAVES (SPICY) 160g", "sku": "PHOE-089", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 4, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-10"}, {"id": 90, "name": "PT PICKLED TEA LEAVES (SHU-SHAE) 160g", "sku": "PHOE-090", "cat": "pickled_tea", "sub": "phoe_htaung", "qty": 17, "threshold": 10, "vendor": "PHOE HTAUNG", "lastUpdated": "2026-05-01"}, {"id": 183, "name": "PIN PYO YWET PICKLED TEA LEAF SWEET 360g", "sku": "PIN_-183", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 3, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-05-08"}, {"id": 184, "name": "PIN PYO YWET PICKLED TEA LEAF SPICY 360g", "sku": "PIN_-184", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 29, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-04-20"}, {"id": 185, "name": "PIN PYO YWET PICKLED TEA LEAF SHU-SHAE 360g", "sku": "PIN_-185", "cat": "pickled_tea", "sub": "pin_pyo_ywet", "qty": 17, "threshold": 10, "vendor": "PIN PYO YWET", "lastUpdated": "2026-05-12"}, {"id": 186, "name": "MA TOKE MA SPECIAL PAE PU KYAW 400g", "sku": "WIN_-186", "cat": "canned_myanmar", "sub": "ma_toke_ma", "qty": 5, "threshold": 15, "vendor": "MA TOKE MA", "lastUpdated": "2026-05-06"}, {"id": 159, "name": "WIN SPECIAL PICKLED TEA & VARIOUS FRIED PEA 400g", "sku": "MT_O-159", "cat": "canned_myanmar", "sub": "win", "qty": 306, "threshold": 30, "vendor": "WIN", "lastUpdated": "2026-04-28"}, {"id": 160, "name": "WIN PICKLED TEA & VARIOUS FRIED PEA 400g", "sku": "MT_O-160", "cat": "canned_myanmar", "sub": "win", "qty": 79, "threshold": 20, "vendor": "WIN", "lastUpdated": "2026-05-11"}, {"id": 74, "name": "TOMO Rakhine Fried Fish Paste 320g", "sku": "TOMO-074", "cat": "canned_myanmar", "sub": "tomo", "qty": 36, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-04-28"}, {"id": 75, "name": "TOMO Fried Fish Sauce With Prawn 320g", "sku": "TOMO-075", "cat": "canned_myanmar", "sub": "tomo", "qty": 24, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-12"}, {"id": 178, "name": "TOMO Fried Fish Sauce With Marian 60g", "sku": "TOMO-178", "cat": "canned_myanmar", "sub": "tomo", "qty": 38, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-12"}, {"id": 179, "name": "TOMO Fried Fish Sauce 60g", "sku": "TOMO-179", "cat": "canned_myanmar", "sub": "tomo", "qty": 34, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-14"}, {"id": 180, "name": "TOMO Rakhine Fried Fish Paste 60g", "sku": "TOMO-180", "cat": "canned_myanmar", "sub": "tomo", "qty": 38, "threshold": 15, "vendor": "TOMO", "lastUpdated": "2026-05-06"}, {"id": 153, "name": "GOLD PEA & BEAN CRUNCHY STICK (SPICY)", "sku": "GOLD-153", "cat": "gold_snacks", "sub": "gold", "qty": 87, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-13"}, {"id": 154, "name": "GOLD PEA & BEAN CRUNCHY STICK (Natural)", "sku": "GOLD-154", "cat": "gold_snacks", "sub": "gold", "qty": 46, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-08"}, {"id": 155, "name": "GOLD BAYARKYAW", "sku": "GOLD-155", "cat": "gold_snacks", "sub": "gold", "qty": 161, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-13"}, {"id": 156, "name": "GOLD CHICK PEA STICK", "sku": "GOLD-156", "cat": "gold_snacks", "sub": "gold", "qty": 44, "threshold": 20, "vendor": "GOLD", "lastUpdated": "2026-05-12"}, {"id": 21, "name": "HMWE MON HIN KHAR POWDER 150g", "sku": "HMWE-021", "cat": "hmwe_powder", "sub": "hmwe", "qty": 4, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-12"}, {"id": 22, "name": "HMWE RICE NOODLE 350g", "sku": "HMWE-022", "cat": "hmwe_powder", "sub": "hmwe", "qty": 296, "threshold": 30, "vendor": "HMWE", "lastUpdated": "2026-05-11"}, {"id": 24, "name": "HMWE CHICKPEA POWDER (BAYA KYAW)", "sku": "HMWE-024", "cat": "hmwe_powder", "sub": "hmwe", "qty": 4, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-04-20"}, {"id": 27, "name": "HMWE CHICKPEA POWDER", "sku": "HMWE-027", "cat": "hmwe_powder", "sub": "hmwe", "qty": 7, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-10"}, {"id": 28, "name": "HMWE ROASTED CHICKPEA POWDER 150g", "sku": "HMWE-028", "cat": "hmwe_powder", "sub": "hmwe", "qty": 31, "threshold": 15, "vendor": "HMWE", "lastUpdated": "2026-05-01"}, {"id": 29, "name": "HMWE TOHU POWDER 150g", "sku": "HMWE-029", "cat": "hmwe_powder", "sub": "hmwe", "qty": 3, "threshold": 10, "vendor": "HMWE", "lastUpdated": "2026-05-10"}, {"id": 128, "name": "PREMIER NAMHSAN TEA MIX 20×400g", "sku": "TEA_-128", "cat": "tea_coffee", "sub": "premier", "qty": 114, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-08"}, {"id": 129, "name": "PREMIER INSTANT NUTRITIOUS CEREAL 20×500g", "sku": "TEA_-129", "cat": "tea_coffee", "sub": "premier", "qty": 68, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-01"}, {"id": 130, "name": "PREMIER INSTANT COFFEE MIX 3in1 32×540g", "sku": "TEA_-130", "cat": "tea_coffee", "sub": "premier", "qty": 76, "threshold": 20, "vendor": "PREMIER", "lastUpdated": "2026-05-13"}, {"id": 127, "name": "HAPPY 3in1 INSTANT COFFEE MIX 20×660g", "sku": "TEA_-127", "cat": "tea_coffee", "sub": "happy", "qty": 41, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-04-20"}, {"id": 161, "name": "HAPPY INSTANT TEA MIX (REGULAR) 20×660g", "sku": "TEA_-161", "cat": "tea_coffee", "sub": "happy", "qty": 201, "threshold": 30, "vendor": "HAPPY", "lastUpdated": "2026-05-12"}, {"id": 162, "name": "HAPPY INSTANT TEA MIX (PHAN SEINT) 20×660g", "sku": "TEA_-162", "cat": "tea_coffee", "sub": "happy", "qty": 16, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-05-06"}, {"id": 163, "name": "HAPPY INSTANT TEA MIX (CHO SEINT) 20×660g", "sku": "TEA_-163", "cat": "tea_coffee", "sub": "happy", "qty": 167, "threshold": 20, "vendor": "HAPPY", "lastUpdated": "2026-04-28"}, {"id": 133, "name": "A1 PREMIUM CHILI FLAKES 200g", "sku": "A1_S-133", "cat": "a1_spice", "sub": "a1", "qty": 29, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-01"}, {"id": 134, "name": "A1 PREMIUM CHILI FLAKES 100g", "sku": "A1_S-134", "cat": "a1_spice", "sub": "a1", "qty": 93, "threshold": 20, "vendor": "A1", "lastUpdated": "2026-05-12"}, {"id": 135, "name": "A1 PREMIUM CHILI POWDER 100g", "sku": "A1_S-135", "cat": "a1_spice", "sub": "a1", "qty": 83, "threshold": 20, "vendor": "A1", "lastUpdated": "2026-05-13"}, {"id": 136, "name": "A1 ROASTED CHILI POWDER 100g", "sku": "A1_S-136", "cat": "a1_spice", "sub": "a1", "qty": 16, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-12"}, {"id": 137, "name": "A1 PREMIUM PAPRIKA POWDER 100g", "sku": "A1_S-137", "cat": "a1_spice", "sub": "a1", "qty": 48, "threshold": 15, "vendor": "A1", "lastUpdated": "2026-05-11"}, {"id": 175, "name": "THAR LON THU ROASTED CHILI POWDER 85g", "sku": "A1_S-175", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 15, "threshold": 10, "vendor": "THAR LON THU", "lastUpdated": "2026-05-06"}, {"id": 176, "name": "THAR LON THU CHILI FLAKES 85g", "sku": "A1_S-176", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 110, "threshold": 20, "vendor": "THAR LON THU", "lastUpdated": "2026-04-20"}, {"id": 177, "name": "THAR LON THU CHILI POWDER 85g", "sku": "A1_S-177", "cat": "a1_spice", "sub": "thar_lon_thu", "qty": 20, "threshold": 10, "vendor": "THAR LON THU", "lastUpdated": "2026-05-06"}, {"id": 131, "name": "SHWEBO PEARL RICE 20kg (4bags × 5kg)", "sku": "RICE-131", "cat": "rice", "sub": "shwebo", "qty": 22, "threshold": 5, "vendor": "SHWEBO", "lastUpdated": "2026-05-01"}, {"id": 132, "name": "YADANAR TOE RICE 20kg (4bags × 5kg)", "sku": "RICE-132", "cat": "rice", "sub": "yadanar_toe", "qty": 60, "threshold": 5, "vendor": "YADANAR TOE", "lastUpdated": "2026-05-08"}, {"id": 187, "name": "THAI JASMINE RICE 20kg (4bags × 5kg)", "sku": "RICE-187", "cat": "rice", "sub": "thai", "qty": 13, "threshold": 5, "vendor": "THAI", "lastUpdated": "2026-05-14"}, {"id": 181, "name": "KANDIL CLASSIC BASMATI RICE", "sku": "RICE-181", "cat": "rice", "sub": "kandil", "qty": 0, "threshold": 5, "vendor": "KANDIL", "lastUpdated": "2026-05-01"}];
+
+// ── STATE ──
+let sbClient=null, _dbOk=false;
+let rackMap={};       // {productId: "R5"}  (rack number only)
+let txLog=[];         // local transaction log
+let _pendingTx=[];    // tx rows not yet pushed to rack_transactions
+let _pendingLoc={};   // {pid: rack|null} not yet pushed to rack_assignments
+let RACK_COUNT=6;
+let curRack=null, stMode='in', rdMode='prod';
+let _scanCtx=null;    // 'rackqr'|'stock'|'setup'
+let _setupProd=null, _stockProd=null;
+
+const LS_RACK='citystar_rackmap_v1';
+const LS_TX='citystar_racktx_v1';
+const LS_CFG='citystar_rackcfg_v1';
+
+const gP=id=>products.find(p=>p.id==id);
+const gC=id=>categories.find(c=>c.id===id);
+const cN=id=>{let c=gC(id);return c?c.name:id;};
+const sN=(c,s)=>{let ct=gC(c);if(!ct)return s;let su=ct.subs.find(x=>x.id===s);return su?su.name:s;};
+const bcD=v=>String(v||'').replace(/\D/g,'');
+const nowISO=()=>new Date().toISOString();
+const nowT=()=>{let d=new Date();return [d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');};
+const fmtDate=iso=>{try{let d=new Date(iso);return d.toLocaleDateString()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}catch(e){return iso;}};
+function findByBc(raw){let d=bcD(raw);if(d.length<4)return null;return products.find(p=>p.barcode&&bcD(p.barcode)===d)||products.find(p=>{if(!p.barcode)return false;let s=bcD(p.barcode);if(s.length<4)return false;return d.startsWith(s)||s.startsWith(d);})||null;}
+function rackOf(pid){return rackMap[pid]||null;}
+function rackList(){let a=[];for(let i=1;i<=RACK_COUNT;i++)a.push('R'+i);return a;}
+function prodsInRack(rk){return products.filter(p=>rackOf(p.id)===rk);}
+
+// ── LOCAL STORAGE ──
+function loadLocal(){
+  try{let r=localStorage.getItem(LS_RACK);if(r)rackMap=JSON.parse(r)||{};}catch(e){rackMap={};}
+  try{let t=localStorage.getItem(LS_TX);if(t)txLog=JSON.parse(t)||[];}catch(e){txLog=[];}
+  try{let c=localStorage.getItem(LS_CFG);if(c){let o=JSON.parse(c);RACK_COUNT=o.rc||6;}}catch(e){}
+  try{let pt=localStorage.getItem(LS_TX+'_pend');if(pt)_pendingTx=JSON.parse(pt)||[];}catch(e){_pendingTx=[];}
+  try{let pl=localStorage.getItem(LS_RACK+'_pend');if(pl)_pendingLoc=JSON.parse(pl)||{};}catch(e){_pendingLoc={};}
+}
+function saveLocal(){
+  try{
+    localStorage.setItem(LS_RACK,JSON.stringify(rackMap));
+    localStorage.setItem(LS_TX,JSON.stringify(txLog.slice(0,500)));
+    localStorage.setItem(LS_CFG,JSON.stringify({rc:RACK_COUNT}));
+    localStorage.setItem(LS_TX+'_pend',JSON.stringify(_pendingTx));
+    localStorage.setItem(LS_RACK+'_pend',JSON.stringify(_pendingLoc));
+  }catch(e){}
+}
+function pendingTotal(){return _pendingTx.length+Object.keys(_pendingLoc).length;}
+function updateSyncBtn(){
+  let n=pendingTotal(),b=document.getElementById('sync-btn');
+  if(!b)return;
+  if(n>0){b.textContent='⇧ Sync '+n;b.style.background='var(--am)';b.style.color='#000';}
+  else{b.textContent='✓ Synced';b.style.background='var(--gn2)';b.style.color='var(--gn)';}
+}
+
+// ── NAV ──
+function nav(pg){
+  ['racks','rackdetail','stock','setup','qr'].forEach(p=>{
+    let el=document.getElementById('pg-'+p);
+    if(el)el.className='page'+(p===pg?' show':'');
+  });
+  ['racks','stock','setup','qr'].forEach(p=>{
+    let b=document.getElementById('nav-'+p);
+    if(b)b.className='nav-btn'+(p===pg?' on':'');
+  });
+  if(pg==='racks')renderRacks();
+  if(pg==='stock')renderStockRecent();
+  if(pg==='setup')renderSetup();
+  if(pg==='qr')renderQR();
+}
+
+// ── RACKS ──
+function renderRacks(){
+  let g=document.getElementById('rack-grid'),h='';
+  for(let rk of rackList()){
+    let ps=prodsInRack(rk);
+    let cls=ps.length?'':'empty';
+    h+='<div class="rack-card" onclick="openRack(\''+rk+'\')">'
+      +'<div class="rack-card-count '+cls+'">'+ps.length+' items</div>'
+      +'<div class="rack-card-ic">🗄️</div>'
+      +'<div class="rack-card-name">Rack '+rk.slice(1)+'</div>'
+      +'<div class="rack-card-meta">tap to open</div>'
+      +'</div>';
+  }
+  g.innerHTML=h;
+}
+function openRack(rk){
+  curRack=rk; rdMode='prod';
+  document.getElementById('rd-title').textContent='Rack '+rk.slice(1);
+  let ps=prodsInRack(rk);
+  document.getElementById('rd-sub').textContent=ps.length+' products on this rack';
+  document.getElementById('rd-tab-prod').className='chip on';
+  document.getElementById('rd-tab-log').className='chip';
+  document.getElementById('rd-products').style.display='';
+  document.getElementById('rd-log').style.display='none';
+  renderRackProducts();
+  renderRackLog();
+  nav('rackdetail');
+}
+function rdTab(t){
+  rdMode=t;
+  document.getElementById('rd-tab-prod').className='chip'+(t==='prod'?' on':'');
+  document.getElementById('rd-tab-log').className='chip'+(t==='log'?' on':'');
+  document.getElementById('rd-products').style.display=t==='prod'?'':'none';
+  document.getElementById('rd-log').style.display=t==='log'?'':'none';
+}
+function renderRackProducts(){
+  let ps=prodsInRack(curRack);
+  let el=document.getElementById('rd-products');
+  if(!ps.length){el.innerHTML='<div class="empty"><div class="empty-ic">📭</div><div class="empty-t">No products in this rack yet</div><div class="empty-s">Use Setup to assign products here</div></div>';return;}
+  // group by category for readability
+  let byCat={};
+  ps.forEach(p=>{(byCat[p.cat]=byCat[p.cat]||[]).push(p);});
+  let h='';
+  categories.forEach(c=>{
+    if(!byCat[c.id])return;
+    h+='<div class="loc-lbl">'+c.name+' · '+byCat[c.id].length+' items</div>';
+    byCat[c.id].forEach(p=>{h+=prodCard(p);});
+  });
+  el.innerHTML=h;
+}
+function prodCard(p){
+  let loc=rackOf(p.id);
+  let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
+  let ph=p.photo?'<img src="'+p.photo+'" onerror="this.parentNode.textContent=String.fromCodePoint(128230)">':'📦';
+  return '<div class="prod-card" onclick="openProd('+p.id+')">'
+    +'<div class="prod-thumb">'+ph+'</div>'
+    +'<div class="prod-info"><div class="prod-name">'+p.name+'</div>'
+    +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+loc.slice(1)+'</span>':'<span class="loc-tag none">No rack</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
+    +'<div class="prod-qty"><div class="prod-qty-n" style="color:'+qc+'">'+p.qty+'</div><div class="prod-qty-l">in stock</div></div>'
+    +'</div>';
+}
+function renderRackLog(){
+  let logs=txLog.filter(t=>t.rack===curRack).slice(0,100);
+  let el=document.getElementById('rd-log');
+  if(!logs.length){el.innerHTML='<div class="empty"><div class="empty-ic">📋</div><div class="empty-t">No transactions yet</div><div class="empty-s">Stock in/out for products in this rack will appear here</div></div>';return;}
+  el.innerHTML=logs.map(txRow).join('');
+}
+function txRow(t){
+  let ic=t.type==='in'?'⬇':t.type==='out'?'⬆':'📍';
+  let cls=t.type;
+  let q=t.type==='set'?'':((t.type==='in'?'+':'-')+t.qty);
+  let destPart='';
+  if(t.type==='out'&&t.dest){destPart=' → '+(t.dest==='shop'?'🏪':'🚚')+(t.destName?' '+t.destName:(t.dest==='shop'?' Shop':' Delivery'));}
+  return '<div class="tx-row"><div class="tx-ic '+cls+'">'+ic+'</div>'
+    +'<div class="tx-info"><div class="tx-name">'+t.prod+'</div>'
+    +'<div class="tx-meta">'+fmtDate(t.at)+' · '+(t.type==='set'?('Placed on Rack '+(t.rack?t.rack.slice(1):'?')):(t.type==='in'?'Stocked in':'Stocked out')+(t.rack?' · Rack '+t.rack.slice(1):'')+destPart)+(t.user?' · '+t.user:'')+'</div></div>'
+    +'<div class="tx-q '+cls+'">'+q+'</div></div>';
+}
+
+// ── PRODUCT MODAL (stock in/out) ──
+function openProd(pid){
+  let p=gP(pid); if(!p)return;
+  _stockProd=p;
+  let loc=rackOf(p.id);
+  document.getElementById('m-title').textContent=p.name;
+  document.getElementById('m-sub').textContent=cN(p.cat)+' › '+sN(p.cat,p.sub)+' · '+p.sku;
+  document.getElementById('m-body').innerHTML=
+    '<div class="loc-big"><div class="loc-big-l">📍 Location</div><div class="loc-big-v">'+(loc?'Rack '+loc.slice(1):'—')+'</div><div class="loc-big-n">'+(loc?'Stored on Rack '+loc.slice(1):'Not assigned — use Setup to place it')+'</div></div>'
+    +'<div style="display:flex;gap:10px;text-align:center;margin:14px 0">'
+    +'<div style="flex:1;background:var(--sur2);border-radius:12px;padding:14px"><div style="font-size:26px;font-weight:900;color:'+(p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)')+'">'+p.qty+'</div><div style="font-size:11px;color:var(--tx3)">In stock</div></div>'
+    +'<div style="flex:1;background:var(--sur2);border-radius:12px;padding:14px"><div style="font-size:26px;font-weight:900">'+p.threshold+'</div><div style="font-size:11px;color:var(--tx3)">Min level</div></div>'
+    +'</div>'
+    +'<div style="background:var(--bl2);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:13px;font-size:12px;color:var(--tx2);line-height:1.5;margin-top:6px">ℹ️ This app shows <b style="color:var(--bl)">where</b> products are stored. To stock in or out, use the <b>Main app</b> — it shows this same rack location while you scan.</div>';
+  document.getElementById('m-foot').innerHTML=
+    '<button class="act-btn ab-sec" onclick="closeModal()" style="flex:1">Close</button>'
+    +(loc?'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Change rack</button>':'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Assign rack</button>');
+  document.getElementById('modal').classList.add('show');
+}
+function reassignFromModal(pid){
+  closeModal();
+  openLocPicker(pid);
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+
+// rack.html no longer changes stock — that's done in the Main app.
+// These remain only so any stale references don't throw.
+let _pendingProdQty={};
+
+// ── STOCK PAGE ──
+function stTab(m){ stMode=m||'in'; } // legacy no-op (page redesigned to lookup-only)
+let _lookupHistory=[];
+function renderStockRecent(){
+  let el=document.getElementById('st-recent');
+  if(!_lookupHistory.length){el.innerHTML='<div class="empty"><div class="empty-ic">🔍</div><div class="empty-t">No lookups yet</div><div class="empty-s">Scan a product to see its rack</div></div>';return;}
+  el.innerHTML=_lookupHistory.slice(0,30).map(p=>{
+    let loc=rackOf(p.id);
+    let ph=p.photo?'<img src="'+p.photo+'" onerror="this.parentNode.textContent=String.fromCodePoint(128230)">':'📦';
+    return '<div class="prod-card" onclick="openProd('+p.id+')">'
+      +'<div class="prod-thumb">'+ph+'</div>'
+      +'<div class="prod-info"><div class="prod-name">'+p.name+'</div>'
+      +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+loc.slice(1)+'</span>':'<span class="loc-tag none">No rack</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
+      +'<div class="prod-qty"><div class="prod-qty-n">'+p.qty+'</div><div class="prod-qty-l">in stock</div></div>'
+      +'</div>';
+  }).join('');
+}
+
+// ── SETUP ──
+let _setupCat='';
+function renderSetup(){
+  let c=document.getElementById('setup-cat-chips');
+  c.innerHTML='<div class="chip'+(_setupCat===''?' on':'')+'" onclick="setupCat(\'\')">All</div>'
+    +categories.map(ct=>'<div class="chip'+(_setupCat===ct.id?' on':'')+'" onclick="setupCat(\''+ct.id+'\')">'+ct.name+'</div>').join('');
+  renderSetupList(document.getElementById('setup-search').value);
+}
+function setupCat(c){_setupCat=c;renderSetup();}
+function renderSetupList(q){
+  let list=products.slice();
+  if(_setupCat)list=list.filter(p=>p.cat===_setupCat);
+  if(q&&q.trim()){let ql=q.toLowerCase();list=list.filter(p=>p.name.toLowerCase().includes(ql));}
+  // sort: unassigned first
+  list.sort((a,b)=>{let la=rackOf(a.id)?1:0,lb=rackOf(b.id)?1:0;if(la!==lb)return la-lb;return a.name.localeCompare(b.name);});
+  let el=document.getElementById('setup-list');
+  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-ic">🔍</div><div class="empty-t">No products</div></div>';return;}
+  el.innerHTML=list.slice(0,80).map(p=>{
+    let loc=rackOf(p.id);
+    let ph=p.photo?'<img src="'+p.photo+'" onerror="this.parentNode.textContent=String.fromCodePoint(128230)">':'📦';
+    return '<div class="prod-card" onclick="openLocPicker('+p.id+')">'
+      +'<div class="prod-thumb">'+ph+'</div>'
+      +'<div class="prod-info"><div class="prod-name">'+p.name+'</div>'
+      +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+loc.slice(1)+'</span>':'<span class="loc-tag none">Tap to place</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
+      +'<div style="font-size:18px;color:var(--tx3)">›</div></div>';
+  }).join('')+(list.length>80?'<div class="empty-s" style="text-align:center;padding:14px">Showing 80 of '+list.length+' — search to narrow</div>':'');
+}
+let _locPickProd=null,_locPickRack=null;
+function openLocPicker(pid){
+  let p=gP(pid); if(!p)return;
+  _locPickProd=p;
+  let cur=rackOf(pid);
+  _locPickRack=cur||null;
+  document.getElementById('m-title').textContent=p.name;
+  document.getElementById('m-sub').textContent='Tap a rack to place this product · barcode unchanged';
+  renderLocPickerBody();
+  document.getElementById('m-foot').innerHTML=
+    (cur?'<button class="act-btn ab-sec" onclick="clearLoc()">Clear</button>':'')
+    +'<button class="act-btn ab-loc" onclick="saveLoc()">📍 Save location</button>';
+  document.getElementById('modal').classList.add('show');
+}
+function renderLocPickerBody(){
+  let h='<div class="loc-big"><div class="loc-big-l">📍 Selected rack</div><div class="loc-big-v">'+(_locPickRack?'Rack '+_locPickRack.slice(1):'—')+'</div><div class="loc-big-n">'+(_locPickRack?'Tap Save to confirm':'Tap a rack below')+'</div></div>';
+  h+='<div class="loc-lbl">Choose rack</div><div class="loc-grid">';
+  for(let r of rackList())h+='<div class="loc-opt'+(_locPickRack===r?' on':'')+'" onclick="pickRack(\''+r+'\')">'+r+'</div>';
+  h+='</div>';
+  document.getElementById('m-body').innerHTML=h;
+}
+function pickRack(r){_locPickRack=r;renderLocPickerBody();}
+function saveLoc(){
+  if(!_locPickRack){toast('Pick a rack','err');return;}
+  let loc=_locPickRack;
+  rackMap[_locPickProd.id]=loc;
+  _pendingLoc[_locPickProd.id]=loc;
+  let tx={id:'tx'+Date.now()+Math.random().toString(36).slice(2,6),type:'set',pid:_locPickProd.id,prod:_locPickProd.name,qty:0,rack:loc,at:nowISO(),user:'Rack'};
+  txLog.unshift(tx); _pendingTx.push(tx);
+  saveLocal(); updateSyncBtn(); closeModal();
+  toast('📍 '+_locPickProd.name.split(' ').slice(0,3).join(' ')+' → Rack '+loc.slice(1),'ok');
+  flash('set');
+  renderSetup();
+}
+function clearLoc(){
+  delete rackMap[_locPickProd.id];
+  _pendingLoc[_locPickProd.id]=null;
+  saveLocal(); updateSyncBtn(); closeModal();
+  toast('Location cleared','syn');
+  renderSetup();
+}
+
+// ── QR PAGE ──
+let _qrRackCount=6;
+function renderQR(){
+  _qrRackCount=RACK_COUNT;
+  let g=document.getElementById('qr-rackcount-grid'),h='';
+  [4,6,8,10,12,16,20,24].forEach(n=>{h+='<div class="loc-opt'+(_qrRackCount===n?' on':'')+'" onclick="setQrCount('+n+')">'+n+'</div>';});
+  g.innerHTML=h;
+}
+function setQrCount(n){
+  _qrRackCount=n; RACK_COUNT=n;
+  saveLocal(); renderQR();
+  toast('Set to '+n+' racks','ok');
+}
+function copySQL(){
+  let t=document.getElementById('sql-box').textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(()=>toast('✓ SQL copied — paste in Supabase','ok')).catch(()=>fallbackCopy(t));
+  }else fallbackCopy(t);
+}
+function fallbackCopy(t){
+  let ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');toast('✓ SQL copied','ok');}catch(e){toast('Select & copy the SQL manually','syn');}
+  document.body.removeChild(ta);
+}
+
+// ── CAMERA ──
+let _camStream=null,_camTimer=null,_camLocked=false,_camBuf=[];
+async function openCam(ctx){
+  _scanCtx=ctx; _camLocked=false; _camBuf=[];
+  document.getElementById('cam-title').textContent=
+    ctx==='rackqr'?'Scan rack QR':ctx==='setup'?'Scan product to place':ctx==='stock'?'Scan to find location':'Scan';
+  document.getElementById('cam-sheet').classList.add('show');
+  // auto-start if allowed before
+  let allowed=localStorage.getItem('cam_ok')==='1';
+  try{if(navigator.permissions&&navigator.permissions.query){let s=await navigator.permissions.query({name:'camera'});if(s.state==='granted')allowed=true;if(s.state==='denied')allowed=false;}}catch(e){}
+  if(allowed){document.getElementById('cam-gate2').style.display='none';startCam();}
+  else document.getElementById('cam-gate2').style.display='flex';
+}
+function closeCam(){
+  document.getElementById('cam-sheet').classList.remove('show');
+  if(_camTimer){clearInterval(_camTimer);_camTimer=null;}
+  if(_camStream){_camStream.getTracks().forEach(t=>t.stop());_camStream=null;}
+  let v=document.getElementById('cam-video');if(v)v.srcObject=null;
+}
+async function startCam(){
+  let v=document.getElementById('cam-video');
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){document.getElementById('cam-status').textContent='No camera — type below';return;}
+  document.getElementById('cam-status').textContent='Requesting camera…';
+  try{_camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920}},audio:false});}
+  catch(e){try{_camStream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});}catch(e2){document.getElementById('cam-status').textContent='Camera blocked — type below';document.getElementById('cam-gate2').style.display='flex';return;}}
+  try{localStorage.setItem('cam_ok','1');}catch(e){}
+  document.getElementById('cam-gate2').style.display='none';
+  v.srcObject=_camStream; try{await v.play();}catch(e){}
+  document.getElementById('cam-status').textContent='Point at barcode / QR';
+  let det=null;
+  if('BarcodeDetector' in window){
+    try{let sup=await BarcodeDetector.getSupportedFormats();
+      let want=['qr_code','ean_13','ean_8','code_128','code_39','upc_a','upc_e'].filter(x=>sup.includes(x));
+      if(!want.length)want=['qr_code','ean_13','code_128'];
+      det=new BarcodeDetector({formats:want});}catch(e){}
+  }
+  if(!det){
+    await new Promise(r=>{if(window.Quagga){r();return;}let s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js';s.onload=r;s.onerror=r;document.head.appendChild(s);});
+    document.getElementById('cam-status').textContent='Point at barcode (QR needs newer phone)';
+  }
+  if(_camTimer)clearInterval(_camTimer);
+  let busy=false,stuck=0;
+  _camTimer=setInterval(async()=>{
+    if(_camLocked){busy=false;stuck=0;return;}
+    if(!_camStream||!v.srcObject||v.readyState<2)return;
+    if(busy){if(++stuck>5){busy=false;stuck=0;}return;}
+    busy=true;stuck=0;
+    try{
+      if(det){let c=await Promise.race([det.detect(v),new Promise(r=>setTimeout(()=>r(null),800))]);if(c&&c.length)onCamScan(c[0].rawValue);}
+    }catch(e){}
+    busy=false;
+  },170);
+}
+function onCamScan(raw){
+  if(_camLocked||!raw)return;
+  let val=String(raw).trim();
+  _camBuf.push(val);
+  if(_camBuf.length>9)_camBuf=_camBuf.slice(-9);
+  let last=_camBuf[_camBuf.length-1],cnt=0;
+  for(let i=_camBuf.length-1;i>=0;i--){if(_camBuf[i]===last)cnt++;else break;}
+  for(let i=0;i<3;i++)document.getElementById('cd'+i).className='cdot'+(i<cnt?(cnt>=3?' done':' active'):'');
+  // QR codes resolve in 2 (they're reliable); barcodes need 3
+  let need=val.startsWith('CSRACK:')?2:3;
+  if(cnt>=need){
+    _camLocked=true;_camBuf=[];
+    document.getElementById('sw-box').className='sw-box done';
+    handleScan(val);
+  }
+}
+function camManual(){
+  let v=document.getElementById('cam-man-inp').value.trim();
+  if(!v)return;
+  document.getElementById('cam-man-inp').value='';
+  handleScan(v);
+}
+function handleScan(val){
+  // Rack QR?
+  if(val.startsWith('CSRACK:')){
+    let rk=val.split(':')[1];
+    beep('set');
+    closeCam();
+    if(rackList().includes(rk)){openRack(rk);}
+    else{toast('Unknown rack: '+rk,'err');}
+    return;
+  }
+  // Product barcode
+  let p=findByBc(val);
+  if(!p){
+    beep('out');
+    toast('No product for barcode '+val,'err');
+    setTimeout(()=>{_camLocked=false;document.getElementById('sw-box').className='sw-box';},900);
+    return;
+  }
+  beep(_scanCtx==='setup'?'set':'in');
+  closeCam();
+  if(_scanCtx==='setup'){openLocPicker(p.id);}
+  else if(_scanCtx==='stock'){
+    _lookupHistory=_lookupHistory.filter(x=>x.id!==p.id);
+    _lookupHistory.unshift(p);
+    renderStockRecent();
+    openProd(p.id);
+  }
+  else{openProd(p.id);}
+}
+
+// ── AUDIO ──
+let _ax=null;
+function beep(type){
+  if(navigator.vibrate)navigator.vibrate(type==='out'?[40,20,40]:[70]);
+  try{
+    if(!_ax)_ax=new (window.AudioContext||window.webkitAudioContext)();
+    if(_ax.state==='suspended')_ax.resume();
+    let o=_ax.createOscillator(),g=_ax.createGain();
+    o.connect(g);g.connect(_ax.destination);o.type='sine';
+    let f=type==='in'?[660,990]:type==='out'?[520,380]:[740,740];
+    o.frequency.setValueAtTime(f[0],_ax.currentTime);
+    o.frequency.setValueAtTime(f[1],_ax.currentTime+0.07);
+    g.gain.setValueAtTime(.32,_ax.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,_ax.currentTime+.2);
+    o.start(_ax.currentTime);o.stop(_ax.currentTime+.2);
+  }catch(e){}
+}
+function flash(type){let f=document.getElementById('flash');f.className=type;f.style.opacity='1';setTimeout(()=>{f.style.opacity='0';setTimeout(()=>f.className='',100);},120);}
+let _tT=null;
+function toast(m,t){let el=document.getElementById('toast');el.textContent=m;el.className='show t-'+(t||'ok');clearTimeout(_tT);_tT=setTimeout(()=>el.className='',2800);}
+
+// ── PDF (lazy libs) ──
+let _libs=false;
+function loadLib(s){return new Promise((res,rej)=>{let e=document.createElement('script');e.src=s;e.onload=res;e.onerror=rej;document.head.appendChild(e);});}
+async function ensureLibs(){
+  if(_libs)return;
+  if(!window.jspdf)await loadLib('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js');
+  if(!window.qrcode)await loadLib('https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js');
+  if(!window.JsBarcode)await loadLib('https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js');
+  _libs=true;
+}
+function qrDataUrl(text,size){
+  let qr=qrcode(0,'M');qr.addData(text);qr.make();
+  let c=qr.getModuleCount(),cell=Math.floor(size/c),px=cell*c;
+  let cv=document.createElement('canvas');cv.width=px;cv.height=px;
+  let ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,px,px);ctx.fillStyle='#000';
+  for(let r=0;r<c;r++)for(let col=0;col<c;col++)if(qr.isDark(r,col))ctx.fillRect(col*cell,r*cell,cell,cell);
+  return cv.toDataURL('image/png');
+}
+async function downloadRackQR(){
+  await ensureLibs();
+  let {jsPDF}=window.jspdf;
+  let doc=new jsPDF({unit:'mm',format:'a4'});
+  let pw=210,ph=297,m=14,cols=2,gap=10;
+  let cw=(pw-m*2-gap)/cols, chh=cw+22;
+  let x=m,y=m,col=0;
+  for(let i=1;i<=_qrRackCount;i++){
+    let rk='R'+i;
+    if(y+chh>ph-m){doc.addPage();y=m;col=0;x=m;}
+    doc.setDrawColor(60);doc.setLineWidth(.5);doc.roundedRect(x,y,cw,chh,3,3,'S');
+    doc.setFillColor(20,20,28);doc.roundedRect(x,y,cw,16,3,3,'F');doc.rect(x,y+8,cw,8,'F');
+    doc.setTextColor(255);doc.setFontSize(20);doc.setFont(undefined,'bold');
+    doc.text('RACK '+i,x+cw/2,y+11,{align:'center'});
+    let qs=cw-24;
+    let img=qrDataUrl('CSRACK:'+rk,600);
+    doc.addImage(img,'PNG',x+(cw-qs)/2,y+20,qs,qs);
+    doc.setTextColor(0);doc.setFontSize(11);doc.setFont('courier','bold');
+    doc.text('CSRACK:'+rk,x+cw/2,y+chh-4,{align:'center'});
+    col++;
+    if(col>=cols){col=0;x=m;y+=chh+gap;}else{x+=cw+gap;}
+  }
+  doc.save('CityStar-Rack-QR-Codes.pdf');
+  toast('✓ Rack QR PDF downloaded','ok');
+}
+async function downloadProductLabels(){
+  await ensureLibs();
+  let {jsPDF}=window.jspdf;
+  let doc=new jsPDF({unit:'mm',format:'a4'});
+  let pw=210,ph=297,m=12,cols=2,gap=6;
+  let lw=(pw-m*2-gap)/cols, lh=46;
+  let x=m,y=m,col=0,lastCat=null;
+  let list=products.slice().sort((a,b)=>{let ca=categories.findIndex(c=>c.id===a.cat),cb=categories.findIndex(c=>c.id===b.cat);if(ca!==cb)return ca-cb;return a.name.localeCompare(b.name);});
+  for(let p of list){
+    if(p.cat!==lastCat){
+      if(col!==0){col=0;x=m;y+=lh+gap;}
+      if(y+12>ph-m){doc.addPage();y=m;}
+      doc.setFillColor(35,35,40);doc.roundedRect(m,y,pw-m*2,8,1,1,'F');
+      doc.setTextColor(255);doc.setFontSize(11);doc.setFont(undefined,'bold');
+      doc.text(cN(p.cat).toUpperCase(),m+3,y+5.5);
+      y+=8+gap;lastCat=p.cat;
+    }
+    if(y+lh>ph-m){doc.addPage();y=m;col=0;x=m;}
+    let bc=p.barcode&&bcD(p.barcode).length>=4?bcD(p.barcode):'200'+String(p.id).padStart(6,'0');
+    let cv=document.createElement('canvas');
+    try{JsBarcode(cv,bc,{format:'CODE128',width:2,height:80,displayValue:false,margin:0});}catch(e){continue;}
+    let img=cv.toDataURL('image/png');let rt=cv.height/cv.width;
+    doc.setDrawColor(140);doc.setLineWidth(.4);doc.roundedRect(x,y,lw,lh,2,2,'S');
+    let cx=x+lw/2;
+    doc.setTextColor(0);doc.setFontSize(8.5);doc.setFont(undefined,'bold');
+    doc.text(doc.splitTextToSize(p.name,lw-8).slice(0,2),cx,y+5,{align:'center',lineHeightFactor:1.15});
+    let bw=lw-14,bh=bw*rt;if(bh>15){bh=15;bw=bh/rt;}
+    doc.addImage(img,'PNG',cx-bw/2,y+13,bw,bh);
+    doc.setFontSize(10);doc.setFont('courier','bold');doc.setTextColor(0);
+    doc.text(bc,cx,y+13+bh+5,{align:'center'});
+    let loc=rackOf(p.id);
+    doc.setFontSize(8);doc.setFont(undefined,'bold');
+    if(loc){doc.setTextColor(59,130,246);doc.text('RACK '+loc.slice(1),cx,y+lh-3,{align:'center'});}
+    else{doc.setTextColor(150);doc.text(sN(p.cat,p.sub),cx,y+lh-3,{align:'center'});}
+    col++;
+    if(col>=cols){col=0;x=m;y+=lh+gap;}else{x+=lw+gap;}
+  }
+  doc.save('CityStar-Product-Labels-Locations.pdf');
+  toast('✓ Product labels PDF downloaded','ok');
+}
+
+// ── SYNC ──
+async function syncAll(){
+  if(pendingTotal()===0){toast('Nothing to sync — all up to date','ok');return;}
+  let b=document.getElementById('sync-btn');b.textContent='Syncing…';b.disabled=true;
+  try{
+    if(!sbClient){
+      if(!window.supabase)await loadLib('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js');
+      sbClient=window.supabase.createClient(SB_URL,SB_KEY);
+    }
+    let tableErr=false;
+    // 1. Push location changes to rack_assignments table (one row per product)
+    let locKeys=Object.keys(_pendingLoc);
+    for(let pid of locKeys){
+      let rk=_pendingLoc[pid];
+      try{
+        if(rk===null){
+          let {error}=await sbClient.from('rack_assignments').delete().eq('product_id',parseInt(pid));
+          if(error)throw error;
+        }else{
+          let {error}=await sbClient.from('rack_assignments').upsert({product_id:parseInt(pid),rack:rk,updated_at:nowISO()});
+          if(error)throw error;
+        }
+        delete _pendingLoc[pid];
+      }catch(e){
+        tableErr=true;
+        if(String(e&&e.message||e).match(/relation|does not exist|schema cache/i)){
+          toast('⚠ Run the SQL setup first (see QR tab)','err');
+          b.disabled=false;updateSyncBtn();return;
+        }
+      }
+    }
+    // 2. Push product qty changes (only qty)
+    for(let pid in _pendingProdQty){
+      let p=gP(parseInt(pid));if(!p)continue;
+      try{await sbClient.from('products').update({qty:p.qty,last_updated:p.lastUpdated}).eq('id',p.id);delete _pendingProdQty[pid];}catch(e){}
+    }
+    // 3. Push transactions to rack_transactions table
+    for(let tx of _pendingTx.slice()){
+      try{
+        let {error}=await sbClient.from('rack_transactions').insert({
+          product_id:tx.pid, product_name:tx.prod, type:tx.type,
+          qty:tx.qty||0, rack:tx.rack||null, app_user:tx.user||'Rack',
+          dest:tx.dest||null, dest_name:tx.destName||null
+        });
+        if(error)throw error;
+        // also mirror stock in/out to main activity feed so dashboard sees it
+        if(tx.type==='in'||tx.type==='out'){
+          try{await sbClient.from('activity').insert({
+            type:tx.type, prod:tx.prod, qty:tx.qty, time:nowT(),
+            user:tx.user||'Rack',
+            dest:tx.type==='out'?(tx.dest||null):null,
+            dest_name:tx.type==='out'?(tx.destName||(tx.rack?'Rack '+tx.rack.slice(1):null)):null
+          });}catch(e){}
+        }
+        _pendingTx=_pendingTx.filter(x=>x.id!==tx.id);
+      }catch(e){
+        tableErr=true;
+        if(String(e&&e.message||e).match(/relation|does not exist|schema cache/i)){
+          toast('⚠ Run the SQL setup first (see QR tab)','err');
+          b.disabled=false;updateSyncBtn();return;
+        }
+      }
+    }
+    saveLocal(); updateSyncBtn();
+    b.disabled=false;
+    if(pendingTotal()===0)toast('✓ Everything synced to database','ok');
+    else toast('Partially synced — tap Sync to retry rest','err');
+  }catch(e){
+    b.disabled=false;updateSyncBtn();
+    toast('Sync failed — saved locally, try again','err');
+  }
+}
+
+// ── DB PULL (background, non-blocking) ──
+async function dbPull(){
+  try{
+    if(!window.supabase)await loadLib('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js');
+    sbClient=window.supabase.createClient(SB_URL,SB_KEY);
+    // products (barcodes + qty)
+    let {data}=await sbClient.from('products').select('id,name,sku,cat,sub,qty,threshold,vendor,barcode,last_updated,photo');
+    if(data&&data.length>=10){
+      let valid=data.filter(r=>r.id&&r.name&&categories.some(c=>c.id===r.cat));
+      if(valid.length>=10){
+        valid.forEach(r=>{
+          let p=gP(r.id);
+          if(p){p.name=r.name;p.sku=r.sku||p.sku;p.cat=r.cat;p.sub=r.sub;p.threshold=r.threshold||p.threshold;p.vendor=r.vendor||p.vendor;p.photo=r.photo||p.photo;p.barcode=r.barcode||p.barcode;if(!_pendingProdQty[r.id])p.qty=r.qty!=null?r.qty:p.qty;}
+        });
+      }
+    }
+    // rack assignments from dedicated table
+    try{
+      let {data:ra,error:rae}=await sbClient.from('rack_assignments').select('product_id,rack');
+      if(!rae && ra){
+        ra.forEach(row=>{
+          if(!(String(row.product_id) in _pendingLoc) && !(row.product_id in _pendingLoc))
+            rackMap[row.product_id]=row.rack;
+        });
+      }
+    }catch(e){}
+    // recent transactions from dedicated table (merge into local log)
+    try{
+      let {data:rt,error:rte}=await sbClient.from('rack_transactions').select('*').order('created_at',{ascending:false}).limit(200);
+      if(!rte && rt){
+        let have=new Set(txLog.map(t=>t.id));
+        rt.forEach(row=>{
+          let id='db'+row.id;
+          if(have.has(id))return;
+          txLog.push({id:id,type:row.type,pid:row.product_id,prod:row.product_name,qty:row.qty,rack:row.rack,at:row.created_at,user:row.app_user,dest:row.dest||null,destName:row.dest_name||null});
+        });
+        txLog.sort((a,b)=>new Date(b.at)-new Date(a.at));
+      }
+    }catch(e){}
+    _dbOk=true;
+    saveLocal();
+    refreshCurrent();
+    toast('✓ Synced with warehouse database','ok');
+  }catch(e){
+    toast('Offline — using saved data. Sync when online.','syn');
+  }
+}
+function refreshCurrent(){
+  if(document.getElementById('pg-racks').classList.contains('show'))renderRacks();
+  if(document.getElementById('pg-rackdetail').classList.contains('show')){renderRackProducts();renderRackLog();}
+  if(document.getElementById('pg-setup').classList.contains('show'))renderSetup();
+  if(document.getElementById('pg-stock').classList.contains('show'))renderStockRecent();
+}
+
+// ── BOOT ──
+loadLocal();
+stTab('in');
+nav('racks');
+updateSyncBtn();
+dbPull();
+</script>
+</body>
+</html>
