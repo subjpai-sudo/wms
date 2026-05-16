@@ -205,7 +205,7 @@ input{user-select:auto}
     <div class="consensus"><div class="cdot" id="cd0"></div><div class="cdot" id="cd1"></div><div class="cdot" id="cd2"></div></div>
     <div id="cam-status">Point barcode at frame</div>
   </div>
-  <div id="cam-gate">
+  <div id="cam-gate" style="display:none">
     <div id="cam-gate-icon">📷</div>
     <div id="cam-gate-title">Tap to start scanning</div>
     <div id="cam-gate-msg">Allow camera when asked. Only asked once.</div>
@@ -483,13 +483,16 @@ function resetDots(){ for(let i=0;i<3;i++)document.getElementById('cd'+i).classN
 let _camStarted=false;
 async function startCamera(){
   let v=document.getElementById('cam-video');
+  // Hide gate immediately — prevents flash of "tap to enable" on re-visit
+  let gate=document.getElementById('cam-gate');
+  if(gate)gate.style.display='none';
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
     return camErr('Camera not supported','Use Chrome or Safari. Type barcodes manually with ⌨ Type.');
   }
   if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1'){
     return camErr('HTTPS required','Open the Vercel link (https://), not a local file.');
   }
-  document.getElementById('cam-status').textContent='Requesting camera…';
+  document.getElementById('cam-status').textContent='Starting camera…';
   try{
     _stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});
   }catch(e1){
@@ -826,27 +829,37 @@ function renderLabelPreview(){
   let list=labelProducts();
   let prev=document.getElementById('lbl-preview');
   if(!list.length){prev.innerHTML='<div style="padding:30px;text-align:center;color:#999">No products match</div>';return;}
-  let html='<div style="color:#333;font-size:12px;margin-bottom:10px;font-weight:600">'+list.length+' labels — grouped by category</div>';
+  let withBc=list.filter(p=>p.barcode&&bcD(p.barcode).length>=4).length;
+  let html='<div style="color:#333;font-size:12px;margin-bottom:10px;font-weight:600">'+list.length+' labels ('+withBc+' with barcodes, '+(list.length-withBc)+' without)</div>';
   let lastCat=null;
   list.slice(0,60).forEach(p=>{
     if(p.cat!==lastCat){
       let cn=categories.find(c=>c.id===p.cat); cn=cn?cn.name:p.cat;
-      html+='<div style="font-size:11px;font-weight:800;color:#555;text-transform:uppercase;margin:14px 0 6px;border-bottom:2px solid #333;padding-bottom:3px">'+cn+'</div>';
+      html+='<div style="font-size:11px;font-weight:800;color:#fff;background:#1e1e28;padding:5px 10px;margin:14px 0 6px;border-radius:4px;text-transform:uppercase">'+cn+'</div>';
       lastCat=p.cat;
     }
     let bc=genBarcodeFor(p);
+    let hasBc=!!(p.barcode&&bcD(p.barcode).length>=4);
     let cat=categories.find(c=>c.id===p.cat);
     let sub=cat?cat.subs.find(s=>s.id===p.sub):null;
-    html+='<div style="display:inline-block;width:47%;margin:1.5%;border:1px solid #999;border-radius:8px;padding:10px;text-align:center;vertical-align:top;box-sizing:border-box;background:#fff">'
-      +'<div style="font-size:10px;font-weight:700;color:#000;line-height:1.2;margin-bottom:6px;min-height:24px;overflow:hidden">'+p.name+'</div>'
-      +'<div style="width:100%;overflow:hidden"><svg class="lbl-bc" data-code="'+bc+'" style="max-width:100%;height:auto;display:block;margin:0 auto"></svg></div>'
-      +'<div style="font-size:8px;color:#666;margin-top:4px">'+(sub?sub.name:'')+' · '+p.sku+'</div>'
+    // Same size box for all products
+    html+='<div style="display:inline-block;width:47%;margin:1.5%;border:'+(hasBc?'1px solid #999':'1px dashed #ccc')+';border-radius:8px;padding:10px;text-align:center;vertical-align:top;box-sizing:border-box;background:'+(hasBc?'#fff':'#fafafa')+';min-height:120px">'
+      +'<div style="font-size:10px;font-weight:700;color:#000;line-height:1.3;margin-bottom:8px;min-height:26px;overflow:hidden;word-break:break-word">'+p.name+'</div>'
+      +(hasBc
+        ?'<div style="width:100%;overflow:hidden"><svg class="lbl-bc" data-code="'+bc+'" style="max-width:100%;height:auto;display:block;margin:0 auto"></svg></div>'
+        :'<div style="height:42px;display:flex;align-items:center;justify-content:center;background:#f0f0f0;border-radius:4px;margin:4px 0"><span style="font-size:9px;color:#999;font-family:monospace">No barcode · '+bc+'</span></div>'
+      )
+      +'<div style="font-size:8px;color:'+(hasBc?'#666':'#aaa')+';margin-top:6px">'+(sub?sub.name:'')+' · '+p.sku+'</div>'
       +'</div>';
   });
-  if(list.length>60)html+='<div style="color:#999;font-size:11px;padding:10px;text-align:center">Preview limited to 60 — PDF includes all '+list.length+'</div>';
+  if(list.length>60)html+='<div style="color:#999;font-size:11px;padding:10px;text-align:center">Preview: first 60 shown. PDF includes all '+list.length+'</div>';
   prev.innerHTML=html;
+  // Render barcodes for products that have them
   prev.querySelectorAll('.lbl-bc').forEach(svg=>{
-    try{JsBarcode(svg,svg.dataset.code,{format:'CODE128',width:1.6,height:42,displayValue:true,fontSize:13,margin:4});}catch(e){}
+    try{JsBarcode(svg,svg.dataset.code,{format:'CODE128',width:1.6,height:40,displayValue:true,fontSize:12,margin:3});}catch(e){
+      // Replace failed barcode with error text
+      svg.parentNode.innerHTML='<div style="font-size:9px;color:#c00;padding:4px">Barcode error</div>';
+    }
   });
 }
 async function downloadLabelsPDF(){
@@ -865,76 +878,116 @@ async function downloadLabelsPDF(){
   try{
     let {jsPDF}=window.jspdf;
     let doc=new jsPDF({unit:'mm',format:'a4'});
-  let pageW=210,pageH=297,margin=12,cols=2,gap=6;
-  let labelW=(pageW-margin*2-gap*(cols-1))/cols; // ~87mm
-  let labelH=46;
-  let pad=4;
-  let x=margin,y=margin,col=0,lastCat=null;
-  for(let p of list){
-    if(p.cat!==lastCat){
-      if(col!==0){col=0;x=margin;y+=labelH+gap;}
-      if(y+12>pageH-margin){doc.addPage();y=margin;}
-      doc.setFillColor(35,35,40);doc.roundedRect(margin,y,pageW-margin*2,8,1,1,'F');
-      doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont(undefined,'bold');
-      let cn=categories.find(c=>c.id===p.cat);cn=cn?cn.name:p.cat;
-      doc.text(cn.toUpperCase(),margin+3,y+5.5);
-      y+=8+gap;lastCat=p.cat;
+    // Layout constants — all labels same size regardless of barcode presence
+    let pageW=210, pageH=297, margin=10, cols=2, colGap=8, rowGap=6;
+    let labelW=Math.floor((pageW - margin*2 - colGap*(cols-1)) / cols); // ~91mm
+    let labelH=52; // tall enough for name(2lines)+bars+number+sku
+    let pad=5;
+    let x=margin, y=margin, col=0, lastCat=null;
+
+    for(let p of list){
+      // Category header — full width, dark bar
+      if(p.cat!==lastCat){
+        if(col!==0){ col=0; x=margin; y+=labelH+rowGap; }
+        if(y+12>pageH-margin){ doc.addPage(); y=margin; }
+        doc.setFillColor(30,30,40);
+        doc.rect(margin, y, pageW-margin*2, 9, 'F');
+        doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont(undefined,'bold');
+        let cn=categories.find(c=>c.id===p.cat); cn=cn?cn.name:p.cat;
+        doc.text(cn.toUpperCase(), margin+4, y+6.2);
+        y+=9+rowGap; lastCat=p.cat;
+      }
+      if(y+labelH>pageH-margin){ doc.addPage(); y=margin; col=0; x=margin; }
+
+      let bc=genBarcodeFor(p);
+      let hasRealBc=!!(p.barcode&&bcD(p.barcode).length>=4);
+
+      // ── Card border ──
+      doc.setDrawColor(hasRealBc?140:200, hasRealBc?140:200, hasRealBc?140:200);
+      doc.setLineWidth(hasRealBc?0.5:0.3);
+      doc.roundedRect(x, y, labelW, labelH, 2, 2, 'S');
+      // Subtle fill for no-barcode products
+      if(!hasRealBc){
+        doc.setFillColor(252,252,252);
+        doc.roundedRect(x, y, labelW, labelH, 2, 2, 'F');
+        doc.setDrawColor(200,200,200); doc.roundedRect(x, y, labelW, labelH, 2, 2, 'S');
+      }
+
+      let cx=x+labelW/2;
+
+      // ── Product name (top, max 2 lines) ──
+      doc.setTextColor(0,0,0); doc.setFontSize(8.5); doc.setFont(undefined,'bold');
+      let nl=doc.splitTextToSize(p.name, labelW-pad*2);
+      let nameLines=nl.slice(0,2);
+      let nameH=nameLines.length*4.5;
+      doc.text(nameLines, cx, y+pad+3, {align:'center', lineHeightFactor:1.2});
+
+      let contentTop=y+pad+3+nameH+2; // below name
+
+      // ── Barcode section ──
+      if(hasRealBc){
+        // Real barcode — render bars
+        let canvas=document.createElement('canvas');
+        let barsOk=false;
+        try{
+          JsBarcode(canvas,bc,{format:'CODE128',width:2,height:80,displayValue:false,margin:0});
+          barsOk=true;
+        }catch(e){}
+
+        if(barsOk){
+          let img=canvas.toDataURL('image/png');
+          let ratio=canvas.height/canvas.width;
+          // Bars: fill available width, capped height
+          let availW=labelW-pad*2-4;
+          let availH=labelH-nameH-20; // reserve 20mm for number+sku
+          let barW=availW;
+          let barH=barW*ratio;
+          if(barH>availH){ barH=availH; barW=barH/ratio; }
+          let barX=cx-barW/2;
+          doc.addImage(img,'PNG',barX,contentTop,barW,barH);
+
+          // Barcode number — always below bars, always inside card
+          let numY=contentTop+barH+4;
+          doc.setFontSize(9.5); doc.setFont('courier','bold'); doc.setTextColor(0,0,0);
+          doc.text(bc, cx, numY, {align:'center'});
+
+          // SKU + vendor at very bottom
+          doc.setFontSize(6); doc.setFont(undefined,'normal'); doc.setTextColor(120,120,120);
+          let cat=categories.find(c=>c.id===p.cat);
+          let sub=cat?cat.subs.find(s=>s.id===p.sub):null;
+          doc.text((sub?sub.name:'')+' · '+p.sku, cx, y+labelH-2, {align:'center'});
+        }
+      }else{
+        // No real barcode — show placeholder with auto-code info
+        doc.setFontSize(7.5); doc.setFont(undefined,'normal'); doc.setTextColor(160,160,160);
+        doc.text('No barcode registered', cx, contentTop+6, {align:'center'});
+        doc.text('Auto code: '+bc, cx, contentTop+11, {align:'center'});
+        // Dashed border around placeholder area
+        doc.setDrawColor(210,210,210); doc.setLineWidth(0.3);
+        let phW=labelW-pad*2-4, phH=15;
+        doc.rect(cx-phW/2, contentTop, phW, phH, 'S');
+        // SKU at bottom
+        doc.setFontSize(6); doc.setTextColor(150,150,150);
+        let cat=categories.find(c=>c.id===p.cat);
+        let sub=cat?cat.subs.find(s=>s.id===p.sub):null;
+        doc.text((sub?sub.name:'')+' · '+p.sku, cx, y+labelH-2, {align:'center'});
+      }
+
+      col++;
+      if(col>=cols){ col=0; x=margin; y+=labelH+rowGap; }
+      else{ x+=labelW+colGap; }
     }
-    if(y+labelH>pageH-margin){doc.addPage();y=margin;col=0;x=margin;}
-    let bc=genBarcodeFor(p);
-    // Generate ONLY the bars (no text) — we draw the number ourselves below
-    let canvas=document.createElement('canvas');
-    try{
-      JsBarcode(canvas,bc,{format:'CODE128',width:2,height:80,displayValue:false,margin:0});
-    }catch(e){continue;}
-    let img=canvas.toDataURL('image/png');
-    let barRatio=canvas.height/canvas.width; // height/width of bars only
 
-    // Card border
-    doc.setDrawColor(140,140,140);doc.setLineWidth(0.4);
-    doc.roundedRect(x,y,labelW,labelH,2,2,'S');
-
-    let cx=x+labelW/2;
-
-    // Product name (top, max 2 lines, centered)
-    doc.setTextColor(0,0,0);doc.setFontSize(8.5);doc.setFont(undefined,'bold');
-    let nl=doc.splitTextToSize(p.name,labelW-pad*2);
-    doc.text(nl.slice(0,2),cx,y+5,{align:'center',lineHeightFactor:1.15});
-
-    // Barcode bars — fixed box, centered, never overflow
-    let barBoxW=labelW-pad*2-6;   // leave 3mm side margins inside card
-    let barBoxH=16;               // fixed bar height
-    let barW=barBoxW;
-    let barH=barW*barRatio;
-    if(barH>barBoxH){ barH=barBoxH; barW=barH/barRatio; }
-    if(barW>barBoxW){ barW=barBoxW; barH=barW*barRatio; }
-    let barX=cx-barW/2;
-    let barY=y+14;
-    doc.addImage(img,'PNG',barX,barY,barW,barH);
-
-    // Barcode NUMBER — drawn by jsPDF, guaranteed inside the card
-    doc.setFontSize(10);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
-    doc.text(bc,cx,barY+barH+5,{align:'center'});
-
-    // Meta line (vendor · SKU) at very bottom
-    doc.setFontSize(6.5);doc.setFont(undefined,'normal');doc.setTextColor(110,110,110);
-    let cat=categories.find(c=>c.id===p.cat);
-    let sub=cat?cat.subs.find(s=>s.id===p.sub):null;
-    doc.text((sub?sub.name:'')+'  ·  '+p.sku,cx,y+labelH-2.5,{align:'center'});
-
-    col++;
-    if(col>=cols){col=0;x=margin;y+=labelH+gap;}else{x+=labelW+gap;}
-  }
-  let fname='CityStar-Shelf-Labels';
-  let cf=document.getElementById('lbl-cat').value;
-  if(cf){let cn=categories.find(c=>c.id===cf);if(cn)fname+='-'+cn.name.replace(/\s+/g,'-');}
-  doc.save(fname+'.pdf');
-  btn.textContent='⬇  Download PDF';btn.disabled=false;
-  toast('✓ PDF downloaded ('+list.length+' labels)','ok');
+    let fname='CityStar-Shelf-Labels';
+    let cf=document.getElementById('lbl-cat').value;
+    if(cf){let cn=categories.find(c=>c.id===cf);if(cn)fname+='-'+cn.name.replace(/\s+/g,'-');}
+    doc.save(fname+'.pdf');
+    btn.textContent='⬇  Download PDF'; btn.disabled=false;
+    toast('✓ PDF: '+list.length+' labels ('+list.filter(p=>p.barcode&&bcD(p.barcode).length>=4).length+' with barcodes)','ok');
   }catch(genErr){
     console.error('PDF gen error:',genErr);
-    toast('PDF generation failed: '+genErr.message,'err');
-    btn.textContent='⬇  Download PDF';btn.disabled=false;
+    toast('PDF error: '+genErr.message,'err');
+    btn.textContent='⬇  Download PDF'; btn.disabled=false;
   }
 }
 
@@ -942,28 +995,45 @@ async function downloadLabelsPDF(){
 // sbInit() loads local barcodes, builds sequence, and renders.
 // No blocking — barcodes work offline immediately.
 sbInit();
-(async function(){
+(async function bootCam(){
   let gate=document.getElementById('cam-gate');
-  // 1. If Permissions API says granted → start immediately
+  gate.style.display='none'; // always start hidden
+
+  // Check Permissions API (Chrome/Android/newer Safari)
   try{
     if(navigator.permissions&&navigator.permissions.query){
       let st=await navigator.permissions.query({name:'camera'});
-      if(st.state==='granted'){ startCamera(); return; }
-      if(st.state==='denied'){
-        camErr('Camera blocked','Enable camera for this site in browser settings, then tap Retry.');
+      if(st.state==='granted'){
+        startCamera(); // silent, no prompt
+        // Watch for permission changes
+        st.onchange=()=>{ if(st.state==='granted'&&!_camStarted)startCamera(); };
         return;
       }
+      if(st.state==='denied'){
+        camErr('Camera blocked','Go to browser Settings → Site Settings → Camera → Allow this site.');
+        return;
+      }
+      // 'prompt' state — fall through to check cam_ok flag
     }
   }catch(e){}
-  // 2. iOS Safari has no Permissions API. If user allowed before (saved flag),
-  //    try to start silently — the browser remembers the grant for the site.
+
+  // iOS Safari: no Permissions API, but browser remembers the grant per-site.
+  // If cam_ok flag is set, getUserMedia will succeed silently (no prompt shown).
   if(localStorage.getItem('cam_ok')==='1'){
     startCamera();
     return;
   }
-  // 3. First ever visit → show the tap-to-enable gate
+
+  // Very first visit on this device → show the tap-to-enable button
   gate.style.display='flex';
 })();
+
+// Resume camera when user comes back to this tab/page
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&_camStarted&&_scanTimer===null){
+    startCamera();
+  }
+});
 </script>
 </body>
 </html>
