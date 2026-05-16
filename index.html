@@ -444,14 +444,18 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 
 <!-- STOCK IN -->
 <div class="page" id="page-stockin">
-  <div class="pt">Stock in</div><div class="ps">Scan barcode or select product</div>
+  <div class="pt">Stock in</div><div class="ps">Scan a product barcode to add stock</div>
   <div class="si-layout">
     <div>
+      <!-- Big camera scan button - primary action -->
       <div class="card mb10">
-        <div class="sec">Scan barcode</div>
+        <button onclick="openCamera(r=>handleScannedBarcode(r,'stockin'))" style="width:100%;padding:20px 16px;background:linear-gradient(135deg,var(--pu),var(--pu3));border:none;border-radius:var(--rl);cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:12px;box-shadow:var(--sh-pu);transition:opacity .15s" onmousedown="this.style.opacity='.85'" onmouseup="this.style.opacity='1'" ontouchstart="this.style.opacity='.85'" ontouchend="this.style.opacity='1'">
+          <div style="width:52px;height:52px;background:rgba(255,255,255,.2);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="28" height="28" style="color:#fff"><use href="#ic-cam"/></svg></div>
+          <div style="text-align:left"><div style="font-size:17px;font-weight:800;color:#fff;letter-spacing:-.01em">Scan barcode</div><div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px">Point camera at product barcode</div></div>
+        </button>
+        <!-- Text search as secondary -->
         <div class="scan-bar">
-          <div class="scan-wrap"><span class="scan-ico"><svg width="17" height="17"><use href="#ic-barcode"/></svg></span><input type="text" id="si-inp" placeholder="Scan or type product…" oninput="siLook()" onkeydown="if(event.key==='Enter')siConfirmFirst()" autocomplete="off" inputmode="text"/></div>
-          <button class="scan-btn" onclick="openCamera(r=>handleScannedBarcode(r,'stockin'))" title="Camera"><svg width="18" height="18"><use href="#ic-cam"/></svg></button>
+          <div class="scan-wrap"><span class="scan-ico"><svg width="17" height="17"><use href="#ic-barcode"/></svg></span><input type="text" id="si-inp" placeholder="Or type product name / barcode…" oninput="siLook()" onkeydown="if(event.key==='Enter')siConfirmFirst()" autocomplete="off" inputmode="text"/></div>
           <button class="scan-btn" onclick="siClear()" title="Clear"><svg width="15" height="15"><use href="#ic-x"/></svg></button>
         </div>
         <div id="si-tip" style="display:none"></div>
@@ -473,13 +477,14 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
   <div class="si-layout">
     <div>
       <div class="card mb10">
-        <div class="sec">Find product</div>
+        <button onclick="openCamera(r=>handleScannedBarcode(r,'stockout'))" style="width:100%;padding:20px 16px;background:linear-gradient(135deg,var(--rd),var(--rd3));border:none;border-radius:var(--rl);cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:12px;box-shadow:0 4px 16px rgba(220,38,38,.28);transition:opacity .15s" onmousedown="this.style.opacity='.85'" onmouseup="this.style.opacity='1'" ontouchstart="this.style.opacity='.85'" ontouchend="this.style.opacity='1'">
+          <div style="width:52px;height:52px;background:rgba(255,255,255,.2);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="28" height="28" style="color:#fff"><use href="#ic-cam"/></svg></div>
+          <div style="text-align:left"><div style="font-size:17px;font-weight:800;color:#fff;letter-spacing:-.01em">Scan barcode</div><div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px">Point camera at product barcode</div></div>
+        </button>
         <div class="scan-bar">
-          <div class="scan-wrap"><span class="scan-ico"><svg width="17" height="17"><use href="#ic-barcode"/></svg></span><input type="text" id="so-inp" placeholder="Scan barcode or search…" oninput="soRender()" style="padding-left:38px" autocomplete="off"/></div>
-          <button class="scan-btn" onclick="openCamera(r=>handleScannedBarcode(r,'stockout'))" title="Camera"><svg width="18" height="18"><use href="#ic-cam"/></svg></button>
+          <div class="scan-wrap"><span class="scan-ico"><svg width="17" height="17"><use href="#ic-barcode"/></svg></span><input type="text" id="so-inp" placeholder="Or search product name / barcode…" oninput="soRender()" style="padding-left:38px" autocomplete="off"/></div>
           <button class="scan-btn" onclick="document.getElementById('so-inp').value='';soRender()" title="Clear"><svg width="15" height="15"><use href="#ic-x"/></svg></button>
         </div>
-        <div style="font-size:11px;color:var(--tx3);margin-bottom:8px">Last 4 barcode digits ignored automatically</div>
         <div class="plist" id="so-list" style="max-height:340px;overflow-y:auto"></div>
       </div>
     </div>
@@ -1293,14 +1298,23 @@ let siProdId = null, soProdId = null, currentOType = null;
 window.rackMap = window.rackMap || {};
 
 // Merge barcodes registered on this device (from register.html)
+// Also restore any locally-cached photos (backup against DB failures)
 (function mergeLocalProducts(){
   try{
     let raw=localStorage.getItem('citystar_barcodes_v1');
-    if(!raw)return;
-    let barcodeMap=JSON.parse(raw);
-    for(let pid in barcodeMap){
+    if(raw){
+      let barcodeMap=JSON.parse(raw);
+      for(let pid in barcodeMap){
+        let p=products.find(x=>x.id==parseInt(pid));
+        if(p && barcodeMap[pid]) p.barcode=barcodeMap[pid];
+      }
+    }
+  }catch(e){}
+  try{
+    let photos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');
+    for(let pid in photos){
       let p=products.find(x=>x.id==parseInt(pid));
-      if(p && barcodeMap[pid]) p.barcode=barcodeMap[pid];
+      if(p && photos[pid] && !p.photo) p.photo=photos[pid];
     }
   }catch(e){}
 })();
@@ -2058,7 +2072,7 @@ function siInit() {
   sel.innerHTML='<option value="">All categories</option>'+categories.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
   siRenderList();
   document.getElementById('si-right').innerHTML='<div class="si-empty"><svg width="48" height="48" style="opacity:.2"><use href="#ic-barcode"/></svg><div style="font-size:14px;font-weight:500">Ready to scan</div><div style="font-size:12px;color:var(--tx3)">Tap camera or select from list</div></div>';
-  setTimeout(()=>{ let inp=document.getElementById('si-inp'); if(inp) inp.focus(); },100);
+  // No auto-focus — prevents keyboard popping on mobile
 }
 function siRenderList() {
   let catF=document.getElementById('si-cat-sel').value;
@@ -2070,9 +2084,13 @@ function pRow(p, onclick, hl) {
   let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
   let nm=p.name;
   if(hl){try{let re=new RegExp(hl.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');nm=p.name.replace(re,m=>'<mark style="background:var(--am2);border-radius:2px">'+m+'</mark>');}catch(e){}}
+  let rack=window.rackMap&&window.rackMap[p.id];
+  let rackBadge=rack
+    ?'<span style="font-size:9px;font-weight:700;background:#EFF6FF;color:#2563EB;border-radius:4px;padding:1px 5px;margin-left:4px">📍R'+rack.replace(/^R/,'')+'</span>'
+    :'<span style="font-size:9px;color:var(--tx3);margin-left:4px">No rack</span>';
   return '<div class="prow" onclick="'+onclick+'">'
     +'<div class="picon"><svg width="15" height="15" style="color:var(--pu3)"><use href="#ic-pkg"/></svg></div>'
-    +'<div style="flex:1;min-width:0"><div class="pname">'+nm+'</div><div class="psub">'+cN(p.cat)+' › '+sN(p.cat,p.sub)+bc+'</div></div>'
+    +'<div style="flex:1;min-width:0"><div class="pname">'+nm+'</div><div class="psub">'+cN(p.cat)+' › '+sN(p.cat,p.sub)+bc+rackBadge+'</div></div>'
     +'<div class="pqty" style="color:'+qc+'">'+p.qty+'</div>'
     +'</div>';
 }
@@ -2080,7 +2098,7 @@ function pRow(p, onclick, hl) {
 let _siT=null;
 function siLook(){clearTimeout(_siT);_siT=setTimeout(_siNow,120);}
 function siClear(){
-  let inp=document.getElementById('si-inp');if(inp){inp.value='';inp.focus();}
+  let inp=document.getElementById('si-inp');if(inp){inp.value='';inp.blur();}
   let fz=document.getElementById('si-fuzzy');if(fz)fz.style.display='none';
   let tip=document.getElementById('si-tip');if(tip)tip.style.display='none';
 }
@@ -2432,7 +2450,10 @@ function renderProds(){
             +'<button class="btn btn-sm w100" onclick="openSI('+p.id+')" style="justify-content:center;padding:9px"><svg width="13" height="13"><use href="#ic-in"/></svg> Stock in</button>'
             +'<button class="btn btn-sm w100" onclick="openRegisterBc('+p.id+')" style="justify-content:center;padding:9px;background:var(--pu2);color:var(--pu3);border-color:transparent">🔳 '+(p.barcode?'Edit barcode':'Register barcode')+'</button>'
             +'<button class="btn btn-sm w100" onclick="openEditProd('+p.id+')" style="justify-content:center;padding:9px;background:var(--am2);color:var(--am3);border-color:transparent"><svg width="13" height="13"><use href="#ic-edit"/></svg> Edit</button>'
-            +'<button class="btn btn-sm w100 btn-rd" onclick="delProd('+p.id+')" style="justify-content:center;padding:9px"><svg width="13" height="13"><use href="#ic-trash"/></svg> Delete</button>'
+            +(window.rackMap&&window.rackMap[p.id]
+              ?'<button class="btn btn-sm w100" onclick="location.href=\'rack.html\'" style="justify-content:center;padding:9px;background:#EFF6FF;color:#2563EB;border-color:#BFDBFE">📍 Rack '+(window.rackMap[p.id]||'').replace(/^R/,'')+'</button>'
+              :'<button class="btn btn-sm w100" onclick="location.href=\'rack.html\'" style="justify-content:center;padding:9px;background:var(--am2);color:var(--am3);border-color:transparent">📍 Assign rack</button>'
+            )
           +'</div>'
           +'</div>';
         return '<div style="border-bottom:1px solid var(--bdr)">'
@@ -2440,7 +2461,11 @@ function renderProds(){
             +photoThumb
             +'<div style="flex:1;min-width:0">'
               +'<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nm+'</div>'
-              +'<div style="font-size:11px;color:var(--tx3);margin-top:1px">'+p.sku+'</div>'
+              +'<div style="font-size:11px;color:var(--tx3);margin-top:1px;display:flex;align-items:center;gap:4px">'+p.sku
+              +(window.rackMap&&window.rackMap[p.id]
+                ?'<span style="font-size:9px;font-weight:700;background:#EFF6FF;color:#2563EB;border-radius:4px;padding:1px 5px">📍 Rack '+(window.rackMap[p.id]||'').replace(/^R/,'')+'</span>'
+                :'<span style="font-size:9px;color:var(--tx3)">No rack</span>'
+              )+'</div>'
             +'</div>'
             +'<div style="text-align:right;flex-shrink:0">'
               +'<div style="font-size:16px;font-weight:800;color:'+qc+'">'+p.qty+'</div>'
@@ -2479,11 +2504,21 @@ function uploadPhotoInline(pid, input){
   let file=input.files[0]; if(!file)return;
   let reader=new FileReader();
   reader.onload=e=>{
-    let p=gP(pid);
+    let p=gP(pid); if(!p)return;
     p.photo=e.target.result;
-    sbPushProduct(p);
-    toast('✓ Photo saved');
-    renderProds(); // re-render to show new photo
+    // Save to localStorage as backup — protects against DB sync failures
+    try{
+      let photos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');
+      photos[pid]=e.target.result;
+      localStorage.setItem('citystar_photos_v1',JSON.stringify(photos));
+    }catch(ex){}
+    // Push to Supabase (best-effort, localStorage is fallback)
+    sbPushProduct(p).then(()=>{
+      toast('✓ Photo saved');
+    }).catch(()=>{
+      toast('✓ Photo saved locally (sync later)','syn');
+    });
+    renderProds();
   };
   reader.readAsDataURL(file);
 }
@@ -2491,6 +2526,11 @@ function uploadPhotoInline(pid, input){
 function removePhotoInline(pid){
   let p=gP(pid); if(!p)return;
   p.photo=null;
+  try{
+    let photos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');
+    delete photos[pid];
+    localStorage.setItem('citystar_photos_v1',JSON.stringify(photos));
+  }catch(e){}
   sbPushProduct(p);
   toast('Photo removed');
   renderProds();
@@ -3287,7 +3327,15 @@ async function sbPull() {
     if (!pe && prods && prods.length >= 10) {
       let valid=prods.filter(r=>r.id&&r.name&&categories.some(c=>c.id===r.cat));
       if (valid.length >= 10) {
-        products=valid.map(r=>({id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,lastUpdated:r.last_updated,photo:r.photo||undefined}));
+        let localPhotos={};
+        try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
+        products=valid.map(r=>({
+          id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,
+          threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,
+          lastUpdated:r.last_updated,
+          // Use DB photo, but fall back to locally-cached photo if DB has none
+          photo:r.photo||localPhotos[r.id]||undefined
+        }));
         refreshDash();
         if(document.getElementById('page-products').classList.contains('on'))renderProds();
       }
@@ -3315,7 +3363,9 @@ function sbSubscribe(){
     if(payload.eventType==='DELETE'){products=products.filter(p=>p.id!==r.id);}
     else{
       if(!r.cat||!categories.some(c=>c.id===r.cat))return;
-      let mapped={id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,lastUpdated:r.last_updated,photo:r.photo||undefined};
+      let localPhotos={};
+      try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
+      let mapped={id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,lastUpdated:r.last_updated,photo:r.photo||localPhotos[r.id]||undefined};
       let idx=products.findIndex(p=>p.id===r.id);
       if(idx>=0)products[idx]=mapped;else products.push(mapped);
     }
@@ -3348,7 +3398,9 @@ function sbSubscribe(){
 
 async function sbPushProduct(p){
   if(!sbClient)return;
-  try{await sbClient.from('products').upsert({id:p.id,name:p.name,sku:p.sku,cat:p.cat,sub:p.sub,qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',barcode:p.barcode||null,last_updated:p.lastUpdated||null,photo:p.photo||null});}catch(e){}
+  try{
+    await sbClient.from('products').upsert({id:p.id,name:p.name,sku:p.sku,cat:p.cat,sub:p.sub,qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',barcode:p.barcode||null,last_updated:p.lastUpdated||null,photo:p.photo||null});
+  }catch(e){throw e;} // re-throw so callers can catch
 }
 async function sbPushActivity(a){
   if(!sbClient)return;
