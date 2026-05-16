@@ -798,14 +798,22 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
     <div id="si-m-photo"></div>
     <div class="modal-body">
       <div class="fx gap8 mb12"><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:700;line-height:1.3" id="si-m-name"></div><div style="font-size:12px;color:var(--tx2);margin-top:2px" id="si-m-meta"></div><div style="font-size:11px;color:var(--am3);margin-top:2px" id="si-m-bc"></div></div><button class="btn btn-sm" onclick="closeModal('m-si')"><svg width="14" height="14"><use href="#ic-x"/></svg></button></div>
-      <div id="si-m-loc" style="display:none;background:#eaf2ff;border:1px solid #b9d4ff;border-radius:var(--r);padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:10px"><div style="font-size:22px">📍</div><div><div style="font-size:11px;color:#3163c4;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Put it on</div><div style="font-size:17px;font-weight:800;color:#1a3f8a" id="si-m-loc-v">Rack —</div></div></div>
+      <div id="si-m-loc" style="display:none;background:#eaf2ff;border:1px solid #b9d4ff;border-radius:var(--r);padding:10px 12px;margin-bottom:12px;align-items:center;gap:10px"><div style="font-size:22px">📍</div><div><div style="font-size:11px;color:#3163c4;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Put it on</div><div style="font-size:17px;font-weight:800;color:#1a3f8a" id="si-m-loc-v">Rack —</div></div></div>
       <div class="g3 mb14">
         <div style="background:var(--sur2);border-radius:var(--r);padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;line-height:1" id="si-m-qty">0</div><div style="font-size:10px;color:var(--tx3);margin-top:2px">in stock</div></div>
         <div style="background:var(--sur2);border-radius:var(--r);padding:8px;text-align:center"><div id="si-m-stat" style="font-size:12px;font-weight:500"></div><div style="font-size:10px;color:var(--tx3);margin-top:2px">status</div></div>
         <div style="background:var(--sur2);border-radius:var(--r);padding:8px;text-align:center"><div id="si-m-upd" style="font-size:11px;font-weight:500"></div><div style="font-size:10px;color:var(--tx3);margin-top:2px">updated</div></div>
       </div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Quantity to add <span style="color:var(--rd)">*</span></div>
-      <div class="qty-row"><button class="qbtn" onclick="adjQty(-1)">−</button><input type="number" id="si-qty" class="qnum" placeholder="0" min="1" inputmode="numeric"/><button class="qbtn" onclick="adjQty(1)">+</button></div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Quantity to add</div>
+      <!-- Tap-only stepper — no keyboard, no layout shift -->
+      <div style="display:flex;align-items:center;gap:0;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:var(--rl);overflow:hidden;margin-bottom:14px">
+        <button onclick="adjQty(-5)" style="padding:14px 12px;border:none;background:transparent;font-size:13px;font-weight:700;color:var(--tx2);cursor:pointer;border-right:1px solid var(--bdr)">−5</button>
+        <button onclick="adjQty(-1)" style="padding:14px 16px;border:none;background:transparent;font-size:22px;font-weight:300;color:var(--tx);cursor:pointer;border-right:1px solid var(--bdr)">−</button>
+        <div id="si-qty-disp" style="flex:1;text-align:center;font-size:28px;font-weight:900;color:var(--pu);letter-spacing:-.01em;padding:12px 0;user-select:none">1</div>
+        <button onclick="adjQty(1)" style="padding:14px 16px;border:none;background:transparent;font-size:22px;font-weight:300;color:var(--tx);cursor:pointer;border-left:1px solid var(--bdr)">+</button>
+        <button onclick="adjQty(5)" style="padding:14px 12px;border:none;background:transparent;font-size:13px;font-weight:700;color:var(--tx2);cursor:pointer;border-left:1px solid var(--bdr)">+5</button>
+      </div>
+      <input type="hidden" id="si-qty" value="1"/>
       <div class="g2"><button class="btn w100" onclick="closeModal('m-si')">Cancel</button><button class="btn btn-gn w100" style="font-size:15px;font-weight:700;padding:12px" onclick="confirmSI()"><svg width="16" height="16"><use href="#ic-chk"/></svg> Confirm</button></div>
     </div>
   </div>
@@ -895,12 +903,15 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
           <div style="font-size:10px;color:var(--tx3);margin-top:2px">status</div>
         </div>
       </div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Quantity to remove <span style="color:var(--rd)">*</span></div>
-      <div class="qty-row">
-        <button class="qbtn" onclick="adjSOQty(-1)">−</button>
-        <input type="number" id="so-qty2" class="qnum" placeholder="0" min="1" inputmode="numeric"/>
-        <button class="qbtn" onclick="adjSOQty(1)">+</button>
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Quantity to remove</div>
+      <div style="display:flex;align-items:center;gap:0;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:var(--rl);overflow:hidden;margin-bottom:14px">
+        <button onclick="adjSOQty(-5)" style="padding:14px 12px;border:none;background:transparent;font-size:13px;font-weight:700;color:var(--tx2);cursor:pointer;border-right:1px solid var(--bdr)">−5</button>
+        <button onclick="adjSOQty(-1)" style="padding:14px 16px;border:none;background:transparent;font-size:22px;font-weight:300;color:var(--tx);cursor:pointer;border-right:1px solid var(--bdr)">−</button>
+        <div id="so-qty-disp" style="flex:1;text-align:center;font-size:28px;font-weight:900;color:var(--rd);letter-spacing:-.01em;padding:12px 0;user-select:none">1</div>
+        <button onclick="adjSOQty(1)" style="padding:14px 16px;border:none;background:transparent;font-size:22px;font-weight:300;color:var(--tx);cursor:pointer;border-left:1px solid var(--bdr)">+</button>
+        <button onclick="adjSOQty(5)" style="padding:14px 12px;border:none;background:transparent;font-size:13px;font-weight:700;color:var(--tx2);cursor:pointer;border-left:1px solid var(--bdr)">+5</button>
       </div>
+      <input type="hidden" id="so-qty2" value="1"/>
       <div style="font-size:13px;font-weight:600;margin-bottom:10px">Where is this going? <span style="color:var(--rd)">*</span></div>
       <div style="display:flex;gap:10px;margin-bottom:12px">
         <button class="dest-btn" id="so-dest-shop" data-dest="shop" onclick="soSelectDest('shop')">
@@ -1280,6 +1291,19 @@ function fuzzy(q, pool, lim) {
 let currentRole = '', currentUser = '', currentUserId = '';
 let siProdId = null, soProdId = null, currentOType = null;
 window.rackMap = window.rackMap || {};
+
+// Merge barcodes registered on this device (from register.html)
+(function mergeLocalProducts(){
+  try{
+    let raw=localStorage.getItem('citystar_barcodes_v1');
+    if(!raw)return;
+    let barcodeMap=JSON.parse(raw);
+    for(let pid in barcodeMap){
+      let p=products.find(x=>x.id==parseInt(pid));
+      if(p && barcodeMap[pid]) p.barcode=barcodeMap[pid];
+    }
+  }catch(e){}
+})();
 let waConfig = {server: 'http://localhost:3456', phone: ''};
 let noRowsList = [];
 
@@ -2115,12 +2139,22 @@ function openSI(pid){
   document.getElementById('si-m-stat').innerHTML=statHtml;
   let updEl=document.getElementById('si-m-upd');if(updEl){updEl.textContent=fmtDate(p.lastUpdated);updEl.className='lu '+dateAge(p.lastUpdated);}
   document.getElementById('si-qty').value='';
+  _siQty=1;
+  let disp=document.getElementById('si-qty-disp');
+  if(disp)disp.textContent='1';
   openModal('m-si');
-  setTimeout(()=>{let qi=document.getElementById('si-qty');if(qi)qi.focus();},180);
+  // No focus() call — prevents keyboard from opening on mobile
 }
-function adjQty(d){let i=document.getElementById('si-qty');i.value=Math.max(1,(parseInt(i.value)||0)+d);}
+let _siQty=1;
+function adjQty(d){
+  _siQty=Math.max(1,_siQty+d);
+  let disp=document.getElementById('si-qty-disp');
+  let inp=document.getElementById('si-qty');
+  if(disp)disp.textContent=_siQty;
+  if(inp)inp.value=_siQty;
+}
 function confirmSI(){
-  let qty=parseInt(document.getElementById('si-qty').value);
+  let qty=_siQty||parseInt(document.getElementById('si-qty').value)||1;
   if(!qty||qty<1){toast('Enter a valid quantity','rd');return;}
   let p=gP(siProdId);p.qty+=qty;p.lastUpdated=new Date().toISOString().slice(0,10);
   activity.unshift({type:'in',prod:p.name,qty,time:nowT(),user:currentUser||'Unknown'});
@@ -2157,13 +2191,16 @@ function selectSO(id){
   document.getElementById('so-m-qty').textContent=p.qty+' boxes';
   document.getElementById('so-m-stat').innerHTML=p.qty===0?'<span class="badge br">Out</span>':p.qty<=p.threshold?'<span class="badge ba">Low</span>':'<span class="badge bg">OK</span>';
   document.getElementById('so-qty2').value='';
+  _soQty2=1;
+  let soDisp=document.getElementById('so-qty-disp');
+  if(soDisp)soDisp.textContent='1';
   document.getElementById('so-dest-shop').classList.remove('dest-sel');
   document.getElementById('so-dest-del').classList.remove('dest-sel');
   document.getElementById('so-dest-name').value='';
   document.getElementById('so-dest-wrap').style.display='none';
   document.getElementById('so-reason2').value='';
   openModal('m-so');
-  setTimeout(()=>document.getElementById('so-qty2').focus(),180);
+  // No focus() — prevents keyboard from opening on mobile
 }
 function soSelectDest(type){
   let shop=document.getElementById('so-dest-shop'),del=document.getElementById('so-dest-del');
@@ -2174,9 +2211,16 @@ function soSelectDest(type){
   else{del.classList.add('dest-sel');inp.placeholder='Customer name';lbl.textContent='Customer name';}
   wrap.style.display='block';setTimeout(()=>inp.focus(),100);
 }
-function adjSOQty(d){let i=document.getElementById('so-qty2');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+d);}
+let _soQty2=1;
+function adjSOQty(d){
+  _soQty2=Math.max(1,_soQty2+d);
+  let disp=document.getElementById('so-qty-disp');
+  let inp=document.getElementById('so-qty2');
+  if(disp)disp.textContent=_soQty2;
+  if(inp)inp.value=_soQty2;
+}
 function doSO(){
-  let qty=parseInt(document.getElementById('so-qty2').value);
+  let qty=_soQty2||parseInt(document.getElementById('so-qty2').value)||1;
   let p=gP(soProdId);
   if(!qty||qty<1){toast('Enter a valid quantity','rd');return;}
   if(qty>p.qty){toast('Only '+p.qty+' in stock','rd');return;}
