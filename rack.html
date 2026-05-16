@@ -1071,27 +1071,60 @@ function qrDataUrl(text,size){
 async function downloadRackQR(){
   await ensureLibs();
   let {jsPDF}=window.jspdf;
-  let doc=new jsPDF({unit:'mm',format:'a4'});
-  let pw=210,ph=297,m=14,cols=2,gap=10;
-  let cw=(pw-m*2-gap)/cols, chh=cw+22;
-  let x=m,y=m,col=0;
+  // Portrait A4, one rack label per page
+  let doc=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+  let pw=210,ph=297;
+
   for(let i=1;i<=_qrRackCount;i++){
+    if(i>1) doc.addPage();
     let rk='R'+i;
-    if(y+chh>ph-m){doc.addPage();y=m;col=0;x=m;}
-    doc.setDrawColor(60);doc.setLineWidth(.5);doc.roundedRect(x,y,cw,chh,3,3,'S');
-    doc.setFillColor(20,20,28);doc.roundedRect(x,y,cw,16,3,3,'F');doc.rect(x,y+8,cw,8,'F');
-    doc.setTextColor(255);doc.setFontSize(20);doc.setFont(undefined,'bold');
-    doc.text('RACK '+i,x+cw/2,y+11,{align:'center'});
-    let qs=cw-24;
-    let img=qrDataUrl('CSRACK:'+rk,600);
-    doc.addImage(img,'PNG',x+(cw-qs)/2,y+20,qs,qs);
-    doc.setTextColor(0);doc.setFontSize(11);doc.setFont('courier','bold');
-    doc.text('CSRACK:'+rk,x+cw/2,y+chh-4,{align:'center'});
-    col++;
-    if(col>=cols){col=0;x=m;y+=chh+gap;}else{x+=cw+gap;}
+    let cx=pw/2;
+
+    // ── Full-page border ──
+    doc.setDrawColor(40,40,40);doc.setLineWidth(2);
+    doc.roundedRect(8,8,pw-16,ph-16,6,6,'S');
+
+    // ── Top label strip — dark background ──
+    doc.setFillColor(20,20,30);
+    doc.roundedRect(8,8,pw-16,52,6,6,'F');
+    doc.rect(8,42,pw-16,18,'F'); // square off bottom of header
+
+    // ── "CITYSTAR WAREHOUSE" small text ──
+    doc.setTextColor(150,150,180);doc.setFontSize(13);doc.setFont(undefined,'normal');
+    doc.text('CITYSTAR WAREHOUSE',cx,24,{align:'center'});
+
+    // ── "RACK N" — huge ──
+    doc.setTextColor(255,255,255);doc.setFontSize(52);doc.setFont(undefined,'bold');
+    doc.text('RACK '+i,cx,52,{align:'center'});
+
+    // ── QR code — fills most of the page ──
+    let qSize=162; // mm — very large
+    let qX=(pw-qSize)/2;
+    let qY=66;
+    // White background behind QR
+    doc.setFillColor(255,255,255);
+    doc.rect(qX-4,qY-4,qSize+8,qSize+8,'F');
+    // Generate QR at high resolution
+    let qrImg=qrDataUrl('CSRACK:'+rk,1200);
+    doc.addImage(qrImg,'PNG',qX,qY,qSize,qSize);
+
+    // ── Rack code text below QR ──
+    doc.setFontSize(16);doc.setFont('courier','bold');doc.setTextColor(30,30,30);
+    doc.text('CSRACK:'+rk,cx,qY+qSize+14,{align:'center'});
+
+    // ── Scan instruction ──
+    doc.setFontSize(11);doc.setFont(undefined,'normal');doc.setTextColor(100,100,100);
+    doc.text('Scan this QR to view all products on this rack',cx,qY+qSize+24,{align:'center'});
+
+    // ── Bottom footer line ──
+    doc.setDrawColor(200,200,200);doc.setLineWidth(0.4);
+    doc.line(20,ph-22,pw-20,ph-22);
+    doc.setFontSize(9);doc.setTextColor(160,160,160);
+    doc.text('CityStar WMS · Rack '+i+' of '+_qrRackCount,cx,ph-14,{align:'center'});
   }
-  doc.save('CityStar-Rack-QR-Codes.pdf');
-  toast('✓ Rack QR PDF downloaded','ok');
+
+  doc.save('CityStar-Rack-Labels.pdf');
+  toast('✓ Downloaded '+_qrRackCount+' rack labels (1 per page)','ok');
 }
 async function downloadProductLabels(){
   await ensureLibs();
