@@ -221,9 +221,38 @@ input{user-select:auto}
       <span class="logo-sub">Warehouse</span>
     </div>
   </div>
+  <button onclick="openLabels()" style="font-size:11px;font-weight:600;color:var(--am);background:var(--am2);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:6px 11px;cursor:pointer;flex-shrink:0;white-space:nowrap">🏷 Labels</button>
   <div id="user-chip">Loading…</div>
-  <a href="/" class="link-main">← Main app</a>
+  <a href="/" class="link-main">← Main</a>
 </div>
+
+<!-- LABELS MODAL -->
+<div id="labels-modal" style="position:fixed;inset:0;background:rgba(8,10,16,.96);z-index:200;display:none;flex-direction:column">
+  <div style="padding:16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px;flex-shrink:0">
+    <div style="flex:1">
+      <div style="font-size:16px;font-weight:700">🏷 Shelf Labels PDF</div>
+      <div style="font-size:11px;color:var(--tx3);margin-top:2px">Printable barcode labels for racks</div>
+    </div>
+    <button onclick="document.getElementById('labels-modal').style.display='none'" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;color:var(--tx2);padding:7px 12px;font-size:13px;cursor:pointer">✕</button>
+  </div>
+  <div style="padding:16px;flex-shrink:0;border-bottom:1px solid var(--bdr)">
+    <div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Which products</div>
+    <select id="lbl-scope" style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--tx);margin-bottom:10px">
+      <option value="withbc">Only products with barcodes</option>
+      <option value="all">All products (generate codes for missing)</option>
+    </select>
+    <div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Category</div>
+    <select id="lbl-cat" style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--tx)">
+      <option value="">All categories</option>
+    </select>
+  </div>
+  <div id="lbl-preview" style="flex:1;overflow-y:auto;padding:12px;background:#fff"></div>
+  <div style="padding:14px 16px 24px;flex-shrink:0;border-top:1px solid var(--bdr);display:flex;gap:10px">
+    <button onclick="document.getElementById('labels-modal').style.display='none'" style="flex:0 0 80px;padding:15px;border-radius:12px;border:1.5px solid var(--bdr2);background:var(--sur2);color:var(--tx2);font-size:14px;font-weight:600;cursor:pointer">Cancel</button>
+    <button onclick="downloadLabelsPDF()" id="lbl-dl-btn" style="flex:1;padding:15px;border-radius:12px;border:none;background:var(--am);color:#000;font-size:15px;font-weight:800;cursor:pointer">⬇  Download PDF</button>
+  </div>
+</div>
+
 
 <!-- MODE BAR -->
 <div id="mode-bar">
@@ -239,6 +268,16 @@ input{user-select:auto}
 <div id="cam-area">
   <video id="cam-video" autoplay playsinline muted></video>
   <canvas id="cam-canvas"></canvas>
+
+  <!-- Camera start / error screen -->
+  <div id="cam-gate" style="position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;z-index:40;text-align:center">
+    <div id="cam-gate-icon" style="font-size:48px">📷</div>
+    <div id="cam-gate-title" style="font-size:17px;font-weight:700;color:var(--tx)">Tap to start scanning</div>
+    <div id="cam-gate-msg" style="font-size:13px;color:var(--tx2);max-width:300px;line-height:1.5">Allow camera access when your browser asks. You'll only be asked once.</div>
+    <button id="cam-gate-btn" onclick="startCamera()" style="margin-top:8px;background:var(--pu);color:#fff;border:none;border-radius:14px;padding:16px 36px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(91,71,251,.4)">
+      📷  Enable camera
+    </button>
+  </div>
 
   <!-- Scan window overlay -->
   <div class="scan-window" id="scan-window">
@@ -586,6 +625,18 @@ function setStatus(main, sub) {
 function resetDots() {
   for(let i=0;i<3;i++) document.getElementById('cd'+i).className='cdot';
 }
+function showCamError(title, msg) {
+  let g = document.getElementById('cam-gate');
+  g.style.display = 'flex';
+  document.getElementById('cam-gate-icon').textContent = '⚠️';
+  document.getElementById('cam-gate-title').textContent = title;
+  document.getElementById('cam-gate-msg').textContent = msg;
+  document.getElementById('cam-gate-btn').textContent = '↻  Retry camera';
+}
+function hideCamError() {
+  let g = document.getElementById('cam-gate');
+  if (g) g.style.display = 'none';
+}
 function _onScan(raw) {
   if (_locked) return;
   let d = bcD(raw); if (!d||d.length<4) return;
@@ -602,6 +653,7 @@ function _onScan(raw) {
   setSWState('reading');
   if (cnt>=REQUIRED&&!_locked) {
     _locked=true; _buf=[];
+    _pendingRaw = raw;
     let hit = findByBc(raw);
     if (hit) {
       beep(mode);
@@ -675,13 +727,20 @@ function confirmMatch() {
   let dn=document.getElementById('dest-name').value.trim();
   let actDest=mode==='out'?dest:null;
   let actDestName=mode==='out'?(dn||null):null;
+  // Auto-register barcode: if we scanned a raw code and this product has no barcode, link it
+  let linkedBc = false;
+  if (_pendingRaw && !p.barcode) {
+    p.barcode = bcD(_pendingRaw);
+    linkedBc = true;
+  }
   if(mode==='in') p.qty+=qty; else p.qty-=qty;
   p.lastUpdated=new Date().toISOString().slice(0,10);
   document.getElementById('match-panel').classList.remove('show');
   addToLog(p,qty,actDest,actDestName);
   sbPushProduct(p);
   sbPushActivity({type:mode,prod:p.name,qty,time:nowT(),user:currentUser,dest:actDest,destName:actDestName});
-  _pendingProd=null; resetScan();
+  if (linkedBc) syncToast('✓ Barcode '+p.barcode+' registered','ok');
+  _pendingProd=null; _pendingRaw=null; resetScan();
 }
 
 // ── NOT FOUND ─────────────────────────────────────────────────────
@@ -883,8 +942,167 @@ function sbSubscribe() {
 // ── BOOT ──────────────────────────────────────────────────────────
 setMode('in');
 setDest('shop');
-startCamera();
 sbInit();
+
+// ── SHELF LABEL PDF ───────────────────────────────────────────────
+let _libsLoaded = false;
+function loadLib(src) {
+  return new Promise((res,rej)=>{
+    let s=document.createElement('script'); s.src=src;
+    s.onload=res; s.onerror=rej; document.head.appendChild(s);
+  });
+}
+async function ensureLibs() {
+  if (_libsLoaded) return;
+  if (!window.JsBarcode) await loadLib('https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js');
+  if (!window.jspdf)    await loadLib('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js');
+  _libsLoaded = true;
+}
+function genBarcodeFor(p) {
+  // Use existing barcode, or generate a stable one from product id
+  if (p.barcode && bcD(p.barcode).length >= 4) return bcD(p.barcode);
+  // Generate: CS + zero-padded id → numeric Code128
+  return '200' + String(p.id).padStart(6,'0');
+}
+function labelProducts() {
+  let scope = document.getElementById('lbl-scope').value;
+  let catF = document.getElementById('lbl-cat').value;
+  let list = products.filter(p => (!catF || p.cat===catF));
+  if (scope === 'withbc') list = list.filter(p => p.barcode && bcD(p.barcode).length>=4);
+  // Sort by category → brand → name (shelf order)
+  let catOrder = categories.map(c=>c.id);
+  list.sort((a,b) => {
+    let ca=catOrder.indexOf(a.cat), cb=catOrder.indexOf(b.cat);
+    if (ca!==cb) return ca-cb;
+    if (a.sub!==b.sub) return String(a.sub).localeCompare(String(b.sub));
+    return a.name.localeCompare(b.name);
+  });
+  return list;
+}
+async function openLabels() {
+  // Populate category dropdown
+  let sel = document.getElementById('lbl-cat');
+  sel.innerHTML = '<option value="">All categories</option>' +
+    categories.map(c=>'<option value="'+c.id+'">'+c.name+' ('+products.filter(p=>p.cat===c.id).length+')</option>').join('');
+  document.getElementById('labels-modal').style.display='flex';
+  await ensureLibs();
+  renderLabelPreview();
+  sel.onchange = renderLabelPreview;
+  document.getElementById('lbl-scope').onchange = renderLabelPreview;
+}
+function renderLabelPreview() {
+  let list = labelProducts();
+  let prev = document.getElementById('lbl-preview');
+  if (!list.length) { prev.innerHTML='<div style="padding:30px;text-align:center;color:#999">No products match</div>'; return; }
+  let html = '<div style="color:#333;font-size:12px;margin-bottom:10px;font-weight:600">'+list.length+' labels — grouped by category</div>';
+  let lastCat = null;
+  list.slice(0, 60).forEach(p => {
+    if (p.cat !== lastCat) {
+      html += '<div style="font-size:11px;font-weight:800;color:#555;text-transform:uppercase;margin:14px 0 6px;border-bottom:2px solid #333;padding-bottom:3px">'+cN(p.cat)+'</div>';
+      lastCat = p.cat;
+    }
+    let bc = genBarcodeFor(p);
+    html += '<div style="display:inline-block;width:48%;margin:1%;border:1px solid #ccc;border-radius:6px;padding:8px;text-align:center;vertical-align:top;box-sizing:border-box">'
+      + '<div style="font-size:9px;font-weight:700;color:#000;line-height:1.2;margin-bottom:4px;min-height:22px">'+p.name+'</div>'
+      + '<svg class="lbl-bc" data-code="'+bc+'"></svg>'
+      + '<div style="font-size:8px;color:#666;margin-top:2px">'+sN(p.cat,p.sub)+' · '+p.sku+'</div>'
+      + '</div>';
+  });
+  if (list.length > 60) html += '<div style="color:#999;font-size:11px;padding:10px;text-align:center">Preview limited to 60 — PDF includes all '+list.length+'</div>';
+  prev.innerHTML = html;
+  // Render barcodes
+  prev.querySelectorAll('.lbl-bc').forEach(svg => {
+    try { JsBarcode(svg, svg.dataset.code, {format:'CODE128',width:1.4,height:38,fontSize:11,margin:2}); } catch(e) {}
+  });
+}
+async function downloadLabelsPDF() {
+  await ensureLibs();
+  let btn = document.getElementById('lbl-dl-btn');
+  btn.textContent = 'Generating…'; btn.disabled = true;
+  let list = labelProducts();
+  if (!list.length) { syncToast('No products to label','err'); btn.textContent='⬇  Download PDF'; btn.disabled=false; return; }
+
+  let { jsPDF } = window.jspdf;
+  let doc = new jsPDF({unit:'mm',format:'a4'});
+  let pageW=210, pageH=297, margin=10;
+  let cols=3, gap=4;
+  let labelW=(pageW-margin*2-gap*(cols-1))/cols; // ~60mm
+  let labelH=32;
+  let x=margin, y=margin, col=0;
+  let lastCat=null;
+
+  for (let p of list) {
+    // Category header row
+    if (p.cat !== lastCat) {
+      if (col!==0){ col=0; x=margin; y+=labelH+gap; }
+      if (y+10 > pageH-margin){ doc.addPage(); y=margin; }
+      doc.setFillColor(40,40,40);
+      doc.rect(margin, y, pageW-margin*2, 7, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(10);
+      doc.setFont(undefined,'bold');
+      doc.text(cN(p.cat).toUpperCase(), margin+2, y+5);
+      y += 7+gap;
+      lastCat = p.cat;
+    }
+    if (y+labelH > pageH-margin) { doc.addPage(); y=margin; col=0; x=margin; }
+
+    // Make barcode as data URL
+    let bc = genBarcodeFor(p);
+    let canvas = document.createElement('canvas');
+    try { JsBarcode(canvas, bc, {format:'CODE128',width:2,height:50,fontSize:14,margin:4}); } catch(e){ continue; }
+    let img = canvas.toDataURL('image/png');
+
+    // Draw label box
+    doc.setDrawColor(180,180,180);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(x, y, labelW, labelH, 1.5, 1.5, 'S');
+    // Product name (wrapped)
+    doc.setTextColor(0,0,0);
+    doc.setFontSize(7);
+    doc.setFont(undefined,'bold');
+    let nameLines = doc.splitTextToSize(p.name, labelW-4);
+    doc.text(nameLines.slice(0,2), x+labelW/2, y+4, {align:'center'});
+    // Barcode image
+    let bcW=labelW-6, bcH=14;
+    doc.addImage(img, 'PNG', x+3, y+9, bcW, bcH);
+    // Meta line
+    doc.setFontSize(5.5);
+    doc.setFont(undefined,'normal');
+    doc.setTextColor(90,90,90);
+    doc.text(sN(p.cat,p.sub)+' · '+p.sku, x+labelW/2, y+labelH-2, {align:'center'});
+
+    col++;
+    if (col>=cols){ col=0; x=margin; y+=labelH+gap; }
+    else { x += labelW+gap; }
+  }
+
+  let fname = 'CityStar-Shelf-Labels';
+  let cf = document.getElementById('lbl-cat').value;
+  if (cf) fname += '-' + cN(cf).replace(/\s+/g,'-');
+  doc.save(fname + '.pdf');
+  btn.textContent = '⬇  Download PDF'; btn.disabled = false;
+  syncToast('✓ PDF downloaded ('+list.length+' labels)','ok');
+}
+
+
+// Camera: if permission already granted (asked once before), auto-start.
+// Otherwise wait for user tap on the Enable button (browser requires gesture).
+(async function bootCamera(){
+  try {
+    if (navigator.permissions && navigator.permissions.query) {
+      let st = await navigator.permissions.query({name:'camera'});
+      if (st.state === 'granted') {
+        startCamera();
+        return;
+      }
+    }
+  } catch(e) {}
+  // Show the tap-to-enable gate (default state)
+  let g = document.getElementById('cam-gate');
+  if (g) g.style.display = 'flex';
+})();
+
 </script>
 </body>
 </html>
