@@ -285,6 +285,16 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 }
 /* ── ROLES ── */
 body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-events:none}
+/* Operator: hide everything except their 3-action home page */
+body.role-operator #sidebar{display:none !important}
+body.role-operator #bottom-nav{display:none !important}
+body.role-operator #menu-btn{display:none !important}
+body.role-operator .bell-wrap{display:none !important}
+body.role-operator .role-badge{display:none !important}
+body.role-operator #sb-ov{display:none !important}
+/* Operator page fills whole screen */
+body.role-operator #layout{grid-template-columns:1fr !important}
+body.role-operator #main{padding:0 !important}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{animation:spin .8s linear infinite;display:inline-block}
 </style>
@@ -1742,15 +1752,8 @@ function _doLogin(u, _skipSave) {
   let dt = document.getElementById('dash-title'); if (dt) dt.textContent = currentRole === 'owner' ? 'Owner Dashboard' : 'Dashboard';
   let ps = document.getElementById('pin-screen');
   if (ps) { ps.classList.add('hidden'); ps.style.display = 'none'; }
-  let opOnly = currentRole === 'operator';
-  ['ni-cats','ni-orders'].forEach(id => {
-    let el = document.getElementById(id);
-    if (el) { el.style.opacity = opOnly ? '0.4' : ''; el.style.pointerEvents = opOnly ? 'none' : ''; }
-  });
-  let sNi = document.querySelector('.ni[data-page="settings"]');
-  if (sNi) sNi.style.display = opOnly ? 'none' : '';
-  // Operators get their own simplified home page
-  if (opOnly) {
+  if (currentRole === 'operator') {
+    // Operator: go straight to their home page — CSS hides all nav automatically
     let el = document.getElementById('op-welcome');
     if (el) el.textContent = 'Hello, ' + u.name.split(' ')[0] + ' 👋';
     nav('operator');
@@ -3080,6 +3083,14 @@ function addSub(cid){let inp=document.getElementById('ns-'+cid),name=inp.value.t
 function renSub(cid,sid){let c=gC(cid),s=c.subs.find(s=>s.id===sid),n=prompt('Rename:',s.name);if(n&&n.trim()){s.name=n.trim();renderCatTree();sbPushCategories();toast('Renamed');}}
 function delSub(cid,sid){let cnt=products.filter(p=>p.cat===cid&&p.sub===sid).length;if(cnt&&!confirm(cnt+' products. Delete anyway?'))return;gC(cid).subs=gC(cid).subs.filter(s=>s.id!==sid);renderCatTree();sbPushCategories();toast('Deleted');}
 async function sbPushCategories(){if(!sbClient)return;try{await sbClient.from('categories').upsert(categories.map(c=>({id:c.id,name:c.name,subs:c.subs})));}catch(e){}}
+
+// ── fetchTimeout — Promise.race timeout (no AbortController, safe for Safari/WebView) ──
+function fetchTimeout(url, opts, ms){
+  return Promise.race([
+    fetch(url, opts),
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error('Request timed out after '+(ms/1000)+'s')),ms||15000))
+  ]);
+}
 
 // ── Order Request ─────────────────────────────────────────────────
 function toggleWA(){let p=document.getElementById('wa-panel');p.style.display=p.style.display==='none'?'block':'none';}
