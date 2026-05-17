@@ -1441,10 +1441,30 @@ window.rackMap = window.rackMap || {};
     let photos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');
     for(let pid in photos){
       let p=products.find(x=>x.id==parseInt(pid));
-      if(p && photos[pid] && !p.photo) p.photo=photos[pid];
+      // Always restore local photo — local cache is source of truth for photos
+      if(p && photos[pid]) p.photo=photos[pid];
     }
   }catch(e){}
 })();
+
+// Save a single photo to the device-wide local cache
+function _savePhotoLocal(pid, photo){
+  try{
+    // Keep photo cache under 8MB total by dropping oldest if needed
+    let photos={};
+    try{ photos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}'); }catch(e){}
+    photos[pid]=photo;
+    // Try to save — if quota exceeded, clear oldest 10 and retry
+    try{
+      localStorage.setItem('citystar_photos_v1',JSON.stringify(photos));
+    }catch(quotaErr){
+      let keys=Object.keys(photos);
+      keys.slice(0,Math.max(10,Math.floor(keys.length*0.3))).forEach(k=>delete photos[k]);
+      photos[pid]=photo; // make sure current photo is saved
+      try{ localStorage.setItem('citystar_photos_v1',JSON.stringify(photos)); }catch(e){}
+    }
+  }catch(e){}
+}
 let waConfig = {server: 'http://localhost:3456', phone: ''};
 let noRowsList = [];
 let activity = []; // populated from Supabase — no fake demo data
@@ -3042,12 +3062,8 @@ function uploadPhotoInline(pid, input){
   reader.onload=e=>{
     let p=gP(pid); if(!p)return;
     p.photo=e.target.result;
-    // Save to localStorage as backup — protects against DB sync failures
-    try{
-      let photos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');
-      photos[pid]=e.target.result;
-      localStorage.setItem('citystar_photos_v1',JSON.stringify(photos));
-    }catch(ex){}
+    // Save to device-wide local cache — persists across users/logins
+    _savePhotoLocal(pid, e.target.result);
     // Push to Supabase (best-effort, localStorage is fallback)
     sbPushProduct(p).then(()=>{
       toast('✓ Photo saved');
@@ -3236,6 +3252,8 @@ async function startBulkImages() {
         log.textContent += '  ✓ Saved URL (CORS limited)\n';
       }
 
+      // Save photo to localStorage immediately — works across all users on this device
+      _savePhotoLocal(p.id, p.photo);
       sbPushProduct(p);
       success++;
     } catch(e) {
@@ -3880,9 +3898,21 @@ async function sbPull() {
           id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,
           threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,
           lastUpdated:r.last_updated,
-          // Use DB photo, but fall back to locally-cached photo if DB has none
+          // Use DB photo first, then local cache — always take the one that exists
           photo:r.photo||localPhotos[r.id]||undefined
         }));
+        // Write any DB photos back into local cache so they survive future DB failures
+        // This makes the local cache the authoritative persistent store
+        let cacheUpdated=false;
+        valid.forEach(r=>{
+          if(r.photo && r.photo!==localPhotos[r.id]){
+            localPhotos[r.id]=r.photo;
+            cacheUpdated=true;
+          }
+        });
+        if(cacheUpdated){
+          try{ localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos)); }catch(e){}
+        }
         refreshDash();
         if(document.getElementById('page-products').classList.contains('on'))renderProds();
       }
@@ -3912,7 +3942,13 @@ function sbSubscribe(){
       if(!r.cat||!categories.some(c=>c.id===r.cat))return;
       let localPhotos={};
       try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
-      let mapped={id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,lastUpdated:r.last_updated,photo:r.photo||localPhotos[r.id]||undefined};
+      let photo=r.photo||localPhotos[r.id]||undefined;
+      // If DB sent a photo, cache it locally
+      if(r.photo && r.photo!==localPhotos[r.id]){
+        localPhotos[r.id]=r.photo;
+        try{ localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos)); }catch(e){}
+      }
+      let mapped={id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,lastUpdated:r.last_updated,photo};
       let idx=products.findIndex(p=>p.id===r.id);
       if(idx>=0)products[idx]=mapped;else products.push(mapped);
     }
