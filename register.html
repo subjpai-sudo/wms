@@ -285,7 +285,6 @@ buildSeq();
 let idx=0;
 let sbClient=null;
 let _stream=null,_quagga=false,_raf=null,_buf=[],_locked=false,_scanTimer=null;
-const REQ=3;
 
 const gP=id=>products.find(p=>p.id===id);
 const bcD=v=>String(v||'').replace(/\D/g,'');
@@ -579,17 +578,34 @@ function camErr(t,m){
   document.getElementById('cam-gate-btn').textContent='↻  Retry';
 }
 
+const REQ=2; // reduced consensus - 2 reads of same value is enough
+const EAN_LENGTHS=[8,12,13,14]; // valid complete barcode lengths
+
 function onScan(raw){
   if(_locked)return;
   let d=bcD(raw); if(!d||d.length<4)return;
+
+  // Show live reading with digit count
+  document.getElementById('cam-status').textContent='Reading: '+d+' ('+d.length+' digits)';
+  setSW('reading');
+
+  // INSTANT ACCEPT: if it's a known complete barcode length (EAN-8=8, UPC=12, EAN-13=13, ITF-14=14)
+  // and matches the previous read, accept immediately — no waiting
+  let isComplete=EAN_LENGTHS.includes(d.length);
+
   _buf.push(d);
-  if(_buf.length>REQ*3)_buf=_buf.slice(-REQ*3);
+  if(_buf.length>6)_buf=_buf.slice(-6);
   let last=_buf[_buf.length-1],cnt=0;
   for(let i=_buf.length-1;i>=0;i--){if(_buf[i]===last)cnt++;else break;}
-  for(let i=0;i<3;i++){let el=document.getElementById('cd'+i);el.className='cdot'+(i<cnt?(cnt>=REQ?' done':' active'):'');}
-  setSW('reading');
-  document.getElementById('cam-status').textContent='Reading: '+raw;
-  if(cnt>=REQ&&!_locked){
+
+  // Update dots
+  let need=isComplete?REQ:3; // complete barcodes need fewer confirmations
+  for(let i=0;i<3;i++){
+    let el=document.getElementById('cd'+i);
+    el.className='cdot'+(i<cnt?(cnt>=need?' done':' active'):'');
+  }
+
+  if(cnt>=need&&!_locked){
     _locked=true; _buf=[]; setSW('done');
     regBarcode(raw);
   }

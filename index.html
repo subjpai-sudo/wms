@@ -443,6 +443,68 @@ body.role-operator #ni-cats,body.role-operator #ni-orders{opacity:.4;pointer-eve
 </div>
 
 <!-- STOCK IN -->
+<!-- OPERATOR HOME PAGE -->
+<div class="page" id="page-operator">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 120px);gap:0;padding:16px">
+    <!-- Welcome -->
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:22px;font-weight:800;color:var(--tx)" id="op-welcome">Hello 👋</div>
+      <div style="font-size:13px;color:var(--tx3);margin-top:4px">What do you need to do?</div>
+    </div>
+    <!-- 3 big action buttons -->
+    <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px;margin-bottom:20px">
+      <button onclick="nav('stockin')" style="display:flex;align-items:center;gap:16px;padding:20px 22px;background:linear-gradient(135deg,#16A34A,#15803D);border:none;border-radius:18px;cursor:pointer;box-shadow:0 6px 24px rgba(22,163,74,.3);transition:transform .12s;width:100%;text-align:left" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <div style="width:56px;height:56px;background:rgba(255,255,255,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:28px">⬇</div>
+        <div><div style="font-size:20px;font-weight:800;color:#fff">Stock In</div><div style="font-size:13px;color:rgba(255,255,255,.75);margin-top:2px">Add products to warehouse</div></div>
+      </button>
+      <button onclick="nav('stockout')" style="display:flex;align-items:center;gap:16px;padding:20px 22px;background:linear-gradient(135deg,#DC2626,#B91C1C);border:none;border-radius:18px;cursor:pointer;box-shadow:0 6px 24px rgba(220,38,38,.3);transition:transform .12s;width:100%;text-align:left" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <div style="width:56px;height:56px;background:rgba(255,255,255,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:28px">⬆</div>
+        <div><div style="font-size:20px;font-weight:800;color:#fff">Stock Out</div><div style="font-size:13px;color:rgba(255,255,255,.75);margin-top:2px">Remove products from warehouse</div></div>
+      </button>
+      <button onclick="location.href='register.html'" style="display:flex;align-items:center;gap:16px;padding:20px 22px;background:linear-gradient(135deg,#2563EB,#1D4ED8);border:none;border-radius:18px;cursor:pointer;box-shadow:0 6px 24px rgba(37,99,235,.3);transition:transform .12s;width:100%;text-align:left" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <div style="width:56px;height:56px;background:rgba(255,255,255,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:28px">🔳</div>
+        <div><div style="font-size:20px;font-weight:800;color:#fff">Register Barcode</div><div style="font-size:13px;color:rgba(255,255,255,.75);margin-top:2px">Scan &amp; link product barcodes</div></div>
+      </button>
+    </div>
+    <!-- Universal scanner button -->
+    <button onclick="openUniversalScanner()" style="display:flex;align-items:center;gap:12px;padding:16px 24px;background:var(--sur);border:2px solid var(--bdr2);border-radius:18px;cursor:pointer;box-shadow:var(--sh-sm);transition:all .12s;width:100%;max-width:360px;text-align:left" ontouchstart="this.style.background='var(--sur2)'" ontouchend="this.style.background='var(--sur)'">
+      <div style="width:48px;height:48px;background:linear-gradient(135deg,var(--pu),var(--pu3));border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="26" height="26" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><line x1="16" y1="16" x2="21" y2="16"/><line x1="21" y1="16" x2="21" y2="21"/><line x1="16" y1="21" x2="21" y2="21"/><line x1="3" y1="10" x2="3" y2="11"/><line x1="7" y1="10" x2="21" y2="10"/><line x1="3" y1="14" x2="12" y2="14"/></svg>
+      </div>
+      <div><div style="font-size:16px;font-weight:700;color:var(--tx)">Universal Scanner</div><div style="font-size:12px;color:var(--tx3);margin-top:2px">Scan any barcode or rack QR code</div></div>
+    </button>
+    <!-- Lock button -->
+    <button onclick="lockApp()" style="margin-top:24px;background:none;border:none;color:var(--tx3);font-size:13px;cursor:pointer;padding:8px 16px">🔒 Lock / Switch user</button>
+  </div>
+</div>
+
+<!-- UNIVERSAL SCANNER MODAL -->
+<div class="modal-bg h" id="m-universal">
+  <div class="modal" style="max-height:88vh">
+    <div class="modal-body" style="padding:0">
+      <!-- Camera strip -->
+      <div style="position:relative;background:#000;border-radius:var(--rx) var(--rx) 0 0;overflow:hidden;height:240px">
+        <video id="uni-video" autoplay playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>
+        <!-- scan frame -->
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+          <div id="uni-box" style="width:80%;max-width:300px;height:120px;position:relative">
+            <div style="position:absolute;top:0;left:0;width:36px;height:36px;border-top:4px solid var(--pu);border-left:4px solid var(--pu);border-radius:8px 0 0 0"></div>
+            <div style="position:absolute;top:0;right:0;width:36px;height:36px;border-top:4px solid var(--pu);border-right:4px solid var(--pu);border-radius:0 8px 0 0"></div>
+            <div style="position:absolute;bottom:0;left:0;width:36px;height:36px;border-bottom:4px solid var(--pu);border-left:4px solid var(--pu);border-radius:0 0 0 8px"></div>
+            <div style="position:absolute;bottom:0;right:0;width:36px;height:36px;border-bottom:4px solid var(--pu);border-right:4px solid var(--pu);border-radius:0 0 8px 0"></div>
+          </div>
+        </div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent,rgba(0,0,0,.85));text-align:center;font-size:12px;font-weight:600;color:#fff" id="uni-status">Point at barcode or rack QR code</div>
+        <button onclick="closeModal('m-universal');uniStop()" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);border:none;border-radius:8px;color:#fff;padding:6px 12px;font-size:13px;cursor:pointer">✕ Close</button>
+      </div>
+      <!-- Result area -->
+      <div id="uni-result" style="padding:16px;min-height:80px;display:flex;align-items:center;justify-content:center">
+        <div style="text-align:center;color:var(--tx3);font-size:13px">Scan result will appear here</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="page-stockin">
   <div class="pt">Stock in</div><div class="ps">Scan a product barcode to add stock</div>
   <div class="si-layout">
@@ -1378,14 +1440,70 @@ function pinNameContinue() {
     if (inp) inp.focus();
     return;
   }
-  // Find user by name (case-insensitive, partial ok)
-  let u = appUsers.find(u => u.name.toLowerCase() === name.toLowerCase())
-       || appUsers.find(u => u.name.toLowerCase().startsWith(name.toLowerCase()));
+  let nl = name.toLowerCase();
+  // Case-insensitive: exact, starts-with, or typed name starts with stored name
+  let u = appUsers.find(u => u.name.toLowerCase() === nl)
+       || appUsers.find(u => u.name.toLowerCase().startsWith(nl))
+       || appUsers.find(u => nl.startsWith(u.name.toLowerCase()));
   if (!u) {
-    if (errEl) errEl.textContent = 'Name not found — check spelling or contact your manager';
-    if (inp) { inp.select(); inp.focus(); }
+    // Show what's locally available, then go fetch fresh from DB
+    let known = appUsers.map(u => u.name).join(', ');
+    if (errEl) errEl.textContent = 'Looking up… (local: ' + known + ')';
+    _pinTryDbLookup(name, errEl);
     return;
   }
+  _pinProceed(u, errEl);
+}
+
+async function _pinTryDbLookup(name, errEl) {
+  try {
+    // Make sure Supabase is loaded
+    if (!window.supabase) {
+      await new Promise((res) => {
+        let s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+        s.onload = res; s.onerror = res;
+        document.head.appendChild(s);
+      });
+    }
+    if (!sbClient && window.supabase) {
+      sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+    }
+    // Fetch users directly from DB
+    if (sbClient) {
+      let {data, error} = await sbClient.from('settings').select('value').eq('key','app_users').single();
+      if (!error && data && data.value) {
+        let parsed = JSON.parse(data.value);
+        if (Array.isArray(parsed) && parsed.length) {
+          // Merge with local PINs
+          let localSaved = [];
+          try { let s = localStorage.getItem('wms_users_v1'); if(s) localSaved = JSON.parse(s); } catch(e) {}
+          parsed.forEach(u => {
+            let local = localSaved.find(l => l.id === u.id);
+            if (local && local.mustChangePin === false) u.mustChangePin = false;
+            if (local && local.pin && local.pin !== u.pin) u.pin = local.pin;
+          });
+          appUsers = parsed;
+          try { localStorage.setItem('wms_users_v1', JSON.stringify(appUsers)); } catch(e) {}
+        }
+      }
+    }
+    // Now try lookup again with fresh appUsers
+    let nl = name.toLowerCase();
+    let u = appUsers.find(u => u.name.toLowerCase() === nl)
+         || appUsers.find(u => u.name.toLowerCase().startsWith(nl))
+         || appUsers.find(u => nl.startsWith(u.name.toLowerCase()));
+    if (u) {
+      _pinProceed(u, errEl);
+    } else {
+      if (errEl) errEl.textContent = 'Name not found. Users: ' + appUsers.map(u=>u.name).join(', ');
+    }
+  } catch(e) {
+    if (errEl) errEl.textContent = 'Could not connect — check internet and try again';
+  }
+}
+
+function _pinProceed(u, errEl) {
   if (errEl) errEl.textContent = '';
   _pinTarget = u;
   _pinEntry = '';
@@ -1577,7 +1695,10 @@ function _saveSession(u) {
   try {
     localStorage.setItem(WMS_SESSION_KEY, JSON.stringify({
       id: u.id, name: u.name, role: u.role,
-      color: u.color, savedAt: Date.now()
+      color: u.color, pin: u.pin,
+      savedAt: Date.now(),
+      // Save full user object so restore works even if appUsers hasn't loaded from DB yet
+      userData: JSON.stringify(u)
     }));
   } catch(e) {}
 }
@@ -1591,10 +1712,21 @@ function _restoreSession() {
     let sess = JSON.parse(raw);
     // Session valid for 30 days
     if (Date.now() - sess.savedAt > 30 * 24 * 60 * 60 * 1000) { _clearSession(); return false; }
-    // Find matching user in users list
-    let u = appUsers.find(x => x.id === sess.id);
+    // Try to get the full user object from the session first (no appUsers lookup needed)
+    let u = null;
+    if (sess.userData) {
+      try { u = JSON.parse(sess.userData); } catch(e) {}
+    }
+    // Fallback: look in appUsers (may be stale but worth trying)
+    if (!u) u = appUsers.find(x => x.id === sess.id);
+    // Last fallback: reconstruct from session fields
+    if (!u && sess.id && sess.name && sess.role) {
+      u = {id: sess.id, name: sess.name, role: sess.role, color: sess.color || '#4c3fff', pin: sess.pin || ''};
+    }
     if (!u) { _clearSession(); return false; }
     _doLogin(u, true); // restore without re-saving
+    // Also update appUsers with this user in case DB hasn't loaded yet
+    if (!appUsers.find(x => x.id === u.id)) appUsers.push(u);
     return true;
   } catch(e) { return false; }
 }
@@ -1617,7 +1749,14 @@ function _doLogin(u, _skipSave) {
   });
   let sNi = document.querySelector('.ni[data-page="settings"]');
   if (sNi) sNi.style.display = opOnly ? 'none' : '';
-  refreshDash();
+  // Operators get their own simplified home page
+  if (opOnly) {
+    let el = document.getElementById('op-welcome');
+    if (el) el.textContent = 'Hello, ' + u.name.split(' ')[0] + ' 👋';
+    nav('operator');
+  } else {
+    refreshDash();
+  }
   if (!_skipSave) toast('Welcome, ' + currentUser + '!');
 }
 
@@ -1776,6 +1915,7 @@ function deleteUser(id) {
 // ── Nav ───────────────────────────────────────────────────────────
 function nav(page) {
   if (page !== 'stockin') stopCamera();
+  uniStop(); // always stop universal scanner camera when navigating
   document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
   document.querySelectorAll('.ni[data-page]').forEach(n => n.classList.remove('on'));
   let pg = document.getElementById('page-' + page); if (pg) pg.classList.add('on');
@@ -1787,6 +1927,10 @@ function nav(page) {
   if (page === 'cats')     renderCatTree();
   if (page === 'orders')     renderRS();
   if (page === 'containers') nav_containers();
+  if (page === 'operator') {
+    let el = document.getElementById('op-welcome');
+    if (el) el.textContent = 'Hello, ' + (currentUser.split(' ')[0]) + ' 👋';
+  }
   if (page === 'settings') {
     document.getElementById('info-prods').textContent = products.length;
     document.getElementById('info-acts').textContent  = activity.length;
@@ -2383,6 +2527,166 @@ function handleScannedBarcode(raw,ctx){
     let hit=findByBc(raw);if(hit)selectSO(hit.id);else openNotFoundModal(raw);
   }
 }
+
+// ── UNIVERSAL SCANNER ─────────────────────────────────────────────
+let _uniStream=null, _uniTimer=null, _uniDet=null, _uniJsQR=null, _uniBusy=false;
+
+async function openUniversalScanner(){
+  document.getElementById('uni-result').innerHTML='<div style="text-align:center;color:var(--tx3);font-size:13px">Starting camera…</div>';
+  openModal('m-universal');
+  await _uniStart();
+}
+async function _uniStart(){
+  let v=document.getElementById('uni-video');
+  // Load jsQR for QR support
+  if(!window.jsQR && !_uniJsQR){
+    await new Promise(res=>{let s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';s.onload=res;s.onerror=res;document.head.appendChild(s);});
+    _uniJsQR=window.jsQR;
+  }else _uniJsQR=window.jsQR;
+  try{
+    _uniStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280}},audio:false});
+    v.srcObject=_uniStream; await v.play();
+  }catch(e){document.getElementById('uni-status').textContent='Camera unavailable';return;}
+  // Native BarcodeDetector if available
+  if('BarcodeDetector' in window){
+    try{
+      let sup=await BarcodeDetector.getSupportedFormats();
+      let fmts=['qr_code','ean_13','ean_8','code_128','code_39','upc_a','upc_e'].filter(f=>sup.includes(f));
+      if(!fmts.length)fmts=['ean_13','ean_8','code_128','code_39'];
+      _uniDet=new BarcodeDetector({formats:fmts});
+    }catch(e){_uniDet=null;}
+  }
+  if(_uniTimer)clearInterval(_uniTimer);
+  let canvas=document.createElement('canvas');
+  _uniTimer=setInterval(async()=>{
+    if(_uniBusy||!_uniStream||v.readyState<2)return;
+    _uniBusy=true;
+    try{
+      let result=null;
+      if(_uniDet){
+        let codes=await Promise.race([_uniDet.detect(v),new Promise(r=>setTimeout(()=>r(null),600))]);
+        if(codes&&codes.length)result=codes[0].rawValue;
+      }
+      // Also try jsQR for QR codes on all phones
+      if(!result&&_uniJsQR){
+        canvas.width=v.videoWidth;canvas.height=v.videoHeight;
+        let ctx=canvas.getContext('2d');ctx.drawImage(v,0,0);
+        let img=ctx.getImageData(0,0,canvas.width,canvas.height);
+        let qr=_uniJsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+        if(qr&&qr.data)result=qr.data;
+      }
+      if(result)_uniHandleResult(result);
+    }catch(e){}
+    _uniBusy=false;
+  },200);
+  document.getElementById('uni-status').textContent='Point at barcode or rack QR code';
+}
+function uniStop(){
+  if(_uniTimer){clearInterval(_uniTimer);_uniTimer=null;}
+  if(_uniStream){_uniStream.getTracks().forEach(t=>t.stop());_uniStream=null;}
+  let v=document.getElementById('uni-video');if(v){try{v.srcObject=null;}catch(e){}}
+  _uniDet=null;_uniBusy=false;
+}
+function _uniHandleResult(raw){
+  if(_uniTimer){clearInterval(_uniTimer);_uniTimer=null;} // pause scanning
+  let val=String(raw).trim();
+  // Beep
+  try{
+    if(!_audioCtx)_audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(_audioCtx.state==='suspended')_audioCtx.resume();
+    let o=_audioCtx.createOscillator(),g=_audioCtx.createGain();
+    o.connect(g);g.connect(_audioCtx.destination);o.type='sine';
+    o.frequency.setValueAtTime(880,_audioCtx.currentTime);
+    g.gain.setValueAtTime(0.3,_audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,_audioCtx.currentTime+0.18);
+    o.start(_audioCtx.currentTime);o.stop(_audioCtx.currentTime+0.18);
+  }catch(e){}
+  if(navigator.vibrate)navigator.vibrate([60]);
+  // Is it a rack QR?
+  if(val.startsWith('CSRACK:')){
+    let rk=val.split(':')[1];
+    let prods=products.filter(p=>window.rackMap&&window.rackMap[p.id]===rk);
+    let withBc=prods.filter(p=>p.barcode).length;
+    let outCount=prods.filter(p=>p.qty===0).length;
+    let lowCount=prods.filter(p=>p.qty>0&&p.qty<=p.threshold).length;
+    let html='<div style="padding:12px 16px 0">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'
+        +'<div style="width:44px;height:44px;background:var(--pu2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">🗄️</div>'
+        +'<div><div style="font-size:17px;font-weight:800">Rack '+rk.replace(/^R/,'')+'</div>'
+        +'<div style="font-size:12px;color:var(--tx3)">'+prods.length+' products assigned</div></div></div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
+        +'<div style="background:var(--gn2);border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:var(--gn)">'+(prods.length-lowCount-outCount)+'</div><div style="font-size:10px;color:var(--tx3)">OK</div></div>'
+        +'<div style="background:var(--am2);border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:var(--am)">'+lowCount+'</div><div style="font-size:10px;color:var(--tx3)">Low</div></div>'
+        +'<div style="background:var(--rd2);border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:var(--rd)">'+outCount+'</div><div style="font-size:10px;color:var(--tx3)">Out</div></div>'
+      +'</div>';
+    if(prods.length>0){
+      html+='<div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Products on this rack</div>';
+      html+='<div style="max-height:160px;overflow-y:auto;margin-bottom:8px">';
+      prods.sort((a,b)=>a.qty-b.qty).forEach(p=>{
+        let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
+        html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr)">'
+          +'<div style="flex:1;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
+          +'<div style="font-size:16px;font-weight:800;color:'+qc+'">'+p.qty+'</div>'
+          +'</div>';
+      });
+      html+='</div>';
+    }
+    html+='<div style="display:flex;gap:8px;padding-bottom:4px">'
+      +'<button class="btn w100" onclick="closeModal(\'m-universal\');uniStop();location.href=\'rack.html\'" style="justify-content:center">🗄️ Open in Racks</button>'
+      +'<button class="btn btn-sm" onclick="_uniResume()" style="padding:10px 14px">↻ Scan again</button>'
+    +'</div></div>';
+    document.getElementById('uni-result').innerHTML=html;
+    document.getElementById('uni-status').textContent='✓ Rack '+rk.replace(/^R/,'')+ ' scanned';
+    return;
+  }
+  // Product barcode
+  let p=findByBc(val);
+  if(p){
+    let loc=window.rackMap&&window.rackMap[p.id];
+    let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
+    let html='<div style="padding:12px 16px 0">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'
+        +(p.photo?'<img src="'+p.photo+'" style="width:52px;height:52px;border-radius:12px;object-fit:cover;flex-shrink:0">':'<div style="width:52px;height:52px;background:var(--sur2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px">📦</div>')
+        +'<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
+        +'<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+cN(p.cat)+' · '+p.sku+'</div>'
+        +(loc?'<div style="font-size:11px;font-weight:700;color:var(--bl);margin-top:3px">📍 Rack '+loc.replace(/^R/,'')+'</div>':'<div style="font-size:11px;color:var(--tx3);margin-top:3px">No rack assigned</div>')
+        +'</div><div style="font-size:28px;font-weight:900;color:'+qc+'">'+p.qty+'</div></div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
+        +'<div style="background:var(--sur2);border-radius:10px;padding:10px;text-align:center"><div style="font-size:11px;color:var(--tx3);margin-bottom:2px">SKU</div><div style="font-size:12px;font-weight:700;font-family:monospace">'+p.sku+'</div></div>'
+        +'<div style="background:var(--sur2);border-radius:10px;padding:10px;text-align:center"><div style="font-size:11px;color:var(--tx3);margin-bottom:2px">Barcode</div><div style="font-size:11px;font-weight:700;font-family:monospace">'+(p.barcode||'—')+'</div></div>'
+      +'</div>'
+      +'<div style="display:flex;gap:8px;padding-bottom:4px">'
+        +'<button class="btn btn-gn w100" onclick="closeModal(\'m-universal\');uniStop();openSI('+p.id+')" style="justify-content:center"><svg width="14" height="14"><use href="#ic-in"/></svg> Stock In</button>'
+        +'<button class="btn w100" style="background:var(--rd2);color:var(--rd);border-color:transparent;justify-content:center" onclick="closeModal(\'m-universal\');uniStop();selectSO('+p.id+');nav(\'stockout\')"><svg width="14" height="14"><use href="#ic-out"/></svg> Stock Out</button>'
+        +'<button class="btn btn-sm" onclick="_uniResume()" style="padding:10px 14px">↻</button>'
+      +'</div></div>';
+    document.getElementById('uni-result').innerHTML=html;
+    document.getElementById('uni-status').textContent='✓ '+p.name.split(' ').slice(0,4).join(' ');
+  }else{
+    document.getElementById('uni-result').innerHTML='<div style="padding:12px 16px;text-align:center"><div style="font-size:28px;margin-bottom:8px">❓</div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Barcode: '+val+'</div><div style="font-size:12px;color:var(--tx3)">Not matched to any product</div><button class="btn btn-sm" onclick="_uniResume()" style="margin-top:10px;padding:8px 16px">↻ Scan again</button></div>';
+    document.getElementById('uni-status').textContent='Not found: '+val;
+  }
+}
+function _uniResume(){
+  document.getElementById('uni-result').innerHTML='<div style="text-align:center;color:var(--tx3);font-size:13px">Scan result will appear here</div>';
+  document.getElementById('uni-status').textContent='Point at barcode or rack QR code';
+  let v=document.getElementById('uni-video');
+  let canvas=document.createElement('canvas');
+  _uniBusy=false;
+  if(_uniTimer)clearInterval(_uniTimer);
+  _uniTimer=setInterval(async()=>{
+    if(_uniBusy||!_uniStream||!v||v.readyState<2)return;
+    _uniBusy=true;
+    try{
+      let result=null;
+      if(_uniDet){let codes=await Promise.race([_uniDet.detect(v),new Promise(r=>setTimeout(()=>r(null),600))]);if(codes&&codes.length)result=codes[0].rawValue;}
+      if(!result&&_uniJsQR){canvas.width=v.videoWidth;canvas.height=v.videoHeight;let ctx=canvas.getContext('2d');ctx.drawImage(v,0,0);let img=ctx.getImageData(0,0,canvas.width,canvas.height);let qr=_uniJsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});if(qr&&qr.data)result=qr.data;}
+      if(result)_uniHandleResult(result);
+    }catch(e){}
+    _uniBusy=false;
+  },200);
+}
+
 
 // ── Not found modal ───────────────────────────────────────────────
 let _nfRaw='';
@@ -3304,13 +3608,16 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 let sbClient = null, sbConnected = false;
 
 async function sbInit() {
-  if (!window.supabase) {
-    await new Promise((res,rej)=>{let s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  if (!sbClient) {
+    // Not yet connected — set up Supabase now
+    if (!window.supabase) {
+      await new Promise((res,rej)=>{let s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+    }
+    sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+    sbConnected = true;
+    updateSbStatus(true);
+    await sbPullUsers();
   }
-  sbClient = window.supabase.createClient(SB_URL, SB_KEY);
-  sbConnected = true;
-  updateSbStatus(true);
-  await sbPullUsers();
   // Check if user arrived via SMS login link
   if (!checkUrlToken()) {
     // Normal flow — show PIN screen
@@ -3462,9 +3769,49 @@ function updateSbStatus(ok){
   let l=document.getElementById('sb-status-lbl');if(l)l.textContent=ok?'Connected':'Not connected';
 }
 
+
 // ── Init ──────────────────────────────────────────────────────────
-initPin();
-sbInit();
+// Boot: load users from DB FIRST so all user names work on PIN screen,
+// then show PIN screen. Everything else (products, activity) loads after.
+(async function boot() {
+  // Step 1: try to restore saved session immediately (works offline too)
+  if (_restoreSession()) {
+    // Already logged in — run the rest of init in background
+    sbInit();
+    return;
+  }
+  // Step 2: not logged in — pull users from DB before showing PIN screen
+  // so custom user names are available immediately
+  try {
+    if (!window.supabase) {
+      await new Promise((res, rej) => {
+        let s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+        s.onload = res; s.onerror = res; // res on error too — don't block login
+        document.head.appendChild(s);
+      });
+    }
+    if (window.supabase && SB_URL && SB_KEY) {
+      sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+      sbConnected = true;
+      updateSbStatus(true);
+      await sbPullUsers(); // loads all user names into appUsers
+    }
+  } catch(e) {
+    // Network error — appUsers will use localStorage fallback (Owner/Admin + any cached users)
+  }
+  // Step 3: show PIN screen now that users are loaded
+  initPin();
+  // Step 4: continue rest of init in background (products, activity, etc.)
+  if (sbClient) {
+    sbPullContainers();
+    sbPull();
+    sbSubscribe();
+  } else {
+    sbInit(); // fallback: normal init if step 2 failed
+  }
+})();
+
 window.addEventListener('resize',()=>{
   if(document.getElementById('page-dash')&&document.getElementById('page-dash').classList.contains('on')){
     let tot=products.length,low=products.filter(p=>gS(p)==='low').length,out=products.filter(p=>gS(p)==='out').length;
