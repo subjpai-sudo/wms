@@ -3240,7 +3240,8 @@ async function imageUrlToBase64(url) {
 }
 
 // Show image in confirmation panel and wait for user's choice
-function _showConfirmPanel(p, imgUrl, source) {
+// Show base64 image in confirm panel and wait for user's choice
+function _showConfirmPanel(p, b64, source) {
   let panel = document.getElementById('bulk-confirm-panel');
   let nameEl = document.getElementById('bulk-confirm-name');
   let img = document.getElementById('bulk-confirm-img');
@@ -3251,35 +3252,21 @@ function _showConfirmPanel(p, imgUrl, source) {
 
   panel.style.display = 'block';
   nameEl.textContent = p.name;
-  srcEl.textContent = 'Source: ' + (source || 'AI') + ' · ' + imgUrl.slice(0, 60) + '…';
+  srcEl.textContent = 'Source: ' + (source || 'AI');
 
-  // Reset image state
-  img.style.display = 'none';
-  spinner.style.display = 'block';
-  spinner.textContent = '⏳';
-  saveBtn.style.display = 'none';
-  skipBtn.style.display = 'none';
+  // b64 is already a data URL — always displays reliably
+  spinner.style.display = 'none';
+  img.style.display = 'block';
+  img.src = b64;
+  saveBtn.style.display = 'block';
+  skipBtn.style.display = 'block';
 
-  // Load image
-  img.onload = () => {
-    spinner.style.display = 'none';
-    img.style.display = 'block';
-    saveBtn.style.display = 'block';
-    skipBtn.style.display = 'block';
-  };
-  img.onerror = () => {
-    spinner.textContent = '❌';
-    skipBtn.style.display = 'block';
-  };
-  img.src = imgUrl;
-
-  // Return a promise that resolves to 'save' or 'skip' when user taps
   return new Promise(resolve => { _bulkConfirmResolve = resolve; });
 }
 
 async function startBulkImages() {
   let scope = document.getElementById('bulk-img-scope').value;
-  let mode  = document.getElementById('bulk-img-mode').value; // 'confirm' or 'auto'
+  let mode  = document.getElementById('bulk-img-mode').value;
 
   let targets = scope === 'all' ? products : products.filter(p => !p.photo);
   if (!targets.length) { toast('No products need images', 'rd'); return; }
@@ -3308,33 +3295,44 @@ async function startBulkImages() {
     bar.style.width = Math.round(done / targets.length * 100) + '%';
 
     try {
-      log.textContent += p.name.slice(0, 32) + ': fetching…\n';
+      log.textContent += p.name.slice(0, 32) + ': searching…\n';
       log.scrollTop = log.scrollHeight;
 
+      // Step 1: get image URL from OpenAI/Google
       let data = await fetchProductImage(p.name);
       let imgUrl = data.imageUrl;
       let source = data.source || 'ai';
-      log.textContent += '  Found (' + source + ')\n';
+      log.textContent += '  Found URL (' + source + '), loading…\n';
+      log.scrollTop = log.scrollHeight;
 
-      let action = 'save'; // default for auto mode
+      // Step 2: ALWAYS convert to base64 through proxy before showing preview
+      // This guarantees the image displays in the confirm panel AND is ready to save
+      let photo = null;
+      try {
+        photo = await imageUrlToBase64(imgUrl);
+        log.textContent += '  Image loaded ✓\n';
+      } catch(e) {
+        // Proxy failed — try loading the URL directly as last resort
+        photo = imgUrl;
+        log.textContent += '  Loaded as URL (proxy failed)\n';
+      }
+      log.scrollTop = log.scrollHeight;
+
+      // Step 3: confirm or auto-save
+      let action = 'save';
       if (mode === 'confirm') {
-        action = await _showConfirmPanel(p, imgUrl, source);
+        action = await _showConfirmPanel(p, photo, source);
         if (!_bulkRunning) break;
       }
 
       if (action === 'save') {
-        // Convert to base64 and save
-        let photo = imgUrl;
-        try {
-          photo = await imageUrlToBase64(imgUrl);
-          log.textContent += '  ✓ Saved (base64)\n';
-        } catch(e) {
-          log.textContent += '  ✓ Saved (URL)\n';
-        }
         p.photo = photo;
         _savePhotoLocal(p.id, photo);
         sbPushProduct(p);
+        log.textContent += '  ✓ Saved!\n';
         success++;
+        // Refresh products page live
+        if (document.getElementById('page-products').classList.contains('on')) renderProds();
       } else {
         log.textContent += '  — Skipped\n';
         failed++;
@@ -3346,8 +3344,7 @@ async function startBulkImages() {
 
     log.scrollTop = log.scrollHeight;
     done++;
-    // Small delay between requests
-    if (_bulkRunning) await new Promise(r => setTimeout(r, 600));
+    if (_bulkRunning) await new Promise(r => setTimeout(r, 400));
   }
 
   document.getElementById('bulk-confirm-panel').style.display = 'none';
