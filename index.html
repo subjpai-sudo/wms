@@ -430,9 +430,17 @@ body.role-operator #main{padding:0 !important}
             </div>
           </div>
         </div>
-        <div style="font-size:11px;color:var(--tx3);border-top:1px solid var(--bdr);padding-top:6px">Stock out → select destination to track dispatch</div>
       </div>
     </div>
+  </div>
+
+  <!-- Per-shop tracker -->
+  <div class="card mb10">
+    <div class="fx gap8 mb10">
+      <span style="font-size:13px;font-weight:700;flex:1">🏪 Shop order tracker</span>
+      <span style="font-size:11px;color:var(--tx3)">Most boxes ordered</span>
+    </div>
+    <div id="shop-tracker"></div>
   </div>
 
   <div class="card">
@@ -545,19 +553,25 @@ body.role-operator #main{padding:0 !important}
 
 <!-- STOCK OUT -->
 <div class="page" id="page-stockout">
-  <div class="pt">Stock out</div><div class="ps">Find product to remove stock</div>
+  <div class="pt">Stock out</div><div class="ps">Find product or do a shop order</div>
   <div class="si-layout">
     <div>
+      <!-- Shop order: select shop → mass scan -->
+      <div class="card mb10">
+        <div class="sec">🏪 Shop order — mass scan</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:8px" id="shop-order-btns"></div>
+        <button onclick="openMassOut('Delivery','delivery')" style="width:100%;padding:10px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);font-size:13px;font-weight:600;cursor:pointer;color:var(--tx)">🚚 Delivery order</button>
+      </div>
       <div class="card mb10">
         <button onclick="openCamera(r=>handleScannedBarcode(r,'stockout'))" style="width:100%;padding:20px 16px;background:linear-gradient(135deg,var(--rd),var(--rd3));border:none;border-radius:var(--rl);cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:12px;box-shadow:0 4px 16px rgba(220,38,38,.28);transition:opacity .15s" onmousedown="this.style.opacity='.85'" onmouseup="this.style.opacity='1'" ontouchstart="this.style.opacity='.85'" ontouchend="this.style.opacity='1'">
           <div style="width:52px;height:52px;background:rgba(255,255,255,.2);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="28" height="28" style="color:#fff"><use href="#ic-cam"/></svg></div>
-          <div style="text-align:left"><div style="font-size:17px;font-weight:800;color:#fff;letter-spacing:-.01em">Scan barcode</div><div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px">Point camera at product barcode</div></div>
+          <div style="text-align:left"><div style="font-size:17px;font-weight:800;color:#fff;letter-spacing:-.01em">Scan single product</div><div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px">One product at a time</div></div>
         </button>
         <div class="scan-bar">
           <div class="scan-wrap"><span class="scan-ico"><svg width="17" height="17"><use href="#ic-barcode"/></svg></span><input type="text" id="so-inp" placeholder="Or search product name / barcode…" oninput="soRender()" style="padding-left:38px" autocomplete="off"/></div>
           <button class="scan-btn" onclick="document.getElementById('so-inp').value='';soRender()" title="Clear"><svg width="15" height="15"><use href="#ic-x"/></svg></button>
         </div>
-        <div class="plist" id="so-list" style="max-height:340px;overflow-y:auto"></div>
+        <div class="plist" id="so-list" style="max-height:280px;overflow-y:auto"></div>
       </div>
     </div>
     <div class="card" id="so-detail"><div class="si-empty"><svg width="40" height="40" style="opacity:.2"><use href="#ic-pkg"/></svg><div style="font-size:13px">Select a product to remove stock</div></div></div>
@@ -957,7 +971,7 @@ body.role-operator #main{padding:0 !important}
   </div></div>
 </div>
 
-<!-- Stock-out confirm with destination -->
+<!-- Stock-out: Step 1 — choose destination -->
 <div class="modal-bg h" id="m-so">
   <div class="modal" style="max-width:480px">
     <div id="so-m-photo"></div>
@@ -981,7 +995,7 @@ body.role-operator #main{padding:0 !important}
         </div>
       </div>
       <div style="font-size:13px;font-weight:600;margin-bottom:10px">Quantity to remove</div>
-      <div style="display:flex;align-items:center;gap:0;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:var(--rl);overflow:hidden;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:0;background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:var(--rl);overflow:hidden;margin-bottom:8px">
         <button onclick="adjSOQty(-5)" style="padding:14px 12px;border:none;background:transparent;font-size:13px;font-weight:700;color:var(--tx2);cursor:pointer;border-right:1px solid var(--bdr)">−5</button>
         <button onclick="adjSOQty(-1)" style="padding:14px 16px;border:none;background:transparent;font-size:22px;font-weight:300;color:var(--tx);cursor:pointer;border-right:1px solid var(--bdr)">−</button>
         <div id="so-qty-disp" style="flex:1;text-align:center;font-size:28px;font-weight:900;color:var(--rd);letter-spacing:-.01em;padding:12px 0;user-select:none">1</div>
@@ -989,12 +1003,18 @@ body.role-operator #main{padding:0 !important}
         <button onclick="adjSOQty(5)" style="padding:14px 12px;border:none;background:transparent;font-size:13px;font-weight:700;color:var(--tx2);cursor:pointer;border-left:1px solid var(--bdr)">+5</button>
       </div>
       <input type="hidden" id="so-qty2" value="1"/>
+      <!-- Unit selector -->
+      <div style="display:flex;gap:6px;margin-bottom:14px" id="so-unit-row">
+        <button id="so-unit-box" onclick="setSoUnit('box')" style="flex:1;padding:8px;border-radius:var(--r);border:1.5px solid var(--pu);background:var(--pu2);color:var(--pu);font-size:13px;font-weight:700;cursor:pointer">📦 Boxes</button>
+        <button id="so-unit-pcs" onclick="setSoUnit('pcs')" style="flex:1;padding:8px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);color:var(--tx2);font-size:13px;font-weight:600;cursor:pointer">🔢 Pcs</button>
+        <div id="so-unit-pcs-val" style="display:none;align-items:center;font-size:11px;color:var(--tx3);white-space:nowrap"></div>
+      </div>
       <div style="font-size:13px;font-weight:600;margin-bottom:10px">Where is this going? <span style="color:var(--rd)">*</span></div>
       <div style="display:flex;gap:10px;margin-bottom:12px">
         <button class="dest-btn" id="so-dest-shop" data-dest="shop" onclick="soSelectDest('shop')">
           <div style="font-size:28px;line-height:1">🏪</div>
           <div style="font-size:13px;font-weight:600;color:var(--tx)">Shop</div>
-          <div style="font-size:11px;color:var(--tx3)">Retail / supermarket</div>
+          <div style="font-size:11px;color:var(--tx3)">Pick a shop</div>
         </button>
         <button class="dest-btn" id="so-dest-del" data-dest="delivery" onclick="soSelectDest('delivery')">
           <div style="font-size:28px;line-height:1">🚚</div>
@@ -1002,9 +1022,14 @@ body.role-operator #main{padding:0 !important}
           <div style="font-size:11px;color:var(--tx3)">Customer / order</div>
         </button>
       </div>
+      <!-- Shop grid (shown when Shop selected) -->
+      <div id="so-shop-grid" style="display:none;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--tx3);margin-bottom:8px;font-weight:600">Select shop</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px" id="so-shop-btns"></div>
+      </div>
       <div id="so-dest-wrap" style="display:none;margin-bottom:12px">
-        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:5px" id="so-dest-label">Name</label>
-        <input type="text" id="so-dest-name" placeholder="Shop or customer name" autocomplete="off"/>
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:5px" id="so-dest-label">Delivery name</label>
+        <input type="text" id="so-dest-name" placeholder="Customer name…" autocomplete="off"/>
       </div>
       <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:5px">Note (optional)</label>
       <input type="text" id="so-reason2" placeholder="Damage, return, reason…" style="margin-bottom:16px"/>
@@ -1017,6 +1042,36 @@ body.role-operator #main{padding:0 !important}
     </div>
   </div>
 </div>
+
+<!-- MASS STOCK-OUT MODAL — shop selected, scan multiple products -->
+<div class="modal-bg h" id="m-massout">
+  <div class="modal" style="max-height:92vh;display:flex;flex-direction:column">
+    <div class="modal-body" style="display:flex;flex-direction:column;flex:1;overflow:hidden;padding-bottom:0">
+      <div class="fx gap8 mb10">
+        <div style="flex:1"><div style="font-size:16px;font-weight:800" id="massout-title">Stock Out</div><div style="font-size:12px;color:var(--tx2)" id="massout-sub">Scan products</div></div>
+        <button class="btn btn-sm" onclick="closeMassOut()"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
+      </div>
+      <!-- Camera scan strip -->
+      <button onclick="openCamera(r=>massOutScan(r))" style="width:100%;padding:14px 16px;background:linear-gradient(135deg,var(--rd),var(--rd3));border:none;border-radius:var(--rl);cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="width:40px;height:40px;background:rgba(255,255,255,.2);border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="22" height="22" style="color:#fff"><use href="#ic-cam"/></svg></div>
+        <div style="text-align:left"><div style="font-size:15px;font-weight:700;color:#fff">Scan product</div><div style="font-size:11px;color:rgba(255,255,255,.75)">Tap to scan — adds to list</div></div>
+        <div style="margin-left:auto;background:rgba(255,255,255,.25);border-radius:20px;padding:4px 12px;font-size:13px;font-weight:700;color:#fff" id="massout-count">0 items</div>
+      </button>
+      <!-- Scanned list -->
+      <div style="flex:1;overflow-y:auto;margin-bottom:10px;border:1px solid var(--bdr);border-radius:var(--r)" id="massout-list">
+        <div style="padding:20px;text-align:center;color:var(--tx3);font-size:13px">Scan products to add to this order</div>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="padding:12px 16px 16px;border-top:1px solid var(--bdr);display:flex;gap:8px;flex-shrink:0">
+      <button class="btn w100" style="justify-content:center" onclick="closeMassOut()">Cancel</button>
+      <button class="btn btn-rd w100" style="justify-content:center;font-size:15px;font-weight:700;padding:12px" onclick="confirmMassOut()">
+        <svg width="16" height="16"><use href="#ic-out"/></svg> Confirm all out
+      </button>
+    </div>
+  </div>
+</div>
+
 
 <!-- Add/Edit Container modal -->
 <div class="modal-bg h" id="m-addcont">
@@ -1392,15 +1447,7 @@ window.rackMap = window.rackMap || {};
 })();
 let waConfig = {server: 'http://localhost:3456', phone: ''};
 let noRowsList = [];
-
-let activity = [
-  {type:'in',  prod:'READY STEAMED YELLOWPEA 340g',         qty:120, time:'Today 08:15',    user:'Admin',    dest:null},
-  {type:'out', prod:'HMG Green Chillies Fish Paste 350g',   qty:45,  time:'Today 09:30',    user:'Operator', dest:'shop',     destName:'City Mart'},
-  {type:'in',  prod:'BEST FISH PASTE CURRY 405g',           qty:80,  time:'Today 10:00',    user:'Admin',    dest:null},
-  {type:'out', prod:'PHOE HTAUNG PICKLE TEA SHU-SHAE 360g', qty:30,  time:'Today 10:45',    user:'Operator', dest:'delivery', destName:'U Kyaw Zin'},
-  {type:'in',  prod:'HMWE RICE NOODLE 350g',                qty:200, time:'Yesterday 14:20', user:'Admin',   dest:null},
-  {type:'out', prod:'READY STEAMED HILSHA 380g',            qty:25,  time:'Yesterday 11:00', user:'Operator',dest:'shop',     destName:'Ocean Supermarket'},
-];
+let activity = []; // populated from Supabase — no fake demo data
 let orderHistory = [];
 
 // ── PIN Auth ──────────────────────────────────────────────────────
@@ -1970,16 +2017,27 @@ document.addEventListener('click', e => {
 
 // ── Dashboard ─────────────────────────────────────────────────────
 function genMvH() {
+  // Build real movement history from activity log
   let h = [], now = new Date();
   for (let i = 13; i >= 0; i--) {
     let d = new Date(now); d.setDate(d.getDate()-i);
-    h.push({label:['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()], in:Math.floor(Math.random()*80+15), out:Math.floor(Math.random()*55+10)});
+    let ds = d.toLocaleDateString();
+    let dayActs = activity.filter(a => {
+      try { return new Date(a.time).toLocaleDateString()===ds || (a.time||'').includes(ds); }
+      catch(e){ return false; }
+    });
+    h.push({
+      label:['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()],
+      in: dayActs.filter(a=>a.type==='in').reduce((s,a)=>s+(a.qty||0),0),
+      out: dayActs.filter(a=>a.type==='out').reduce((s,a)=>s+(a.qty||0),0)
+    });
   }
   return h;
 }
-const mvHistory = genMvH(); let mvTab = 'in';
+let mvHistory = []; let mvTab = 'in';
 
 function refreshDash() {
+  mvHistory = genMvH(); // rebuild from real activity every time, no cached random values
   let tot = products.length;
   let low = products.filter(p => gS(p) === 'low').length;
   let out = products.filter(p => gS(p) === 'out').length;
@@ -2004,7 +2062,9 @@ function refreshDash() {
   document.getElementById('bell-dot').style.display = (low + out) > 0 ? 'block' : 'none';
   document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-  renderActFeed(); renderCatBars(); renderTopMovers(); renderLS(); renderAllTbl(); renderDestTracker();
+  renderActFeed(); renderCatBars(); renderTopMovers(); renderLS(); renderAllTbl(); renderDestTracker(); renderShopTracker();
+  // Initialize shop buttons on stock-out page if not done
+  _initShopBtns();
   setTimeout(() => { drawChart(mvHistory.slice(-7)); drawDonut(ok, low, out); }, 50);
 }
 
@@ -2129,10 +2189,6 @@ function renderTopMovers() {
     let i = movers.findIndex(m=>m.name===a.prod);
     if (i>=0) movers[i].qty+=a.qty; else movers.push({name:a.prod,qty:a.qty});
   });
-  products.slice(0,5).forEach(p => {
-    let i = movers.findIndex(m=>m.name===p.name), add=Math.floor(Math.random()*80+20);
-    if (i>=0) movers[i].qty+=add; else movers.push({name:p.name,qty:add});
-  });
   movers = movers.sort((a,b)=>b.qty-a.qty).slice(0,5);
   let maxV=movers[0]?movers[0].qty:1, color=mvTab==='in'?'var(--gn)':'var(--rd)', bgc=mvTab==='in'?'var(--gn2)':'var(--rd2)';
   document.getElementById('top-movers').innerHTML = movers.map(m =>
@@ -2181,6 +2237,42 @@ function renderDestTracker() {
   ctx.fillStyle='#1a1917';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.fillText(total,cx,cy+2);
   ctx.font='10px system-ui';ctx.fillStyle='#9e9c94';ctx.fillText('boxes out',cx,cy+15);
 }
+
+function _initShopBtns(){
+  let el=document.getElementById('shop-order-btns'); if(!el||el.children.length)return;
+  el.innerHTML=SHOPS.map(s=>
+    '<button onclick="openMassOut(\''+s+'\',\'shop\')" style="padding:10px 6px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;color:var(--tx)">🏪 '+s+'</button>'
+  ).join('');
+}
+
+function renderShopTracker(){
+  let el=document.getElementById('shop-tracker'); if(!el)return;
+  let outs=activity.filter(a=>a.type==='out'&&a.dest==='shop'&&a.destName);
+  let shopMap={};
+  outs.forEach(a=>{let n=a.destName;shopMap[n]=(shopMap[n]||0)+a.qty;});
+  SHOPS.forEach(s=>{if(!(s in shopMap))shopMap[s]=0;});
+  let entries=Object.entries(shopMap).sort((a,b)=>b[1]-a[1]);
+  let maxV=entries[0]?Math.max(entries[0][1],1):1;
+  if(!entries.length||entries.every(e=>e[1]===0)){
+    el.innerHTML='<div style="font-size:12px;color:var(--tx3);text-align:center;padding:12px">No shop orders yet — use Stock Out → shop order</div>';
+    return;
+  }
+  let topShop=entries.find(e=>e[1]>0);
+  el.innerHTML=(topShop?'<div style="font-size:11px;color:var(--tx3);margin-bottom:8px">Top: <b style="color:var(--gn3)">'+topShop[0]+'</b> ('+topShop[1]+' boxes)</div>':'')
+    +entries.map(([name,qty])=>{
+      let pct=maxV>0?Math.round(qty/maxV*100):0;
+      return '<div style="margin-bottom:8px">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
+          +'<span style="font-size:12px;font-weight:600;color:var(--tx)">🏪 '+name+'</span>'
+          +'<span style="font-size:12px;font-weight:700;color:var(--gn3)">'+qty+' boxes</span>'
+        +'</div>'
+        +'<div style="height:8px;border-radius:4px;background:var(--sur2);overflow:hidden">'
+          +'<div style="height:100%;width:'+pct+'%;background:var(--gn);border-radius:4px;transition:width .4s ease"></div>'
+        +'</div></div>';
+    }).join('');
+}
+
+
 
 function drawChart(hist) {
   let c=document.getElementById('mv-chart');if(!c)return;
@@ -2367,15 +2459,60 @@ function selectSO(id){
   openModal('m-so');
   // No focus() — prevents keyboard from opening on mobile
 }
+// ── Shop list ────────────────────────────────────────────────────
+const SHOPS = ['Kitaotsuka','Baba','Minamiotsuka','Jujo','Komagome','Kawaguchi','Sugamo'];
+
+// ── Unit helpers ─────────────────────────────────────────────────
+let _soUnit = 'box'; // 'box' or 'pcs'
+function setSoUnit(u){
+  _soUnit = u;
+  let bBtn=document.getElementById('so-unit-box'), pBtn=document.getElementById('so-unit-pcs');
+  let pVal=document.getElementById('so-unit-pcs-val');
+  if(bBtn){bBtn.style.cssText='flex:1;padding:8px;border-radius:var(--r);border:1.5px solid '+(u==='box'?'var(--pu);background:var(--pu2);color:var(--pu)':'var(--bdr);background:var(--sur2);color:var(--tx2)')+';font-size:13px;font-weight:700;cursor:pointer';}
+  if(pBtn){pBtn.style.cssText='flex:1;padding:8px;border-radius:var(--r);border:1.5px solid '+(u==='pcs'?'var(--pu);background:var(--pu2);color:var(--pu)':'var(--bdr);background:var(--sur2);color:var(--tx2)')+';font-size:13px;font-weight:700;cursor:pointer';}
+  let p=gP(soProdId);
+  if(p&&p.pcsPerBox&&pVal){
+    pVal.style.display=u==='pcs'?'flex':'none';
+    pVal.textContent=_soQty2+' pcs = '+(_soQty2/p.pcsPerBox).toFixed(2)+' boxes';
+  }
+}
+// Called from adjSOQty to update pcs display
+function _updateUnitDisplay(){
+  let p=gP(soProdId),pVal=document.getElementById('so-unit-pcs-val');
+  if(p&&p.pcsPerBox&&pVal&&_soUnit==='pcs'){
+    let boxes=(_soQty2/p.pcsPerBox).toFixed(2);
+    pVal.textContent=_soQty2+' pcs = '+boxes+' boxes';
+  }
+}
+
 function soSelectDest(type){
   let shop=document.getElementById('so-dest-shop'),del=document.getElementById('so-dest-del');
-  let wrap=document.getElementById('so-dest-wrap'),inp=document.getElementById('so-dest-name');
-  let lbl=document.getElementById('so-dest-label');
+  let wrap=document.getElementById('so-dest-wrap');
+  let shopGrid=document.getElementById('so-shop-grid');
   shop.classList.remove('dest-sel');del.classList.remove('dest-sel');
-  if(type==='shop'){shop.classList.add('dest-sel');inp.placeholder='Shop name (e.g. City Mart)';lbl.textContent='Shop name';}
-  else{del.classList.add('dest-sel');inp.placeholder='Customer name';lbl.textContent='Customer name';}
-  wrap.style.display='block';setTimeout(()=>inp.focus(),100);
+  if(type==='shop'){
+    shop.classList.add('dest-sel');
+    // Show shop picker buttons
+    let btns=document.getElementById('so-shop-btns');
+    btns.innerHTML=SHOPS.map(s=>'<button onclick="soPickShop(\''+s+'\')" style="padding:10px 6px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);color:var(--tx);font-size:13px;font-weight:600;cursor:pointer;text-align:center" id="soshop-'+s.toLowerCase()+'">🏪 '+s+'</button>').join('');
+    shopGrid.style.display='block';
+    wrap.style.display='none';
+  }else{
+    del.classList.add('dest-sel');
+    shopGrid.style.display='none';
+    wrap.style.display='block';
+    document.getElementById('so-dest-label').textContent='Customer name';
+    document.getElementById('so-dest-name').placeholder='Customer name…';
+  }
 }
+let _soSelectedShop='';
+function soPickShop(name){
+  _soSelectedShop=name;
+  document.querySelectorAll('[id^="soshop-"]').forEach(b=>b.style.cssText='padding:10px 6px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);color:var(--tx);font-size:13px;font-weight:600;cursor:pointer;text-align:center');
+  let el=document.getElementById('soshop-'+name.toLowerCase());
+  if(el)el.style.cssText='padding:10px 6px;border-radius:var(--r);border:1.5px solid var(--pu);background:var(--pu2);color:var(--pu);font-size:13px;font-weight:700;cursor:pointer;text-align:center';
+}
+
 let _soQty2=1;
 function adjSOQty(d){
   _soQty2=Math.max(1,_soQty2+d);
@@ -2383,23 +2520,115 @@ function adjSOQty(d){
   let inp=document.getElementById('so-qty2');
   if(disp)disp.textContent=_soQty2;
   if(inp)inp.value=_soQty2;
+  _updateUnitDisplay();
 }
 function doSO(){
   let qty=_soQty2||parseInt(document.getElementById('so-qty2').value)||1;
   let p=gP(soProdId);
   if(!qty||qty<1){toast('Enter a valid quantity','rd');return;}
-  if(qty>p.qty){toast('Only '+p.qty+' in stock','rd');return;}
   let destEl=document.querySelector('.dest-sel');
   let dest=destEl?destEl.dataset.dest:null;
-  let destName=document.getElementById('so-dest-name').value.trim()||null;
   if(!dest){toast('Select a destination — Shop or Delivery','rd');return;}
-  p.qty-=qty;p.lastUpdated=new Date().toISOString().slice(0,10);
-  let act={type:'out',prod:p.name,qty,time:nowT(),user:currentUser||'Unknown',dest,destName:destName||dest};
+  // Unit conversion
+  let actualQtyBoxes=qty;
+  if(_soUnit==='pcs'&&p.pcsPerBox&&p.pcsPerBox>0){
+    actualQtyBoxes=qty/p.pcsPerBox;
+    if(actualQtyBoxes>p.qty){toast('Only '+p.qty+' boxes ('+Math.floor(p.qty*p.pcsPerBox)+' pcs) in stock','rd');return;}
+    actualQtyBoxes=Math.ceil(actualQtyBoxes); // round up to nearest box
+  }else{
+    if(qty>p.qty){toast('Only '+p.qty+' in stock','rd');return;}
+  }
+  let destName=dest==='shop'?_soSelectedShop:(document.getElementById('so-dest-name').value.trim()||null);
+  if(dest==='shop'&&!destName){toast('Select a shop','rd');return;}
+  p.qty-=actualQtyBoxes;p.lastUpdated=new Date().toISOString().slice(0,10);
+  let qtyLabel=_soUnit==='pcs'?qty+'pcs':actualQtyBoxes+' boxes';
+  let act={type:'out',prod:p.name,qty:actualQtyBoxes,time:nowT(),user:currentUser||'Unknown',dest,destName:destName||dest};
   activity.unshift(act);
   closeModal('m-so');document.getElementById('so-inp').value='';soRender();
-  toast('-'+qty+' → '+(destName||dest));
+  _soSelectedShop=''; _soUnit='box';
+  toast('-'+qtyLabel+' → '+(destName||dest));
   refreshDash();sbPushProduct(p);sbPushActivity(act);
 }
+
+// ── MASS STOCK-OUT (shop order flow) ─────────────────────────────
+let _massOutShop='', _massOutDest='shop', _massOutItems={}; // {pid: qty}
+
+function openMassOut(shop, dest){
+  _massOutShop=shop; _massOutDest=dest; _massOutItems={};
+  document.getElementById('massout-title').textContent='Stock Out → '+(shop||dest);
+  document.getElementById('massout-sub').textContent='Scan products, set quantities, confirm all';
+  document.getElementById('massout-count').textContent='0 items';
+  _renderMassOutList();
+  openModal('m-massout');
+}
+function closeMassOut(){ closeModal('m-massout'); stopCamera(); }
+
+function massOutScan(raw){
+  let p=findByBc(raw);
+  if(!p){ openNotFoundModal(raw); return; }
+  if(!_massOutItems[p.id]) _massOutItems[p.id]=1;
+  _renderMassOutList();
+  toast('+1 '+p.name.split(' ').slice(0,3).join(' '),'ok');
+}
+
+function _renderMassOutList(){
+  let pids=Object.keys(_massOutItems);
+  let el=document.getElementById('massout-list');
+  let cnt=document.getElementById('massout-count');
+  if(cnt)cnt.textContent=pids.length+' item'+(pids.length!==1?'s':'');
+  if(!pids.length){
+    el.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3);font-size:13px">Scan products to add to this order</div>';
+    return;
+  }
+  el.innerHTML=pids.map(pid=>{
+    let p=gP(parseInt(pid)); if(!p)return '';
+    let qty=_massOutItems[pid];
+    let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--bdr)">'
+      +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
+      +'<div style="font-size:11px;color:var(--tx3);margin-top:2px;display:flex;gap:6px"><span>In stock: <b style="color:'+qc+'">'+p.qty+'</b></span>'+(p.pcsPerBox?'<span>'+p.pcsPerBox+' pcs/box</span>':'')+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:0;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;flex-shrink:0">'
+        +'<button onclick="mAdjQty('+pid+',-1)" style="padding:8px 12px;border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--tx)">−</button>'
+        +'<input type="number" value="'+qty+'" min="1" inputmode="numeric" onchange="mSetQty('+pid+',this.value)" style="width:52px;text-align:center;font-size:16px;font-weight:700;border:none;background:transparent;color:var(--tx);padding:6px 0">'
+        +'<button onclick="mAdjQty('+pid+',1)" style="padding:8px 12px;border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--tx)">+</button>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--tx3);flex-shrink:0;margin-left:4px;min-width:28px;text-align:center">'+(p.pcsPerBox?'<div style="font-size:10px;color:var(--tx3)">pcs</div>':'boxes')+'</div>'
+      +'<button onclick="mRemove('+pid+')" style="background:none;border:none;color:var(--rd);font-size:16px;cursor:pointer;padding:4px;flex-shrink:0">✕</button>'
+      +'</div>';
+  }).join('');
+}
+function mAdjQty(pid,d){_massOutItems[pid]=Math.max(1,(_massOutItems[pid]||1)+d);_renderMassOutList();}
+function mSetQty(pid,v){let n=parseInt(v)||1;_massOutItems[pid]=Math.max(1,n);_renderMassOutList();}
+function mRemove(pid){delete _massOutItems[pid];_renderMassOutList();}
+
+function confirmMassOut(){
+  let pids=Object.keys(_massOutItems);
+  if(!pids.length){toast('No products scanned','rd');return;}
+  let errors=[];
+  pids.forEach(pid=>{
+    let p=gP(parseInt(pid)); if(!p)return;
+    let qty=_massOutItems[pid];
+    // Treat qty as pcs if product has pcsPerBox, else boxes
+    let boxQty=p.pcsPerBox?Math.ceil(qty/p.pcsPerBox):qty;
+    if(boxQty>p.qty)errors.push(p.name.split(' ').slice(0,3).join(' ')+' (need '+boxQty+', have '+p.qty+')');
+  });
+  if(errors.length){toast('Insufficient stock: '+errors.slice(0,2).join(', '),'rd');return;}
+  // Apply all
+  let total=0;
+  pids.forEach(pid=>{
+    let p=gP(parseInt(pid)); if(!p)return;
+    let qty=_massOutItems[pid];
+    let boxQty=p.pcsPerBox?Math.ceil(qty/p.pcsPerBox):qty;
+    p.qty-=boxQty; p.lastUpdated=new Date().toISOString().slice(0,10);
+    let act={type:'out',prod:p.name,qty:boxQty,time:nowT(),user:currentUser||'Unknown',dest:_massOutDest,destName:_massOutShop||_massOutDest};
+    activity.unshift(act); sbPushProduct(p); sbPushActivity(act);
+    total+=boxQty;
+  });
+  closeMassOut();
+  toast('✓ '+pids.length+' products, '+total+' boxes → '+(_massOutShop||_massOutDest));
+  refreshDash(); soRender();
+}
+
 
 // ── Camera ────────────────────────────────────────────────────────
 let _camLocked=false,_camStream=null,_camRaf=null,_quaggaOn=false,_camCb=null;
@@ -3659,7 +3888,7 @@ async function sbPull() {
       }
     }
     let {data:acts,error:ae}=await sbClient.from('activity').select('*').order('created_at',{ascending:false}).limit(100);
-    if(!ae&&acts&&acts.length){activity=acts.map(r=>({type:r.type,prod:r.prod,qty:r.qty,time:r.time,user:r.user,dest:r.dest,destName:r.dest_name}));renderActFeed();renderDestTracker();}
+    if(!ae&&acts&&acts.length){activity=acts.map(r=>({type:r.type,prod:r.prod,qty:r.qty,time:r.time,user:r.user,dest:r.dest,destName:r.dest_name}));renderActFeed();renderDestTracker();renderShopTracker();}
     let {data:orders,error:oe}=await sbClient.from('order_history').select('*').order('created_at',{ascending:false}).limit(50);
     if(!oe&&orders&&orders.length){orderHistory=orders.map(r=>({id:r.id,desc:r.description,type:r.type,items:r.items,time:r.time,waOk:r.wa_ok,status:r.status}));}
     // Rack locations (from rack.html's rack_assignments table)
@@ -3694,7 +3923,7 @@ function sbSubscribe(){
   sbClient.channel('activity-rt').on('postgres_changes',{event:'INSERT',schema:'public',table:'activity'},payload=>{
     let r=payload.new;
     activity.unshift({type:r.type,prod:r.prod,qty:r.qty,time:r.time,user:r.user,dest:r.dest,destName:r.dest_name});
-    renderActFeed();renderDestTracker();refreshDash();
+    renderActFeed();renderDestTracker();renderShopTracker();refreshDash();
   }).subscribe();
 
   sbClient.channel('orders-rt').on('postgres_changes',{event:'INSERT',schema:'public',table:'order_history'},payload=>{
