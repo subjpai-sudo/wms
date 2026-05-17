@@ -3780,6 +3780,82 @@ function updateSbStatus(ok){
   let l=document.getElementById('sb-status-lbl');if(l)l.textContent=ok?'Connected':'Not connected';
 }
 
+// ── SMS Settings helpers ──────────────────────────────────────────
+function _smsLog(msg){
+  let el=document.getElementById('sms-log');
+  if(!el)return;
+  el.textContent+=(el.textContent?'\n':'')+new Date().toLocaleTimeString()+' '+msg;
+  el.scrollTop=el.scrollHeight;
+}
+async function testApiEndpoint(){
+  let res=document.getElementById('api-test-result');
+  if(res){res.style.display='block';res.textContent='Testing…';res.style.color='var(--tx2)';}
+  _smsLog('→ POST /api/send-login with _ping:true…');
+  try{
+    let r=await fetchTimeout('/api/send-login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({_ping:true})
+    },10000);
+    let data={};
+    try{data=await r.json();}catch(e){}
+    if(r.status===400&&data.hint==='API is reachable'){
+      _smsLog('✓ API reachable (HTTP 400 with hint = expected)');
+      if(res){res.textContent='✓ API is reachable — Twilio env vars may need checking';res.style.color='var(--gn)';}
+    } else if(r.status===500&&data.missing){
+      _smsLog('⚠ API reachable but missing env vars: '+data.missing.join(', '));
+      if(res){res.textContent='⚠ API reachable — missing: '+data.missing.join(', ');res.style.color='var(--am)';}
+    } else if(r.ok||r.status<500){
+      _smsLog('✓ API responded: HTTP '+r.status);
+      if(res){res.textContent='✓ API reachable (HTTP '+r.status+')';res.style.color='var(--gn)';}
+    } else {
+      _smsLog('✗ HTTP '+r.status+' — '+(data.error||'no message'));
+      if(res){res.textContent='✗ HTTP '+r.status+': '+(data.error||'');res.style.color='var(--rd)';}
+    }
+  }catch(e){
+    let msg=e.message||String(e);
+    if(msg.includes('timed out')){
+      _smsLog('✗ Timeout — API not responding at /api/send-login');
+      if(res){res.textContent='✗ Timeout — check Vercel deployment';res.style.color='var(--rd)';}
+    }else if(msg.includes('Failed to fetch')||msg.includes('NetworkError')){
+      _smsLog('✗ Network error — not deployed to Vercel or wrong URL');
+      if(res){res.textContent='✗ Cannot reach API — deploy to Vercel first';res.style.color='var(--rd)';}
+    }else{
+      _smsLog('✗ Error: '+msg);
+      if(res){res.textContent='✗ '+msg;res.style.color='var(--rd)';}
+    }
+  }
+}
+async function sendTestSms(){
+  let numEl=document.getElementById('sms-test-number');
+  let resEl=document.getElementById('sms-test-result');
+  let num=(numEl?numEl.value.trim():'');
+  if(!num){
+    if(resEl){resEl.style.display='block';resEl.textContent='Enter a phone number first';resEl.style.color='var(--rd)';}
+    return;
+  }
+  if(resEl){resEl.style.display='block';resEl.textContent='Sending…';resEl.style.color='var(--tx2)';}
+  _smsLog('→ Sending test SMS to '+num+'…');
+  try{
+    let r=await fetchTimeout('/api/send-login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({to:num,userName:'Test',token:'test123',userId:'test',message:'CityStar WMS test SMS ✓ If you received this, Twilio is working!'})
+    },15000);
+    let data={};try{data=await r.json();}catch(e){}
+    if(data.success){
+      _smsLog('✓ SMS sent! SID: '+(data.sid||'—'));
+      if(resEl){resEl.textContent='✓ SMS sent successfully!';resEl.style.color='var(--gn)';}
+    }else{
+      _smsLog('✗ SMS failed: '+(data.error||'unknown')+' (code: '+(data.code||'—')+')');
+      if(resEl){resEl.textContent='✗ '+(data.error||'Failed');resEl.style.color='var(--rd)';}
+    }
+  }catch(e){
+    _smsLog('✗ Error: '+e.message);
+    if(resEl){resEl.textContent='✗ '+e.message;resEl.style.color='var(--rd)';}
+  }
+}
+
 
 // ── Init ──────────────────────────────────────────────────────────
 // Boot: load users from DB FIRST so all user names work on PIN screen,

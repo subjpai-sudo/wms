@@ -733,6 +733,23 @@ function saveBarcodeLocal(p,code){
   _pendingSync[p.id]=code;
   saveLocalBarcodes();
   updateSyncBtn();
+  // Auto-push to DB immediately so other devices (PC) see it via Supabase real-time
+  _pushBarcodeNow(p.id, code);
+}
+
+// Immediate single-product push — fires on every scan, non-blocking
+async function _pushBarcodeNow(pid, code){
+  try{
+    if(!sbClient)return; // will be picked up by manual Sync later
+    let {error}=await sbClient.from('products')
+      .update({barcode:code||null, last_updated:new Date().toISOString().slice(0,10)})
+      .eq('id',pid);
+    if(!error){
+      delete _pendingSync[pid];
+      saveLocalBarcodes();
+      updateSyncBtn();
+    }
+  }catch(e){/* silent — pending sync will retry */}
 }
 
 // Manual sync — push all pending barcodes to DB
