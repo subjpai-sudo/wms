@@ -1354,7 +1354,7 @@ async function dbPull(){
   try{
     if(!window.supabase)await loadLib('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js');
     sbClient=window.supabase.createClient(SB_URL,SB_KEY);
-    // products (barcodes + qty only — photos come from localStorage, not DB)
+    // products (barcodes + qty only — photos handled separately below)
     let {data}=await sbClient.from('products').select('id,name,sku,cat,sub,qty,threshold,vendor,barcode,last_updated');
     if(data&&data.length>=10){
       let valid=data.filter(r=>r.id&&r.name&&categories.some(c=>c.id===r.cat));
@@ -1362,10 +1362,43 @@ async function dbPull(){
         valid.forEach(r=>{
           let p=gP(r.id);
           if(p){p.name=r.name;p.sku=r.sku||p.sku;p.cat=r.cat;p.sub=r.sub;p.threshold=r.threshold||p.threshold;p.vendor=r.vendor||p.vendor;p.barcode=r.barcode||p.barcode;if(!_pendingProdQty[r.id])p.qty=r.qty!=null?r.qty:p.qty;}
-          // NOTE: p.photo is NOT touched here — photos come from localStorage only
         });
       }
     }
+    // Fetch photos separately — only products that have a photo in DB
+    // Done in small batches to avoid response size limits
+    try{
+      let localPhotos={};
+      try{localPhotos=JSON.parse(localStorage.getItem(PHOTOS_KEY)||'{}');}catch(e){}
+      // First check which products have photos in DB using a lightweight query
+      let {data:photoPids}=await sbClient.from('products').select('id').not('photo','is',null);
+      if(photoPids&&photoPids.length){
+        // Fetch up to 10 photos at a time
+        let pids=photoPids.map(r=>r.id);
+        for(let i=0;i<pids.length;i+=10){
+          let batch=pids.slice(i,i+10);
+          try{
+            let {data:photoRows}=await sbClient.from('products')
+              .select('id,photo')
+              .in('id',batch);
+            if(photoRows){
+              photoRows.forEach(r=>{
+                if(r.photo&&r.photo.length>100){
+                  let p=gP(r.id);
+                  if(p){p.photo=r.photo;}
+                  // Cache in localStorage
+                  localPhotos[r.id]=r.photo;
+                }
+              });
+            }
+          }catch(e){}
+        }
+        // Save all fetched photos to localStorage
+        try{localStorage.setItem(PHOTOS_KEY,JSON.stringify(localPhotos));}catch(e){}
+      }
+    }catch(e){}
+    // Always re-apply localStorage photos last (in case DB had nothing)
+    mergeLocalProducts();
     // rack assignments from dedicated table
     try{
       let {data:ra,error:rae}=await sbClient.from('rack_assignments').select('product_id,rack,shelf');

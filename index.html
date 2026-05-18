@@ -3094,11 +3094,11 @@ function uploadPhotoInline(pid, input){
     p.photo=e.target.result;
     // Save to device-wide local cache — persists across users/logins
     _savePhotoLocal(pid, e.target.result);
-    // Push to Supabase (best-effort, localStorage is fallback)
-    sbPushProduct(p).then(()=>{
+    // Push ONLY photo to Supabase — separate from other product fields
+    sbPushPhoto(pid, e.target.result).then(()=>{
       toast('✓ Photo saved');
     }).catch(()=>{
-      toast('✓ Photo saved locally (sync later)','syn');
+      toast('✓ Photo saved locally (will sync later)');
     });
     renderProds();
   };
@@ -3296,8 +3296,8 @@ async function startBulkImages() {
       }
       if (action==='save') {
         p.photo = b64;
-        _savePhotoLocal(p.id, b64);   // device-wide localStorage
-        sbPushProduct(p);              // Supabase → all other devices
+        _savePhotoLocal(p.id, b64);   // device-wide localStorage (instant)
+        sbPushPhoto(p.id, b64);        // Supabase — single field update (reliable)
         log.textContent += '  ✓ saved globally\n';
         saved++;
         if (document.getElementById('page-products').classList.contains('on')) renderProds();
@@ -4049,8 +4049,25 @@ function sbSubscribe(){
 async function sbPushProduct(p){
   if(!sbClient)return;
   try{
-    await sbClient.from('products').upsert({id:p.id,name:p.name,sku:p.sku,cat:p.cat,sub:p.sub,qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',barcode:p.barcode||null,last_updated:p.lastUpdated||null,photo:p.photo||null});
-  }catch(e){throw e;} // re-throw so callers can catch
+    // Push non-photo fields first (always small, always succeeds)
+    await sbClient.from('products').upsert({
+      id:p.id,name:p.name,sku:p.sku,cat:p.cat,sub:p.sub,
+      qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',
+      barcode:p.barcode||null,last_updated:p.lastUpdated||null,
+      photo:p.photo||null  // include photo - Supabase text column handles it
+    });
+  }catch(e){throw e;}
+}
+
+// Push ONLY the photo for one product — used after bulk image fetch
+async function sbPushPhoto(pid, photoData){
+  if(!sbClient||!photoData)return;
+  try{
+    // Use update (not upsert) to only change the photo field
+    await sbClient.from('products').update({photo:photoData}).eq('id',pid);
+  }catch(e){
+    console.warn('Photo push failed for',pid,e.message);
+  }
 }
 async function sbPushActivity(a){
   if(!sbClient)return;
