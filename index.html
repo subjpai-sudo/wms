@@ -345,6 +345,7 @@ body.role-operator #main{padding:0 !important}
   <button class="ni on" data-page="dash" onclick="nav('dash')"><svg width="16" height="16"><use href="#ic-dash"/></svg> Dashboard</button>
   <button class="ni" data-page="stockin" onclick="nav('stockin')"><svg width="16" height="16"><use href="#ic-in"/></svg> Stock in</button>
   <button class="ni" data-page="stockout" onclick="nav('stockout')"><svg width="16" height="16"><use href="#ic-out"/></svg> Stock out</button>
+  <button class="ni" data-page="mmmart" onclick="nav('mmmart')" style="font-weight:700;color:var(--pu3)">🏪 MM MART</button>
   <button class="ni" data-page="products" onclick="nav('products')"><svg width="16" height="16"><use href="#ic-pkg"/></svg> Products</button>
   <button class="ni" id="ni-cats" data-page="cats" onclick="nav('cats')"><svg width="16" height="16"><use href="#ic-folder"/></svg> Categories</button>
   <div class="sep"></div>
@@ -553,14 +554,27 @@ body.role-operator #main{padding:0 !important}
 
 <!-- STOCK OUT -->
 <div class="page" id="page-stockout">
-  <div class="pt">Stock out</div><div class="ps">Find product or do a shop order</div>
+  <div class="pt">Stock out</div><div class="ps">Remove stock from CityStar Warehouse</div>
   <div class="si-layout">
     <div>
-      <!-- Shop order: select shop → mass scan -->
+      <!-- Destination: Delivery or MM MART -->
       <div class="card mb10">
-        <div class="sec">🏪 Shop order — mass scan</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:8px" id="shop-order-btns"></div>
-        <button onclick="openMassOut('Delivery','delivery')" style="width:100%;padding:10px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);font-size:13px;font-weight:600;cursor:pointer;color:var(--tx)">🚚 Delivery order</button>
+        <div class="sec" style="margin-bottom:10px">Where is stock going?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <button id="so-dest-delivery-btn" onclick="soSetWarehouseDest('delivery')" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid var(--bdr);background:var(--sur2);cursor:pointer;transition:all .12s">
+            <div style="font-size:32px">🚚</div>
+            <div style="font-size:14px;font-weight:800;color:var(--tx)">Delivery</div>
+            <div style="font-size:11px;color:var(--tx3)">Direct to customer</div>
+          </button>
+          <button id="so-dest-mmmart-btn" onclick="soSetWarehouseDest('mmmart')" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid var(--bdr);background:var(--sur2);cursor:pointer;transition:all .12s">
+            <div style="font-size:32px">🏪</div>
+            <div style="font-size:14px;font-weight:800;color:var(--tx)">MM MART</div>
+            <div style="font-size:11px;color:var(--tx3)">Transfer to MM Mart</div>
+          </button>
+        </div>
+        <div id="so-wh-name-row" style="display:none">
+          <input type="text" id="so-wh-delivery-name" placeholder="Customer / delivery name (optional)…" autocomplete="off"/>
+        </div>
       </div>
       <div class="card mb10">
         <button onclick="openCamera(r=>handleScannedBarcode(r,'stockout'))" style="width:100%;padding:20px 16px;background:linear-gradient(135deg,var(--rd),var(--rd3));border:none;border-radius:var(--rl);cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:12px;box-shadow:0 4px 16px rgba(220,38,38,.28);transition:opacity .15s" onmousedown="this.style.opacity='.85'" onmouseup="this.style.opacity='1'" ontouchstart="this.style.opacity='.85'" ontouchend="this.style.opacity='1'">
@@ -577,6 +591,110 @@ body.role-operator #main{padding:0 !important}
     <div class="card" id="so-detail"><div class="si-empty"><svg width="40" height="40" style="opacity:.2"><use href="#ic-pkg"/></svg><div style="font-size:13px">Select a product to remove stock</div></div></div>
   </div>
 </div>
+
+<!-- MM MART -->
+<div class="page" id="page-mmmart">
+  <div class="pt">🏪 MM MART</div>
+  <div class="ps">MM Mart stock — send to shops in pcs or boxes</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+    <button id="mm-tab-out" onclick="mmTab('out')" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:var(--rl);border:2px solid var(--rd);background:var(--rd2);cursor:pointer;transition:all .12s">
+      <div style="font-size:26px">⬆</div><div style="font-size:11px;font-weight:700;color:var(--rd)">Stock Out</div>
+    </button>
+    <button id="mm-tab-stock" onclick="mmTab('stock')" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:var(--rl);border:2px solid var(--bdr);background:var(--sur2);cursor:pointer;transition:all .12s">
+      <div style="font-size:26px">📦</div><div style="font-size:11px;font-weight:600;color:var(--tx2)">Stock</div>
+    </button>
+    <button id="mm-tab-hist" onclick="mmTab('hist')" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:var(--rl);border:2px solid var(--bdr);background:var(--sur2);cursor:pointer;transition:all .12s">
+      <div style="font-size:26px">📋</div><div style="font-size:11px;font-weight:600;color:var(--tx2)">History</div>
+    </button>
+    <button id="mm-tab-set" onclick="mmTab('set')" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:var(--rl);border:2px solid var(--bdr);background:var(--sur2);cursor:pointer;transition:all .12s">
+      <div style="font-size:26px">⚙️</div><div style="font-size:11px;font-weight:600;color:var(--tx2)">Settings</div>
+    </button>
+  </div>
+
+  <!-- STOCK OUT TO SHOP -->
+  <div id="mm-pane-out">
+    <div class="card mb10">
+      <div class="sec" style="margin-bottom:10px">1 — Select shop</div>
+      <div id="mm-shop-btns" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="mm-new-shop-quick" placeholder="+ Quick add shop…" style="flex:1;font-size:13px"/>
+        <button onclick="mmAddShopQuick()" class="btn" style="background:var(--pu2);color:var(--pu3);border-color:transparent">Add</button>
+      </div>
+    </div>
+    <!-- Order panel — shown after shop selected -->
+    <div id="mm-order-panel" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--pu2);border:1.5px solid var(--pu);border-radius:var(--rl);margin-bottom:12px">
+        <div style="font-size:28px">🏪</div>
+        <div style="flex:1"><div style="font-size:16px;font-weight:800;color:var(--pu3)" id="mm-order-shop-name">Shop</div>
+        <div style="font-size:11px;color:var(--tx3)">Scan products — pcs or boxes per item</div></div>
+        <button onclick="mmCancelOrder()" style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:6px 12px;cursor:pointer;font-size:13px;color:var(--tx2)">✕ Cancel</button>
+      </div>
+      <!-- Scan button -->
+      <button onclick="openCamera(r=>handleScannedBarcode(r,'mmshop'))" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--rd),var(--rd3));border:none;border-radius:var(--rl);cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:10px;box-shadow:0 4px 16px rgba(220,38,38,.25)">
+        <div style="width:46px;height:46px;background:rgba(255,255,255,.2);border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="26" height="26" style="color:#fff"><use href="#ic-cam"/></svg></div>
+        <div style="text-align:left"><div style="font-size:16px;font-weight:800;color:#fff">Scan product</div><div style="font-size:11px;color:rgba(255,255,255,.75)">Adds to shop order</div></div>
+        <div id="mm-scan-cnt" style="margin-left:auto;background:rgba(255,255,255,.25);border-radius:20px;padding:4px 14px;font-size:14px;font-weight:700;color:#fff">0</div>
+      </button>
+      <!-- Product list -->
+      <div id="mm-order-list" style="border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:10px;background:var(--sur)">
+        <div id="mm-order-empty" style="padding:20px;text-align:center;color:var(--tx3);font-size:13px">Scan products to add to this order</div>
+      </div>
+      <!-- Total -->
+      <div style="background:var(--sur2);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:13px;color:var(--tx2)" id="mm-order-summary">0 products</div>
+        <div style="font-size:20px;font-weight:900;color:var(--gn)" id="mm-order-total">¥ 0</div>
+      </div>
+      <button onclick="mmConfirmOrder()" style="width:100%;padding:16px;background:var(--rd);border:none;border-radius:var(--rl);color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(220,38,38,.3)">
+        ⬆ Confirm — send to shop
+      </button>
+    </div>
+  </div>
+
+  <!-- MM MART STOCK -->
+  <div id="mm-pane-stock" style="display:none">
+    <div class="card">
+      <div class="sec">MM Mart current inventory</div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:10px">Stock received from CityStar Warehouse (in boxes)</div>
+      <div id="mm-stock-list"><div style="padding:20px;text-align:center;color:var(--tx3)">No stock yet — use Stock Out → MM MART to transfer stock here</div></div>
+    </div>
+  </div>
+
+  <!-- HISTORY + ANALYTICS -->
+  <div id="mm-pane-hist" style="display:none">
+    <div class="card mb10">
+      <div class="sec">Order history</div>
+      <div id="mm-hist-list"><div style="padding:20px;text-align:center;color:var(--tx3)">No orders yet</div></div>
+    </div>
+    <div class="card">
+      <div class="sec">Shop analytics</div>
+      <div id="mm-analytics"><div style="padding:12px;color:var(--tx3);font-size:13px">No data yet</div></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="mm-pane-set" style="display:none">
+    <div class="card mb10">
+      <div class="sec">Manage shops</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:10px">Add or remove the shops MM Mart supplies</div>
+      <div id="mm-shops-set-list"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <input type="text" id="mm-new-shop" placeholder="New shop name…" style="flex:1"/>
+        <button onclick="mmAddShop()" class="btn" style="background:var(--pu);color:#fff;border-color:var(--pu)">+ Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec">How it works</div>
+      <div style="font-size:12px;color:var(--tx2);line-height:1.8">
+        <b>Stock flow:</b> Warehouse → <i>Stock Out → MM MART</i> → MM Mart → <i>MM Mart → Shop</i> → Shop<br>
+        <b>Warehouse unit:</b> Always boxes<br>
+        <b>MM Mart → Shop:</b> Pcs or boxes per product (each product can differ)<br>
+        <b>Set pcs/box:</b> Products page → edit product → "Pcs per box"<br>
+        <b>Set price:</b> Products page → edit product → "Price per box ¥"
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- PRODUCTS -->
 <div class="page" id="page-products">
@@ -918,7 +1036,8 @@ body.role-operator #main{padding:0 !important}
     <div style="display:flex;flex-direction:column;gap:10px">
       <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Product name</label><input type="text" id="np-name" placeholder="e.g. READY Beef Curry 425g"/></div>
       <div class="g2"><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Category</label><select id="np-cat" onchange="npSubcats()"><option value="">Select…</option></select></div><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Brand</label><select id="np-sub"><option value="">Select…</option></select></div></div>
-      <div class="g2"><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Initial qty</label><input type="number" id="np-qty" placeholder="0" min="0" inputmode="numeric"/></div><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Threshold</label><input type="number" id="np-thr" placeholder="20" min="0" inputmode="numeric"/></div></div>
+      <div class="g2"><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Initial qty (boxes)</label><input type="number" id="np-qty" placeholder="0" min="0" inputmode="numeric"/></div><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Threshold (boxes)</label><input type="number" id="np-thr" placeholder="20" min="0" inputmode="numeric"/></div></div>
+      <div class="g2"><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Pcs per box <span style="color:var(--tx3)">(optional)</span></label><input type="number" id="np-pcs" placeholder="e.g. 12" min="1" inputmode="numeric"/></div><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Price per box ¥ <span style="color:var(--tx3)">(optional)</span></label><input type="number" id="np-price" placeholder="e.g. 800" min="0" inputmode="numeric"/></div></div>
       <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Barcode (optional)</label><input type="text" id="np-bc" placeholder="Full barcode number" inputmode="numeric"/></div>
     </div>
     <div class="g2 mt16"><button class="btn w100" onclick="closeModal('m-addprod')">Cancel</button><button class="btn btn-pu w100" onclick="saveProd()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Save</button></div>
@@ -2026,6 +2145,7 @@ function nav(page) {
   if (page === 'cats')     renderCatTree();
   if (page === 'orders')     renderRS();
   if (page === 'containers') nav_containers();
+  if (page === 'mmmart') { mmInit(); }
   if (page === 'operator') {
     let el = document.getElementById('op-welcome');
     if (el) el.textContent = 'Hello, ' + (currentUser.split(' ')[0]) + ' 👋';
@@ -2534,6 +2654,33 @@ function _updateUnitDisplay(){
   }
 }
 
+// ── Warehouse stock-out: delivery or MM MART ──────────────────
+let _warehouseDest = null; // 'delivery' or 'mmmart'
+function soSetWarehouseDest(dest){
+  _warehouseDest = dest;
+  let dBtn = document.getElementById('so-dest-delivery-btn');
+  let mBtn = document.getElementById('so-dest-mmmart-btn');
+  let nameRow = document.getElementById('so-wh-name-row');
+  let sel = dest === 'delivery';
+  if(dBtn) dBtn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid '+(sel?'var(--bl);background:var(--bl2)':'var(--bdr);background:var(--sur2)')+';cursor:pointer;transition:all .12s';
+  if(mBtn) mBtn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid '+(dest==='mmmart'?'var(--pu);background:var(--pu2)':'var(--bdr);background:var(--sur2)')+';cursor:pointer;transition:all .12s';
+  if(nameRow) nameRow.style.display = sel ? 'block' : 'none';
+  // Auto-select destination in the SO modal when products are chosen
+  if(dest==='mmmart'){
+    // Pre-select MM MART as destination in doSO
+    let destEl = document.getElementById('so-dest-del');
+    if(destEl) destEl.classList.remove('dest-sel');
+    let shopEl = document.getElementById('so-dest-shop');
+    if(shopEl) shopEl.classList.remove('dest-sel');
+  }
+}
+function soGetWarehouseDest(){
+  // Returns {dest, destName} based on warehouse destination choice
+  if(_warehouseDest==='mmmart') return {dest:'mmmart', destName:'MM MART'};
+  let name = (document.getElementById('so-wh-delivery-name')||{}).value||'';
+  return {dest:'delivery', destName: name||'Delivery'};
+}
+
 function soSelectDest(type){
   let shop=document.getElementById('so-dest-shop'),del=document.getElementById('so-dest-del');
   let wrap=document.getElementById('so-dest-wrap');
@@ -2591,11 +2738,18 @@ function doSO(){
   if(dest==='shop'&&!destName){toast('Select a shop','rd');return;}
   p.qty-=actualQtyBoxes;p.lastUpdated=new Date().toISOString().slice(0,10);
   let qtyLabel=_soUnit==='pcs'?qty+'pcs':actualQtyBoxes+' boxes';
-  let act={type:'out',prod:p.name,qty:actualQtyBoxes,time:nowT(),user:currentUser||'Unknown',dest,destName:destName||dest};
+  // If going to MM MART, add to MM Mart stock
+  let finalDest=dest, finalDestName=destName||dest;
+  if(_warehouseDest==='mmmart'){ finalDest='mmmart'; finalDestName='MM MART'; mmReceiveFromWarehouse(soProdId, actualQtyBoxes); }
+  let act={type:'out',prod:p.name,qty:actualQtyBoxes,time:nowT(),user:currentUser||'Unknown',dest:finalDest,destName:finalDestName};
   activity.unshift(act);
   closeModal('m-so');document.getElementById('so-inp').value='';soRender();
-  _soSelectedShop=''; _soUnit='box';
-  toast('-'+qtyLabel+' → '+(destName||dest));
+  _soSelectedShop=''; _soUnit='box'; _warehouseDest=null;
+  // Reset destination buttons
+  let dBtn=document.getElementById('so-dest-delivery-btn'); if(dBtn) dBtn.style.border='2px solid var(--bdr)';
+  let mBtn=document.getElementById('so-dest-mmmart-btn'); if(mBtn) mBtn.style.border='2px solid var(--bdr)';
+  let nr=document.getElementById('so-wh-name-row'); if(nr) nr.style.display='none';
+  toast('-'+qtyLabel+' → '+finalDestName);
   refreshDash();sbPushProduct(p);sbPushActivity(act);
 }
 
@@ -2673,6 +2827,15 @@ function confirmMassOut(){
     activity.unshift(act); sbPushProduct(p); sbPushActivity(act);
     total+=boxQty;
   });
+  // If mass out to MM MART, add to MM stock
+  if(_massOutDest==='mmmart'){
+    pids.forEach(pid=>{
+      let qty=_massOutItems[pid];
+      let p=gP(parseInt(pid));if(!p)return;
+      let boxQty=p.pcsPerBox?Math.ceil(qty/p.pcsPerBox):qty;
+      mmReceiveFromWarehouse(parseInt(pid), boxQty);
+    });
+  }
   closeMassOut();
   toast('✓ '+pids.length+' products, '+total+' boxes → '+(_massOutShop||_massOutDest));
   refreshDash(); soRender();
@@ -2806,6 +2969,10 @@ function handleScannedBarcode(raw,ctx){
   } else if(ctx==='stockout'){
     let inp=document.getElementById('so-inp');if(inp)inp.value=raw;soRender();
     let hit=findByBc(raw);if(hit)selectSO(hit.id);else openNotFoundModal(raw);
+  } else if(ctx==='mmshop'){
+    let hit=findByBc(raw);
+    if(hit) mmAddToOrder(hit.id);
+    else openNotFoundModal(raw);
   }
 }
 
@@ -3130,6 +3297,8 @@ function openEditProd(id){
   document.getElementById('np-qty').value=p.qty;
   document.getElementById('np-thr').value=p.threshold;
   document.getElementById('np-bc').value=p.barcode||'';
+  if(document.getElementById('np-pcs')) document.getElementById('np-pcs').value=p.pcsPerBox||'';
+  if(document.getElementById('np-price')) document.getElementById('np-price').value=p.pricePerBox||'';
   document.getElementById('np-edit-id').value=id;
   openModal('m-addprod');
 }
@@ -3149,10 +3318,12 @@ function saveProd(){
   if(!name||!cat||!sub){toast('Fill in all required fields','rd');return;}
   let qty=parseInt(document.getElementById('np-qty').value)||0,thr=parseInt(document.getElementById('np-thr').value)||20;
   let bc=document.getElementById('np-bc').value.trim().replace(/\D/g,'')||undefined;
+  let pcsPerBox=parseInt(document.getElementById('np-pcs')?.value)||undefined;
+  let pricePerBox=parseFloat(document.getElementById('np-price')?.value)||undefined;
   let editId=document.getElementById('np-edit-id').value;
   if(editId){
     let p=gP(parseInt(editId));
-    if(p){p.name=name;p.cat=cat;p.sub=sub;p.qty=qty;p.threshold=thr;if(bc)p.barcode=bc;p.vendor=sN(cat,sub);sbPushProduct(p);}
+    if(p){p.name=name;p.cat=cat;p.sub=sub;p.qty=qty;p.threshold=thr;if(bc)p.barcode=bc;p.vendor=sN(cat,sub);if(pcsPerBox)p.pcsPerBox=pcsPerBox;if(pricePerBox)p.pricePerBox=pricePerBox;sbPushProduct(p);}
     closeModal('m-addprod');renderProds();toast('"'+name+'" updated');
   }else{
     let id=Math.max(...products.map(p=>p.id),0)+1;
@@ -3952,6 +4123,9 @@ async function sbInit() {
   await sbPullContainers();
   await sbPull();
   sbSubscribe();
+  // Pull photos via settings backup channel (reliable even when RT misses large payloads)
+  await sbPullPhotos();
+  setInterval(sbPullPhotos, 30000);
 }
 
 async function sbPull() {
@@ -4001,10 +4175,18 @@ function sbSubscribe(){
     if(payload.eventType==='DELETE'){products=products.filter(p=>p.id!==r.id);}
     else{
       if(!r.cat||!categories.some(c=>c.id===r.cat))return;
-      // Photo: always use localStorage — never allow DB null to wipe local photo
+      // Photo sync: if DB payload has a real photo, cache it locally (this is cross-device sync)
       let localPhotos={};
       try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
-      let photo=localPhotos[r.id]||undefined; // localStorage wins, always
+      if(r.photo&&r.photo.length>100){
+        // DB has a real photo — save to localStorage so THIS device gets it
+        if(r.photo!==localPhotos[r.id]){
+          localPhotos[r.id]=r.photo;
+          try{localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos));}catch(e){}
+        }
+      }
+      // Always use localStorage as the photo source (may have just been updated above)
+      let photo=localPhotos[r.id]||undefined;
       let mapped={id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,lastUpdated:r.last_updated,photo};
       let idx=products.findIndex(p=>p.id===r.id);
       if(idx>=0)products[idx]=mapped;else products.push(mapped);
@@ -4039,25 +4221,56 @@ function sbSubscribe(){
 async function sbPushProduct(p){
   if(!sbClient)return;
   try{
-    // Push non-photo fields first (always small, always succeeds)
+    // NEVER include photo here — photos are pushed separately via sbPushPhoto
+    // Including photo in regular product upserts causes deletion on devices that don't have the photo
     await sbClient.from('products').upsert({
       id:p.id,name:p.name,sku:p.sku,cat:p.cat,sub:p.sub,
       qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',
-      barcode:p.barcode||null,last_updated:p.lastUpdated||null,
-      photo:p.photo||null  // include photo - Supabase text column handles it
+      barcode:p.barcode||null,last_updated:p.lastUpdated||null
+      // photo intentionally omitted — use sbPushPhoto() for photos
     });
   }catch(e){throw e;}
 }
 
-// Push ONLY the photo for one product — used after bulk image fetch
+// Push ONLY the photo for one product — cross-device real-time sync
 async function sbPushPhoto(pid, photoData){
   if(!sbClient||!photoData)return;
   try{
-    // Use update (not upsert) to only change the photo field
-    await sbClient.from('products').update({photo:photoData}).eq('id',pid);
+    // Primary: update the photo column in products table
+    // This triggers the products-rt real-time subscription on all other devices
+    const {error}=await sbClient.from('products').update({photo:photoData}).eq('id',pid);
+    if(error) console.warn('sbPushPhoto products update failed:',error.message);
+    // Secondary: also save in settings as 'photo_<pid>' — guaranteed small key-value
+    // Other devices pull this on next sync if RT didn't deliver
+    await sbClient.from('settings').upsert({key:'photo_'+pid, value:photoData});
   }catch(e){
-    console.warn('Photo push failed for',pid,e.message);
+    console.warn('sbPushPhoto failed:',e.message);
   }
+}
+
+// Pull any photos from settings that weren't delivered via RT
+async function sbPullPhotos(){
+  if(!sbClient)return;
+  try{
+    let {data}=await sbClient.from('settings').select('key,value').like('key','photo_%');
+    if(!data||!data.length)return;
+    let localPhotos={};
+    try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
+    let changed=false;
+    data.forEach(row=>{
+      let pid=parseInt(row.key.replace('photo_',''));
+      if(pid&&row.value&&row.value.length>100&&row.value!==localPhotos[pid]){
+        localPhotos[pid]=row.value;
+        let p=products.find(x=>x.id===pid);
+        if(p)p.photo=row.value;
+        changed=true;
+      }
+    });
+    if(changed){
+      try{localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos));}catch(e){}
+      if(document.getElementById('page-products').classList.contains('on'))renderProds();
+    }
+  }catch(e){}
 }
 async function sbPushActivity(a){
   if(!sbClient)return;
@@ -4196,6 +4409,317 @@ async function sendTestSms(){
 }
 
 
+
+// ════════════════════════════════════════════════════════
+// MM MART SYSTEM
+// Flow: Warehouse (boxes) → MM Mart → Shops (pcs or boxes)
+// ════════════════════════════════════════════════════════
+const MMMART_KEY = 'mmmart_data_v1';
+let mmData = {
+  stock:  {},  // {pid: boxQty}  MM Mart's own inventory
+  shops:  ['Kitaotsuka','Baba','Minamiotsuka','Jujo','Komagome','Kawaguchi','Sugamo'],
+  orders: []   // completed shop orders
+};
+let _mmCurShop = '';
+let _mmOrderItems = {}; // {pid: {qty, unit:'pcs'|'box'}}
+
+// ── Persist ──────────────────────────────────────────────
+function mmLoad(){
+  try{
+    let raw=localStorage.getItem(MMMART_KEY);
+    if(raw){ let d=JSON.parse(raw); if(d.shops) mmData.shops=d.shops; if(d.stock) mmData.stock=d.stock; if(d.orders) mmData.orders=d.orders; }
+  }catch(e){}
+  // Sync from Supabase settings key
+  if(sbClient){
+    sbClient.from('settings').select('value').eq('key','mmmart_data').single()
+      .then(({data,error})=>{ if(!error&&data&&data.value){ try{ let d=JSON.parse(data.value); if(d.shops) mmData.shops=d.shops; if(d.stock) mmData.stock=d.stock; if(d.orders) mmData.orders=d.orders; mmSave(false); }catch(e){} } })
+      .catch(()=>{});
+  }
+}
+function mmSave(pushDb=true){
+  try{ localStorage.setItem(MMMART_KEY,JSON.stringify(mmData)); }catch(e){}
+  if(pushDb&&sbClient){
+    sbClient.from('settings').upsert({key:'mmmart_data',value:JSON.stringify(mmData)}).catch(()=>{});
+  }
+}
+
+// ── Page init ────────────────────────────────────────────
+function mmInit(){
+  mmLoad();
+  mmRenderShopBtns();
+  mmTab('out');
+}
+function mmTab(t){
+  ['out','stock','hist','set'].forEach(x=>{
+    let pn=document.getElementById('mm-pane-'+x); if(pn) pn.style.display=t===x?'':'none';
+    let btn=document.getElementById('mm-tab-'+x); if(btn){
+      if(x===t){
+        btn.style.borderColor='var(--pu)';btn.style.background='var(--pu2)';
+        btn.querySelector('div:last-child').style.color='var(--pu)';
+      } else {
+        btn.style.borderColor='var(--bdr)';btn.style.background='var(--sur2)';
+        btn.querySelector('div:last-child').style.color='var(--tx2)';
+      }
+    }
+  });
+  // Active stock-out button stays red
+  let outBtn=document.getElementById('mm-tab-out');
+  if(t==='out'&&outBtn){outBtn.style.borderColor='var(--rd)';outBtn.style.background='var(--rd2)';outBtn.querySelector('div:last-child').style.color='var(--rd)';}
+  if(t==='stock')  mmRenderStock();
+  if(t==='hist')   { mmRenderHist(); mmRenderAnalytics(); }
+  if(t==='set')    mmRenderShopSettings();
+}
+
+// ── Shop buttons ─────────────────────────────────────────
+function mmRenderShopBtns(){
+  let el=document.getElementById('mm-shop-btns'); if(!el)return;
+  el.innerHTML=mmData.shops.map(s=>
+    '<button onclick="mmSelectShop(\''+s+'\')" style="padding:12px 8px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;color:var(--tx);transition:all .12s">🏪 '+s+'</button>'
+  ).join('');
+}
+function mmSelectShop(name){
+  _mmCurShop=name; _mmOrderItems={};
+  document.getElementById('mm-order-shop-name').textContent=name;
+  document.getElementById('mm-order-panel').style.display='block';
+  document.getElementById('mm-scan-cnt').textContent='0';
+  _mmRenderOrderList();
+}
+function mmCancelOrder(){
+  _mmCurShop=''; _mmOrderItems={};
+  document.getElementById('mm-order-panel').style.display='none';
+}
+
+// ── Add product to MM shop order ─────────────────────────
+function mmAddToOrder(pid){
+  if(!_mmCurShop){ toast('Select a shop first','rd'); return; }
+  let p=gP(pid); if(!p)return;
+  if(!_mmOrderItems[pid]){
+    // Default unit: pcs if pcsPerBox set, else box
+    _mmOrderItems[pid]={qty:1, unit: p.pcsPerBox?'pcs':'box'};
+  } else {
+    _mmOrderItems[pid].qty++;
+  }
+  _mmRenderOrderList();
+  toast('+1 '+p.name.split(' ').slice(0,3).join(' '),'ok');
+}
+
+function _mmRenderOrderList(){
+  let pids=Object.keys(_mmOrderItems);
+  let cntEl=document.getElementById('mm-scan-cnt');
+  let emEl=document.getElementById('mm-order-empty');
+  let listEl=document.getElementById('mm-order-list');
+  let sumEl=document.getElementById('mm-order-summary');
+  let totEl=document.getElementById('mm-order-total');
+  if(cntEl) cntEl.textContent=pids.length;
+  if(!pids.length){
+    if(emEl) emEl.style.display='block';
+    if(sumEl) sumEl.textContent='0 products';
+    if(totEl) totEl.textContent='¥ 0';
+    return;
+  }
+  if(emEl) emEl.style.display='none';
+  let grandTotal=0;
+  let rows=pids.map(pid=>{
+    let p=gP(parseInt(pid)); if(!p)return '';
+    let item=_mmOrderItems[pid];
+    let pcsPerBox=p.pcsPerBox||0;
+    let pricePerBox=p.pricePerBox||0;
+    let mmStock=mmData.stock[pid]||0;
+    // Calculate box equivalent and price
+    let boxEq = item.unit==='pcs' && pcsPerBox>0 ? (item.qty/pcsPerBox) : item.qty;
+    let lineTotal = Math.ceil(boxEq)*pricePerBox;
+    grandTotal+=lineTotal;
+    let stockOk = Math.ceil(boxEq)<=mmStock;
+    let stockWarn = !stockOk ? '<span style="font-size:10px;color:var(--rd);margin-left:6px">⚠ Need '+Math.ceil(boxEq)+' boxes, have '+mmStock+'</span>' : '';
+    // Unit toggle
+    let unitToggle = pcsPerBox>0
+      ? '<div style="display:flex;border:1px solid var(--bdr);border-radius:6px;overflow:hidden;flex-shrink:0">'
+        +'<button onclick="_mmSetUnit('+pid+',\'pcs\')" style="padding:6px 10px;border:none;background:'+(item.unit==='pcs'?'var(--pu)':'var(--sur2)')+';color:'+(item.unit==='pcs'?'#fff':'var(--tx2)')+';font-size:12px;font-weight:600;cursor:pointer">Pcs</button>'
+        +'<button onclick="_mmSetUnit('+pid+',\'box\')" style="padding:6px 10px;border:none;background:'+(item.unit==='box'?'var(--pu)':'var(--sur2)')+';color:'+(item.unit==='box'?'#fff':'var(--tx2)')+';font-size:12px;font-weight:600;cursor:pointer">Box</button>'
+        +'</div>'
+      : '<span style="font-size:11px;color:var(--tx3);padding:6px">boxes</span>';
+    return '<div style="padding:10px 12px;border-bottom:1px solid var(--bdr)">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+        +(p.photo?'<img src="'+p.photo+'" style="width:36px;height:36px;border-radius:7px;object-fit:cover;flex-shrink:0">':'<div style="width:36px;height:36px;border-radius:7px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📦</div>')
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
+          +'<div style="font-size:11px;color:var(--tx3);margin-top:1px">'
+            +'MM stock: <b>'+mmStock+'</b> boxes'
+            +(pcsPerBox?' · '+pcsPerBox+' pcs/box':'')
+            +stockWarn
+          +'</div>'
+        +'</div>'
+        +(lineTotal>0?'<div style="font-size:13px;font-weight:700;color:var(--gn3);flex-shrink:0">¥'+lineTotal.toLocaleString()+'</div>':'')
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+        +unitToggle
+        +'<div style="display:flex;align-items:center;border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;flex:1;background:var(--sur2)">'
+          +'<button onclick="_mmAdjQty('+pid+',-1)" style="padding:8px 14px;border:none;background:transparent;font-size:18px;cursor:pointer">−</button>'
+          +'<input type="number" value="'+item.qty+'" min="1" inputmode="numeric" onchange="_mmSetQty('+pid+',this.value)" style="flex:1;text-align:center;font-size:16px;font-weight:700;border:none;background:transparent;color:var(--tx);padding:6px 0">'
+          +'<button onclick="_mmAdjQty('+pid+',1)" style="padding:8px 14px;border:none;background:transparent;font-size:18px;cursor:pointer">+</button>'
+        +'</div>'
+        +(pcsPerBox&&item.unit==='pcs'?'<div style="font-size:10px;color:var(--tx3);flex-shrink:0;text-align:center;min-width:44px">='+Math.ceil(boxEq).toFixed(1)+'<br>boxes</div>':'')
+        +'<button onclick="_mmRemove('+pid+')" style="background:none;border:none;color:var(--rd);font-size:18px;cursor:pointer;padding:4px;flex-shrink:0">✕</button>'
+      +'</div></div>';
+  }).join('');
+  listEl.innerHTML=rows;
+  if(sumEl) sumEl.textContent=pids.length+' product'+(pids.length!==1?'s':'');
+  if(totEl) totEl.textContent=grandTotal>0?'¥'+grandTotal.toLocaleString():'¥ 0';
+}
+function _mmSetUnit(pid,unit){ if(_mmOrderItems[pid]) _mmOrderItems[pid].unit=unit; _mmRenderOrderList(); }
+function _mmAdjQty(pid,d){ if(_mmOrderItems[pid]){ _mmOrderItems[pid].qty=Math.max(1,_mmOrderItems[pid].qty+d); _mmRenderOrderList(); } }
+function _mmSetQty(pid,v){ if(_mmOrderItems[pid]){ _mmOrderItems[pid].qty=Math.max(1,parseInt(v)||1); _mmRenderOrderList(); } }
+function _mmRemove(pid){ delete _mmOrderItems[pid]; _mmRenderOrderList(); }
+
+// ── Confirm shop order ───────────────────────────────────
+function mmConfirmOrder(){
+  if(!_mmCurShop){ toast('Select a shop first','rd'); return; }
+  let pids=Object.keys(_mmOrderItems);
+  if(!pids.length){ toast('Scan some products first','rd'); return; }
+  let errors=[], items=[], grandTotal=0;
+  pids.forEach(pid=>{
+    let p=gP(parseInt(pid)); if(!p)return;
+    let item=_mmOrderItems[pid];
+    let pcsPerBox=p.pcsPerBox||0;
+    let pricePerBox=p.pricePerBox||0;
+    let boxQty=item.unit==='pcs'&&pcsPerBox>0?Math.ceil(item.qty/pcsPerBox):item.qty;
+    let mmStock=mmData.stock[pid]||0;
+    if(boxQty>mmStock) errors.push(p.name.split(' ').slice(0,3).join(' ')+'(need '+boxQty+', have '+mmStock+')');
+    let lineTotal=boxQty*pricePerBox;
+    grandTotal+=lineTotal;
+    items.push({pid:parseInt(pid),name:p.name,qty:item.qty,unit:item.unit,boxes:boxQty,price:lineTotal});
+  });
+  if(errors.length){ toast('Not enough MM Mart stock: '+errors.slice(0,2).join(', '),'rd'); return; }
+  // Deduct from MM stock
+  items.forEach(item=>{
+    mmData.stock[item.pid]=Math.max(0,(mmData.stock[item.pid]||0)-item.boxes);
+    // Log in activity
+    let act={type:'out',prod:item.name,qty:item.boxes,time:nowT(),user:currentUser||'MM Mart',dest:'shop',destName:_mmCurShop};
+    activity.unshift(act); sbPushActivity(act);
+  });
+  mmData.orders.unshift({shop:_mmCurShop,items,total:grandTotal,time:nowT(),user:currentUser||'Unknown'});
+  mmSave();
+  toast('✓ Sent to '+_mmCurShop+(grandTotal>0?' — ¥'+grandTotal.toLocaleString():''),'ok');
+  mmCancelOrder();
+  refreshDash();
+}
+
+// ── MM Mart receives stock from warehouse ────────────────
+// Called from doSO when dest='mmmart'
+function mmReceiveFromWarehouse(pid, boxQty){
+  mmData.stock[pid]=(mmData.stock[pid]||0)+boxQty;
+  mmSave();
+}
+
+// ── Stock view ───────────────────────────────────────────
+function mmRenderStock(){
+  let el=document.getElementById('mm-stock-list'); if(!el)return;
+  let pids=Object.keys(mmData.stock).filter(pid=>mmData.stock[pid]>0);
+  if(!pids.length){ el.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3)">No stock — use Stock Out → MM MART to transfer</div>'; return; }
+  el.innerHTML=pids.map(pid=>{
+    let p=gP(parseInt(pid)); if(!p)return '';
+    let qty=mmData.stock[pid]||0;
+    let pcsEq=p.pcsPerBox?qty*p.pcsPerBox:null;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--bdr)">'
+      +(p.photo?'<img src="'+p.photo+'" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0">':'<div style="width:40px;height:40px;border-radius:8px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:20px">📦</div>')
+      +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
+      +'<div style="font-size:11px;color:var(--tx3)">'+(pcsEq?pcsEq+' pcs · ':'')+qty+' boxes</div></div>'
+      +'<div style="font-size:20px;font-weight:900;color:var(--bl)">'+qty+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+// ── History + Analytics ──────────────────────────────────
+function mmRenderHist(){
+  let el=document.getElementById('mm-hist-list'); if(!el)return;
+  if(!mmData.orders.length){ el.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3)">No orders yet</div>'; return; }
+  el.innerHTML=mmData.orders.slice(0,40).map(ord=>{
+    return '<div style="padding:12px;border-bottom:1px solid var(--bdr)">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+        +'<span style="font-size:18px">🏪</span>'
+        +'<div style="flex:1"><div style="font-size:13px;font-weight:700">'+ord.shop+'</div><div style="font-size:11px;color:var(--tx3)">'+ord.time+' · by '+ord.user+'</div></div>'
+        +(ord.total?'<div style="font-size:14px;font-weight:800;color:var(--gn3)">¥'+ord.total.toLocaleString()+'</div>':'')
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--tx3)">'+ord.items.map(i=>i.qty+' '+i.unit+' '+i.name.split(' ').slice(0,3).join(' ')).join(' · ')+'</div>'
+      +'</div>';
+  }).join('');
+}
+function mmRenderAnalytics(){
+  let el=document.getElementById('mm-analytics'); if(!el)return;
+  if(!mmData.orders.length){ el.innerHTML='<div style="color:var(--tx3);font-size:13px;padding:8px 0">No orders yet</div>'; return; }
+  let shopMap={}, prodMap={};
+  mmData.orders.forEach(ord=>{
+    if(!shopMap[ord.shop]) shopMap[ord.shop]={orders:0,total:0,boxes:0};
+    shopMap[ord.shop].orders++; shopMap[ord.shop].total+=(ord.total||0);
+    ord.items.forEach(item=>{
+      shopMap[ord.shop].boxes+=(item.boxes||item.qty||0);
+      let key=item.pid||item.name;
+      if(!prodMap[key]) prodMap[key]={name:item.name,boxes:0,total:0};
+      prodMap[key].boxes+=(item.boxes||item.qty||0);
+      prodMap[key].total+=(item.price||0);
+    });
+  });
+  let entries=Object.entries(shopMap).sort((a,b)=>b[1].total-a[1].total);
+  let maxV=entries[0]?Math.max(entries[0][1].total,1):1;
+  let html='<div style="margin-bottom:14px">';
+  entries.forEach(([shop,d])=>{
+    let pct=Math.round(d.total/maxV*100);
+    html+='<div style="margin-bottom:10px">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
+        +'<span style="font-size:13px;font-weight:600">🏪 '+shop+'</span>'
+        +'<div style="text-align:right">'
+          +(d.total?'<div style="font-size:13px;font-weight:700;color:var(--gn3)">¥'+d.total.toLocaleString()+'</div>':'')
+          +'<div style="font-size:10px;color:var(--tx3)">'+d.orders+' orders · '+d.boxes+' boxes</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="height:8px;border-radius:4px;background:var(--sur3);overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--gn);border-radius:4px;transition:width .4s"></div></div>'
+      +'</div>';
+  });
+  html+='</div>';
+  let topProds=Object.values(prodMap).sort((a,b)=>b.boxes-a.boxes).slice(0,5);
+  if(topProds.length){
+    html+='<div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Top products</div>';
+    topProds.forEach(p=>{
+      html+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bdr);font-size:12px">'
+        +'<span style="color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+p.name.split(' ').slice(0,4).join(' ')+'</span>'
+        +'<div style="display:flex;gap:8px;flex-shrink:0;margin-left:8px">'
+          +'<span style="color:var(--tx2);font-weight:600">'+p.boxes+' boxes</span>'
+          +(p.total?'<span style="color:var(--gn3);font-weight:700">¥'+p.total.toLocaleString()+'</span>':'')
+        +'</div>'
+        +'</div>';
+    });
+  }
+  el.innerHTML=html;
+}
+
+// ── Settings: manage shops ───────────────────────────────
+function mmRenderShopSettings(){
+  let el=document.getElementById('mm-shops-set-list'); if(!el)return;
+  el.innerHTML=mmData.shops.map((s,i)=>
+    '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bdr)">'
+    +'<span style="flex:1;font-size:14px">🏪 '+s+'</span>'
+    +'<button onclick="mmDeleteShop('+i+')" style="background:var(--rd2);border:none;border-radius:var(--r);color:var(--rd);padding:5px 12px;cursor:pointer;font-size:12px;font-weight:600">Delete</button>'
+    +'</div>'
+  ).join('');
+}
+function mmAddShop(){
+  let inp=document.getElementById('mm-new-shop'); let name=(inp?inp.value.trim():'');
+  if(!name||mmData.shops.includes(name)){ toast(name?'Shop already exists':'Enter shop name','rd'); return; }
+  mmData.shops.push(name); mmSave(); if(inp)inp.value='';
+  mmRenderShopSettings(); mmRenderShopBtns(); toast('✓ Shop "'+name+'" added');
+}
+function mmAddShopQuick(){
+  let inp=document.getElementById('mm-new-shop-quick'); let name=(inp?inp.value.trim():'');
+  if(!name||mmData.shops.includes(name)){ toast(name?'Already exists':'Enter name','rd'); return; }
+  mmData.shops.push(name); mmSave(); if(inp)inp.value='';
+  mmRenderShopBtns(); toast('✓ '+name+' added');
+}
+function mmDeleteShop(i){
+  if(!confirm('Delete shop "'+mmData.shops[i]+'"?')) return;
+  mmData.shops.splice(i,1); mmSave();
+  mmRenderShopSettings(); mmRenderShopBtns();
+}
+
 // ── Init ──────────────────────────────────────────────────────────
 // Boot: load users from DB FIRST so all user names work on PIN screen,
 // then show PIN screen. Everything else (products, activity) loads after.
@@ -4233,10 +4757,13 @@ async function sendTestSms(){
     sbPullContainers();
     sbPull();
     sbSubscribe();
+    sbPullPhotos();
+    setInterval(sbPullPhotos, 30000);
   } else {
     sbInit(); // fallback: normal init if step 2 failed
   }
 })();
+mmLoad();
 
 window.addEventListener('resize',()=>{
   if(document.getElementById('page-dash')&&document.getElementById('page-dash').classList.contains('on')){

@@ -314,7 +314,7 @@ input{user-select:auto}
 <div class="page" id="pg-setup">
   <div class="page-pad">
     <div class="sec-h">Products</div>
-    <div class="sec-sub">Assign products to a rack & shelf. Barcodes stay unchanged.</div>
+    <div class="sec-sub">Tap a product to assign it to a rack & shelf position.</div>
     <div class="scan-cta" onclick="openCam('setup')">
       <div class="scan-cta-ic">📷</div>
       <div class="scan-cta-tx"><b>Scan product to place it</b><span>Then pick its rack & shelf</span></div>
@@ -1425,6 +1425,24 @@ async function dbPull(){
     _dbOk=true;
     saveLocal();
     mergeLocalProducts(); // re-apply local photos AFTER db overwrites — local is always source of truth
+    // Also pull photos from settings backup channel (cross-device sync)
+    try{
+      let {data:photoRows}=await sbClient.from('settings').select('key,value').like('key','photo_%');
+      if(photoRows&&photoRows.length){
+        let lp={};try{lp=JSON.parse(localStorage.getItem(PHOTOS_KEY)||'{}');}catch(e){}
+        let changed=false;
+        photoRows.forEach(row=>{
+          let pid=parseInt(row.key.replace('photo_',''));
+          if(pid&&row.value&&row.value.length>100&&row.value!==lp[pid]){
+            lp[pid]=row.value;
+            let p=gP(pid);if(p)p.photo=row.value;
+            changed=true;
+          }
+        });
+        if(changed){try{localStorage.setItem(PHOTOS_KEY,JSON.stringify(lp));}catch(e){}
+        }
+      }
+    }catch(e){}
     refreshCurrent();
     toast('✓ Synced with warehouse database','ok');
   }catch(e){
