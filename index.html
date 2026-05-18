@@ -1146,9 +1146,11 @@ body.role-operator #main{padding:0 !important}
       <div style="font-size:16px;font-weight:700;flex:1">🖼 Auto-fetch product images</div>
       <button class="btn btn-sm" onclick="closeModal('m-bulk-img')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
     </div>
-    <div style="font-size:13px;color:var(--tx2);margin-bottom:10px">Uses OpenAI to find the best product photo for each item. You confirm or skip each one before saving.</div>
-    <div style="background:var(--bl2);border-radius:var(--r);padding:10px 12px;font-size:12px;color:var(--bl3);margin-bottom:12px">
-      <b>Setup:</b> Add <code style="background:rgba(0,0,0,.07);padding:1px 5px;border-radius:3px">OPENAI_API_KEY</code> to Vercel env vars. Optionally add <code style="background:rgba(0,0,0,.07);padding:1px 5px;border-radius:3px">GOOGLE_CSE_KEY</code> + <code style="background:rgba(0,0,0,.07);padding:1px 5px;border-radius:3px">GOOGLE_CSE_CX</code> for Google Custom Search (100 free/day).
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:10px">Uses SerpAPI Google Images to find product photos. You confirm or skip each one.</div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">SerpAPI key</label>
+      <input type="text" id="serp-key" placeholder="Paste your SerpAPI key here" autocomplete="off"/>
+      <div style="font-size:11px;color:var(--tx3);margin-top:4px">Free key at <strong>serpapi.com</strong> — 100 searches/month free</div>
     </div>
     <div class="fx gap8 mb12">
       <div style="flex:1">
@@ -1162,23 +1164,22 @@ body.role-operator #main{padding:0 !important}
         <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px">Mode</label>
         <select id="bulk-img-mode" style="font-size:13px">
           <option value="confirm">Confirm each photo</option>
-          <option value="auto">Auto-save all (faster)</option>
+          <option value="auto">Auto-save all</option>
         </select>
       </div>
     </div>
-    <!-- Confirmation panel — shown during fetch -->
+    <!-- Confirmation panel -->
     <div id="bulk-confirm-panel" style="display:none;margin-bottom:12px">
-      <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:6px" id="bulk-confirm-name">Searching…</div>
-      <div style="display:flex;gap:10px;align-items:flex-start">
-        <div id="bulk-confirm-img-wrap" style="width:120px;height:120px;border-radius:var(--r);overflow:hidden;background:var(--sur2);flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--bdr)">
-          <div id="bulk-confirm-spinner" style="font-size:28px">⏳</div>
-          <img id="bulk-confirm-img" style="display:none;width:100%;height:100%;object-fit:cover" src="" alt="" onerror="this.style.display='none';document.getElementById('bulk-confirm-spinner').style.display='block';document.getElementById('bulk-confirm-spinner').textContent='❌'"/>
+      <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:8px" id="bulk-confirm-name"></div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div style="width:130px;height:130px;border-radius:var(--rl);overflow:hidden;background:var(--sur2);flex-shrink:0;border:1px solid var(--bdr);position:relative">
+          <div id="bulk-confirm-spinner" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:32px">⏳</div>
+          <img id="bulk-confirm-img" style="width:100%;height:100%;object-fit:contain;display:none;background:#fff" src="" alt=""/>
         </div>
-        <div style="flex:1;display:flex;flex-direction:column;gap:8px">
-          <div id="bulk-confirm-source" style="font-size:10px;color:var(--tx3)"></div>
-          <button id="bulk-confirm-save" onclick="bulkConfirmSave()" style="padding:10px;border-radius:var(--r);border:none;background:var(--gn);color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:none">✓ Save this photo</button>
-          <button id="bulk-confirm-skip" onclick="bulkConfirmSkip()" style="padding:10px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);color:var(--tx2);font-size:13px;font-weight:600;cursor:pointer;display:none">✕ Skip / try next</button>
-          <button id="bulk-confirm-stop" onclick="()=>{_bulkRunning=false}" style="padding:8px;border-radius:var(--r);border:none;background:transparent;color:var(--tx3);font-size:12px;cursor:pointer">■ Stop</button>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;padding-top:4px">
+          <div id="bulk-confirm-source" style="font-size:10px;color:var(--tx3);margin-bottom:2px"></div>
+          <button id="bulk-confirm-save" onclick="bulkConfirmSave()" style="padding:12px;border-radius:var(--r);border:none;background:var(--gn);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:none">✓ Save photo</button>
+          <button id="bulk-confirm-skip" onclick="bulkConfirmSkip()" style="padding:12px;border-radius:var(--r);border:1.5px solid var(--bdr2);background:var(--sur2);color:var(--tx2);font-size:13px;font-weight:600;cursor:pointer;display:none">✕ Skip</button>
         </div>
       </div>
     </div>
@@ -1195,9 +1196,7 @@ body.role-operator #main{padding:0 !important}
     </div>
     <div class="g2">
       <button class="btn w100" onclick="closeModal('m-bulk-img')" id="bulk-cancel-btn">Cancel</button>
-      <button class="btn w100" style="background:var(--bl);color:#fff;border-color:var(--bl);font-weight:600" onclick="startBulkImages()" id="bulk-start-btn">
-        🖼 Start fetching images
-      </button>
+      <button class="btn w100" style="background:var(--bl);color:#fff;border-color:var(--bl);font-weight:600" onclick="startBulkImages()" id="bulk-start-btn">🖼 Start fetching images</button>
     </div>
   </div></div>
 </div>
@@ -3184,11 +3183,14 @@ function saveRegisterBc(){
   toast('Barcode saved: '+digits);
 }
 
-// ── OpenAI image fetch ────────────────────────────────────────────
+// ── SerpAPI bulk image fetch ──────────────────────────────────────
 let _bulkRunning = false;
-let _bulkConfirmResolve = null; // promise resolver for confirm/skip
+let _bulkConfirmResolve = null;
 
 function openBulkImages() {
+  let saved = localStorage.getItem('serp_key');
+  let inp = document.getElementById('serp-key');
+  if (inp && saved) inp.value = saved;
   document.getElementById('bulk-img-progress').style.display = 'none';
   document.getElementById('bulk-confirm-panel').style.display = 'none';
   document.getElementById('bulk-prog-log').textContent = '';
@@ -3200,63 +3202,66 @@ function openBulkImages() {
   openModal('m-bulk-img');
 }
 
-// Called by Confirm button in the panel
 function bulkConfirmSave() {
   if (_bulkConfirmResolve) { _bulkConfirmResolve('save'); _bulkConfirmResolve = null; }
 }
-// Called by Skip button in the panel
 function bulkConfirmSkip() {
   if (_bulkConfirmResolve) { _bulkConfirmResolve('skip'); _bulkConfirmResolve = null; }
 }
 
-// Fetch image via /api/openai-image — server returns base64 data URL directly
-// No CORS issues, no proxy needed — image is ready to save immediately
-async function fetchProductImage(productName) {
-  let res = await fetchTimeout('/api/openai-image', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ productName }),
-  }, 30000);
-  if (!res.ok) {
-    let err = {}; try { err = await res.json(); } catch(e) {}
-    throw new Error(err.error || 'API error ' + res.status);
-  }
+async function fetchProductImage(productName, serpKey) {
+  let q = encodeURIComponent(productName + ' myanmar food product package');
+  let res = await fetchTimeout('/api/search-image?q=' + q + '&key=' + encodeURIComponent(serpKey), {}, 15000);
+  if (!res.ok) { let e={}; try{e=await res.json();}catch(x){} throw new Error(e.error||'SerpAPI '+res.status); }
   let data = await res.json();
-  if (!data.dataUrl) throw new Error(data.error || 'No image returned');
-  return data; // {dataUrl, source, title, generated?}
+  let imgs = (data.images||[]).filter(i=>i.url);
+  if (!imgs.length) throw new Error('No images found');
+  for (let img of imgs.slice(0,4)) {
+    try { return { b64: await _imgToBase64(img.url) }; } catch(e) { continue; }
+  }
+  throw new Error('All images failed to proxy');
 }
 
-// Show image in confirmation panel and wait for user's choice
-// Show base64 image in confirm panel and wait for user's choice
+async function _imgToBase64(imgUrl) {
+  let res = await fetchTimeout('/api/image-proxy?url='+encodeURIComponent(imgUrl), {}, 12000);
+  if (!res.ok) throw new Error('Proxy '+res.status);
+  let blob = await res.blob();
+  if (!blob.type.startsWith('image/')) throw new Error('Not an image');
+  return new Promise((resolve,reject) => {
+    let r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error('FileReader failed'));
+    r.readAsDataURL(blob);
+  });
+}
+
 function _showConfirmPanel(p, b64, source) {
-  let panel = document.getElementById('bulk-confirm-panel');
-  let nameEl = document.getElementById('bulk-confirm-name');
-  let img = document.getElementById('bulk-confirm-img');
+  let panel   = document.getElementById('bulk-confirm-panel');
+  let nameEl  = document.getElementById('bulk-confirm-name');
+  let img     = document.getElementById('bulk-confirm-img');
   let spinner = document.getElementById('bulk-confirm-spinner');
-  let srcEl = document.getElementById('bulk-confirm-source');
+  let srcEl   = document.getElementById('bulk-confirm-source');
   let saveBtn = document.getElementById('bulk-confirm-save');
   let skipBtn = document.getElementById('bulk-confirm-skip');
-
-  panel.style.display = 'block';
-  nameEl.textContent = p.name;
-  srcEl.textContent = 'Source: ' + (source || 'AI');
-
-  // b64 is already a data URL — always displays reliably
+  panel.style.display   = 'block';
+  nameEl.textContent    = p.name;
+  srcEl.textContent     = 'Source: ' + (source||'SerpAPI');
   spinner.style.display = 'none';
-  img.style.display = 'block';
-  img.src = b64;
+  img.style.display     = 'block';
+  img.src               = b64;
   saveBtn.style.display = 'block';
   skipBtn.style.display = 'block';
-
   return new Promise(resolve => { _bulkConfirmResolve = resolve; });
 }
 
 async function startBulkImages() {
-  let scope = document.getElementById('bulk-img-scope').value;
-  let mode  = document.getElementById('bulk-img-mode').value;
-
-  let targets = scope === 'all' ? products : products.filter(p => !p.photo);
-  if (!targets.length) { toast('No products need images', 'rd'); return; }
+  let key  = document.getElementById('serp-key').value.trim();
+  if (!key) { toast('Enter your SerpAPI key first','rd'); return; }
+  localStorage.setItem('serp_key', key);
+  let scope   = document.getElementById('bulk-img-scope').value;
+  let mode    = document.getElementById('bulk-img-mode').value;
+  let targets = scope==='all' ? [...products] : products.filter(p=>!p.photo);
+  if (!targets.length) { toast('All products already have photos','ok'); return; }
 
   _bulkRunning = true;
   document.getElementById('bulk-img-progress').style.display = 'block';
@@ -3266,74 +3271,59 @@ async function startBulkImages() {
   document.getElementById('bulk-cancel-btn').onclick = () => {
     _bulkRunning = false;
     if (_bulkConfirmResolve) { _bulkConfirmResolve('skip'); _bulkConfirmResolve = null; }
+    document.getElementById('bulk-confirm-panel').style.display = 'none';
   };
 
-  let log = document.getElementById('bulk-prog-log');
-  let bar = document.getElementById('bulk-prog-bar');
-  let lbl = document.getElementById('bulk-prog-label');
-  let cnt = document.getElementById('bulk-prog-count');
-  let done = 0, success = 0, failed = 0;
+  let log=document.getElementById('bulk-prog-log'), bar=document.getElementById('bulk-prog-bar');
+  let lbl=document.getElementById('bulk-prog-label'), cnt=document.getElementById('bulk-prog-count');
+  let done=0, saved=0, skipped=0;
 
   for (let p of targets) {
     if (!_bulkRunning) { log.textContent += '\nStopped.\n'; break; }
-
-    lbl.textContent = p.name.slice(0, 40) + '…';
-    cnt.textContent = done + ' / ' + targets.length;
-    bar.style.width = Math.round(done / targets.length * 100) + '%';
-
+    lbl.textContent  = p.name.slice(0,36)+(p.name.length>36?'…':'');
+    cnt.textContent  = done+' / '+targets.length;
+    bar.style.width  = Math.round(done/targets.length*100)+'%';
+    log.textContent += p.name.slice(0,28)+'… searching\n';
+    log.scrollTop    = log.scrollHeight;
     try {
-      log.textContent += p.name.slice(0, 32) + ': searching…\n';
-      log.scrollTop = log.scrollHeight;
-
-      // Step 1: fetch image from OpenAI/Google — returns base64 data URL directly
-      let data = await fetchProductImage(p.name);
-      let photo = data.dataUrl; // already base64, ready to save and display
-      let source = data.source || 'ai';
-      let generated = data.generated ? ' (AI generated)' : '';
-      log.textContent += '  Found via ' + source + generated + '\n';
-      log.scrollTop = log.scrollHeight;
-
-      // Step 2: confirm or auto-save
+      let {b64} = await fetchProductImage(p.name, key);
+      log.textContent += '  ✓ found\n'; log.scrollTop = log.scrollHeight;
       let action = 'save';
-      if (mode === 'confirm') {
-        action = await _showConfirmPanel(p, photo, source + generated);
+      if (mode==='confirm') {
+        action = await _showConfirmPanel(p, b64, 'SerpAPI');
         if (!_bulkRunning) break;
+        document.getElementById('bulk-confirm-panel').style.display = 'none';
       }
-
-      if (action === 'save') {
-        p.photo = photo;
-        _savePhotoLocal(p.id, photo);
-        sbPushProduct(p);
-        log.textContent += '  ✓ Saved!\n';
-        success++;
+      if (action==='save') {
+        p.photo = b64;
+        _savePhotoLocal(p.id, b64);   // device-wide localStorage
+        sbPushProduct(p);              // Supabase → all other devices
+        log.textContent += '  ✓ saved globally\n';
+        saved++;
         if (document.getElementById('page-products').classList.contains('on')) renderProds();
       } else {
-        log.textContent += '  — Skipped\n';
-        failed++;
+        log.textContent += '  — skipped\n'; skipped++;
       }
     } catch(e) {
-      log.textContent += '  ✗ ' + e.message + '\n';
-      failed++;
+      log.textContent += '  ✗ '+e.message+'\n';
     }
-
     log.scrollTop = log.scrollHeight;
     done++;
-    if (_bulkRunning) await new Promise(r => setTimeout(r, 400));
+    if (_bulkRunning) await new Promise(r=>setTimeout(r,1100)); // SerpAPI rate limit
   }
 
   document.getElementById('bulk-confirm-panel').style.display = 'none';
-  bar.style.width = '100%';
-  lbl.textContent = 'Done! ✓ ' + success + ' saved, ✕ ' + failed + ' skipped/failed';
-  cnt.textContent = done + ' / ' + targets.length;
+  bar.style.width  = '100%';
+  lbl.textContent  = '✓ '+saved+' saved, '+skipped+' skipped';
+  cnt.textContent  = done+' / '+targets.length;
   document.getElementById('bulk-start-btn').disabled = false;
   document.getElementById('bulk-start-btn').textContent = '🖼 Run again';
   document.getElementById('bulk-cancel-btn').textContent = 'Close';
   document.getElementById('bulk-cancel-btn').onclick = () => closeModal('m-bulk-img');
   _bulkRunning = false;
   if (document.getElementById('page-products').classList.contains('on')) renderProds();
-  toast('✓ ' + success + ' product images updated');
+  if (saved>0) toast('✓ '+saved+' product photos saved globally');
 }
-
 
 // ── Photo zoom lightbox ───────────────────────────────────────────
 function openPhotoZoom(pid) {
