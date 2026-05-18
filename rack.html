@@ -313,7 +313,7 @@ input{user-select:auto}
 <!-- ═══ SETUP PAGE ═══ -->
 <div class="page" id="pg-setup">
   <div class="page-pad">
-    <div class="sec-h">Setup Locations</div>
+    <div class="sec-h">Products</div>
     <div class="sec-sub">Assign products to a rack & shelf. Barcodes stay unchanged.</div>
     <div class="scan-cta" onclick="openCam('setup')">
       <div class="scan-cta-ic">📷</div>
@@ -351,7 +351,10 @@ alter table rack_transactions enable row level security;
 create policy "anon ra" on rack_assignments
   for all using (true) with check (true);
 create policy "anon rt" on rack_transactions
-  for all using (true) with check (true);</pre>
+  for all using (true) with check (true);
+
+-- If you already ran the old SQL, run this to add the shelf column:
+alter table rack_assignments add column if not exists shelf text default 'mid';</pre>
       <button onclick="copySQL()" style="width:100%;margin-top:10px;padding:11px;border-radius:10px;border:none;background:var(--am);color:#000;font-size:13px;font-weight:800;cursor:pointer">📋 Copy SQL</button>
     </div>
     <div style="background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:18px;margin-bottom:16px">
@@ -414,12 +417,15 @@ create policy "anon rt" on rack_transactions
 </div>
 
 <!-- ACTION MODAL -->
-<div class="modal" id="modal">
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
   <div class="sheet">
     <div class="sheet-grab"></div>
-    <div class="sheet-h">
-      <div class="sheet-h-t" id="m-title">Product</div>
-      <div class="sheet-h-s" id="m-sub"></div>
+    <div class="sheet-h" style="display:flex;align-items:flex-start;gap:10px">
+      <div style="flex:1">
+        <div class="sheet-h-t" id="m-title">Product</div>
+        <div class="sheet-h-s" id="m-sub"></div>
+      </div>
+      <button onclick="closeModal()" style="background:var(--sur2);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:4px;font-size:18px;color:var(--tx2)">✕</button>
     </div>
     <div class="sheet-body" id="m-body"></div>
     <div class="sheet-foot" id="m-foot"></div>
@@ -718,11 +724,25 @@ function openProd(pid){
     +'</div>'
     +'<div style="background:var(--bl2);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--tx2);line-height:1.5">💡 Stock in/out in the <b>Main app</b> — it shows Rack '+rackN+' · '+shelfN+' while scanning.</div>';
   document.getElementById('m-foot').innerHTML=
-    '<button class="act-btn ab-sec" onclick="closeModal()" style="flex:1">Close</button>'
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%">'
+    +'<button class="act-btn ab-sec" onclick="closeModal()" style="justify-content:center">✕ Close</button>'
     +(loc
-      ?'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Change</button>'
-      :'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Assign</button>');
+      ?'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')" style="justify-content:center">📍 Move rack</button>'
+      :'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')" style="justify-content:center">📍 Assign rack</button>')
+    +(loc
+      ?'<button onclick="removeFromRack('+p.id+')" style="padding:11px 8px;border-radius:var(--r);border:1.5px solid var(--rd);background:var(--rd2);color:var(--rd);font-size:13px;font-weight:600;cursor:pointer;justify-content:center">🗑 Remove from rack</button>'
+      :'')
+    +'</div>';
   document.getElementById('modal').classList.add('show');
+}
+
+function removeFromRack(pid){
+  if(!confirm('Remove this product from its rack?'))return;
+  delete rackMap[pid];
+  _pendingLoc[pid]=null;
+  saveLocal(); updateSyncBtn(); closeModal();
+  toast('Product removed from rack','ok');
+  refreshCurrent();
 }
 
 function showPhotoFullscreen(pid){
@@ -1275,8 +1295,13 @@ async function syncAll(){
         delete _pendingLoc[pid];
       }catch(e){
         tableErr=true;
-        if(String(e&&e.message||e).match(/relation|does not exist|schema cache/i)){
-          toast('⚠ Run the SQL setup first (see QR tab)','err');
+        let errStr=String(e&&e.message||e);
+        if(errStr.match(/shelf|column.*not.*exist/i)){
+          toast("In Supabase SQL Editor run: ALTER TABLE rack_assignments ADD COLUMN IF NOT EXISTS shelf text default 'mid';","err");
+          b.disabled=false;updateSyncBtn();return;
+        }
+        if(errStr.match(/relation|does not exist|schema cache/i)){
+          toast('⚠ Run the SQL setup in QR tab','err');
           b.disabled=false;updateSyncBtn();return;
         }
       }
@@ -1307,8 +1332,9 @@ async function syncAll(){
         _pendingTx=_pendingTx.filter(x=>x.id!==tx.id);
       }catch(e){
         tableErr=true;
-        if(String(e&&e.message||e).match(/relation|does not exist|schema cache/i)){
-          toast('⚠ Run the SQL setup first (see QR tab)','err');
+        let errStr2=String(e&&e.message||e);
+        if(errStr2.match(/relation|does not exist|schema cache/i)){
+          toast('⚠ Run the SQL setup in QR tab','err');
           b.disabled=false;updateSyncBtn();return;
         }
       }
@@ -1328,14 +1354,15 @@ async function dbPull(){
   try{
     if(!window.supabase)await loadLib('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js');
     sbClient=window.supabase.createClient(SB_URL,SB_KEY);
-    // products (barcodes + qty)
-    let {data}=await sbClient.from('products').select('id,name,sku,cat,sub,qty,threshold,vendor,barcode,last_updated,photo');
+    // products (barcodes + qty only — photos come from localStorage, not DB)
+    let {data}=await sbClient.from('products').select('id,name,sku,cat,sub,qty,threshold,vendor,barcode,last_updated');
     if(data&&data.length>=10){
       let valid=data.filter(r=>r.id&&r.name&&categories.some(c=>c.id===r.cat));
       if(valid.length>=10){
         valid.forEach(r=>{
           let p=gP(r.id);
-          if(p){p.name=r.name;p.sku=r.sku||p.sku;p.cat=r.cat;p.sub=r.sub;p.threshold=r.threshold||p.threshold;p.vendor=r.vendor||p.vendor;p.photo=(r.photo&&r.photo.length>10)?r.photo:p.photo;p.barcode=r.barcode||p.barcode;if(!_pendingProdQty[r.id])p.qty=r.qty!=null?r.qty:p.qty;}
+          if(p){p.name=r.name;p.sku=r.sku||p.sku;p.cat=r.cat;p.sub=r.sub;p.threshold=r.threshold||p.threshold;p.vendor=r.vendor||p.vendor;p.barcode=r.barcode||p.barcode;if(!_pendingProdQty[r.id])p.qty=r.qty!=null?r.qty:p.qty;}
+          // NOTE: p.photo is NOT touched here — photos come from localStorage only
         });
       }
     }
