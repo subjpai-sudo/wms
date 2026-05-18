@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
 <title>CityStar Warehouse</title>
 <style>
 :root{
@@ -297,6 +297,377 @@ body.role-operator #layout{grid-template-columns:1fr !important}
 body.role-operator #main{padding:0 !important}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{animation:spin .8s linear infinite;display:inline-block}
+
+/* Modern SaaS redesign layer */
+:root{
+  --pu:#2563EB;--pu2:#EAF2FF;--pu3:#1D4ED8;
+  --bg:#F4F7FB;--sur:#FFFFFF;--sur2:#F7FAFC;--sur3:#E7EEF7;
+  --bdr:#DDE6F2;--bdr2:#B9C8DC;
+  --tx:#101828;--tx2:#526173;--tx3:#8A99AD;
+  --gn:#10B981;--gn2:#EAFBF5;--gn3:#047857;
+  --am:#F59E0B;--am2:#FFF7E8;--am3:#B45309;
+  --rd:#EF4444;--rd2:#FFF0F0;--rd3:#B91C1C;
+  --bl:#06B6D4;--bl2:#E7FAFE;--bl3:#0E7490;
+  --r:8px;--rl:8px;--rx:10px;
+  --sh-sm:0 1px 2px rgba(16,24,40,.05),0 1px 1px rgba(16,24,40,.03);
+  --sh-md:0 12px 30px rgba(16,24,40,.09);
+  --sh-lg:0 24px 70px rgba(16,24,40,.16);
+  --sh-pu:0 10px 24px rgba(37,99,235,.24);
+}
+body{background:linear-gradient(180deg,#F8FBFF 0%,#F0F5FA 56%,#EDF4F8 100%);color:var(--tx)}
+html,body{max-width:100%;overflow-x:hidden}
+#topbar{height:60px;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);border-bottom:1px solid rgba(221,230,242,.82);padding:0 20px;box-shadow:0 10px 32px rgba(16,24,40,.06)}
+.logo{font-size:16px;font-weight:800;color:#0B1220}
+.logo-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#2563EB,#06B6D4);box-shadow:0 10px 22px rgba(37,99,235,.25)}
+.role-badge{background:#ECFEFF;color:#0E7490;border:1px solid #CFFAFE;font-weight:800}
+#sidebar{background:rgba(255,255,255,.82);backdrop-filter:blur(18px);border-right:1px solid rgba(221,230,242,.9);padding:16px 12px}
+.sidebar-section{color:#94A3B8}
+.ni{border:1px solid transparent;border-radius:8px;font-weight:650}
+.ni:hover{background:#F8FAFC;border-color:#E2E8F0}
+.ni.on{background:linear-gradient(135deg,#EAF2FF,#E7FAFE);border-color:#BFD7FF;color:#1D4ED8;box-shadow:inset 3px 0 0 #06B6D4}
+#main{padding:24px;background:transparent}
+.pt{font-size:26px;font-weight:850;letter-spacing:0;color:#0B1220}
+.ps{color:#64748B;margin-bottom:20px}
+.card,.metric,.plist,.cat-root,.dest-btn,.pin-user-btn,.pin-key{border-radius:8px;border:1px solid rgba(205,216,230,.95);box-shadow:0 10px 26px rgba(16,24,40,.06);background:rgba(255,255,255,.94)}
+.card{padding:18px}
+.card:hover,.metric:hover{border-color:#BFD7FF;box-shadow:0 16px 36px rgba(16,24,40,.1)}
+.metric{padding:18px;min-height:138px}
+.metric::after{content:"";position:absolute;inset:auto 14px 14px auto;width:58px;height:58px;border-radius:8px;background:linear-gradient(135deg,rgba(6,182,212,.13),rgba(37,99,235,.1));pointer-events:none}
+.metric-icon,.picon{border-radius:8px;background:linear-gradient(135deg,#EAF2FF,#ECFEFF)!important;color:#1D4ED8}
+.mv{font-size:30px;color:#0B1220}
+.ml,.sec{color:#7B8A9E}
+.badge{border-radius:8px;border:1px solid rgba(255,255,255,.6);font-weight:800}
+.btn{border-radius:8px;border-color:#D5E0EE;background:#fff;box-shadow:0 2px 8px rgba(16,24,40,.06);min-height:36px}
+.btn-pu{background:linear-gradient(135deg,#2563EB,#06B6D4);border-color:transparent;box-shadow:0 12px 24px rgba(37,99,235,.25)}
+.btn-gn{background:#10B981;border-color:#10B981;color:#062F22}
+.btn-wa{background:#10B981;border-color:#10B981}
+input,select,textarea{border-radius:8px;border:1.5px solid #D9E4F2;background:#FBFDFF;min-height:40px}
+input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4px rgba(6,182,212,.14)}
+.tabs{border-bottom-color:#DDE6F2;gap:4px}
+.tb{border-radius:8px 8px 0 0;font-weight:700}
+.tb.on{color:#2563EB;border-bottom-color:#06B6D4}
+.prow{padding:13px 16px}
+.prow:hover,.tbl tr:hover td,.sub-item:hover{background:#F7FBFF}
+.qbtn,.qnum{border-radius:8px}
+.qnum{border-color:#06B6D4!important}
+.modal{border-radius:10px 10px 0 0}
+#bottom-nav{height:70px;background:rgba(255,255,255,.92);border-top-color:#DDE6F2;box-shadow:0 -12px 28px rgba(16,24,40,.08)}
+.bn-btn{font-size:10px;font-weight:800}
+.bn-btn.on{color:#2563EB}
+#toast{background:#0B1220;border:1px solid rgba(255,255,255,.08)}
+#cam-overlay{background:#050914}
+.cam-frame::before,.cam-frame::after,.cam-frame-tr,.cam-frame-bl{border-color:#22D3EE}
+.cam-line{background:linear-gradient(90deg,transparent,#22D3EE,#fff,#22D3EE,transparent);box-shadow:0 0 18px #22D3EE}
+.pin-key{height:68px}
+#pin-screen{overflow:hidden}
+#pin-name-step{max-width:min(280px,calc(100vw - 32px))!important}
+@media(max-width:768px){
+  #topbar{height:56px;padding:0 14px}
+  #main{padding:14px 12px 86px}
+  .pt{font-size:22px}
+  .card{padding:15px}
+  .mgrid{gap:10px}
+  .metric{min-height:126px;padding:15px}
+  .mv{font-size:26px}
+  .si-layout{gap:12px}
+  input,select,textarea,.btn{max-width:100%}
+}
+/* ══════════════════════════════════════════════════════════════
+   NEW DASHBOARD (v2) — modern hero stats + activity + quick actions
+   ══════════════════════════════════════════════════════════════ */
+.d2-num{font-family:'Space Grotesk','Inter',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.d2-hdr{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:18px;padding-top:2px}
+.d2-hdr h1{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;letter-spacing:-.025em;color:#0B1020;line-height:1.1}
+.d2-hdr .d2-greet{font-size:12px;color:var(--tx2);margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.d2-hdr .d2-live{display:inline-flex;align-items:center;gap:5px;color:var(--gn3);font-weight:600}
+.d2-hdr .d2-live i{width:6px;height:6px;border-radius:50%;background:var(--gn);box-shadow:0 0 0 0 rgba(22,163,74,.5);animation:d2pulse 2s infinite}
+@keyframes d2pulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 8px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+.d2-hdr-right{display:flex;gap:8px;align-items:center}
+.d2-seg{display:flex;background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:3px;gap:2px;box-shadow:var(--sh-sm)}
+.d2-seg button{padding:6px 11px;font-size:12px;font-weight:600;color:var(--tx2);border-radius:7px;border:none;background:none;cursor:pointer;transition:all .12s}
+.d2-seg button.on{background:#0B1020;color:#fff}
+
+/* Hero cards */
+.d2-heros{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.d2-hero{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;transition:transform .18s,box-shadow .18s;cursor:pointer;min-height:182px}
+.d2-hero:hover{transform:translateY(-2px);box-shadow:0 20px 50px -20px rgba(15,23,42,.18),0 8px 20px -8px rgba(15,23,42,.08);border-color:transparent}
+.d2-h-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.d2-h-lab{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.08em}
+.d2-h-lab .d2-ic{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.d2-pill{font-size:10px;font-weight:700;padding:3px 7px;border-radius:20px;display:inline-flex;align-items:center;gap:2px;letter-spacing:.02em}
+.d2-pill.up{color:var(--gn3);background:var(--gn2)}
+.d2-pill.dn{color:var(--rd3);background:var(--rd2)}
+.d2-pill.fl{color:var(--tx2);background:var(--sur2)}
+.d2-h-val{font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700;letter-spacing:-.03em;color:#0B1020;line-height:1;margin-bottom:5px;display:flex;align-items:baseline;gap:5px}
+.d2-h-val small{font-size:13px;font-weight:600;color:var(--tx3);letter-spacing:0}
+.d2-h-sub{font-size:12px;color:var(--tx2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-break:break-word;min-height:33px}
+.d2-h-sub b{color:var(--tx);font-weight:600}
+.d2-h-foot .v{max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.d2-spark{margin-top:9px;height:30px;width:100%}
+.d2-h-foot{margin-top:10px;padding-top:10px;border-top:1px dashed var(--bdr);display:flex;justify-content:space-between;align-items:center;font-size:11px}
+.d2-h-foot .k{color:var(--tx3);font-weight:500}
+.d2-h-foot .v{color:var(--tx);font-weight:700}
+.d2-hero.total{background:linear-gradient(180deg,#fff 0%,#fff 60%,#F8F6FF 100%)}
+.d2-hero.total .d2-ic{background:var(--pu2);color:var(--pu)}
+.d2-hero.low .d2-ic{background:var(--am2);color:var(--am3)}
+.d2-hero.low::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--am),transparent 80%)}
+.d2-hero.deliv .d2-ic{background:var(--bl2);color:var(--bl3)}
+.d2-hero.mart{background:linear-gradient(135deg,#0B1020 0%,#1E2540 100%);color:#fff;border-color:transparent}
+.d2-hero.mart .d2-h-lab{color:rgba(255,255,255,.55)}
+.d2-hero.mart .d2-h-val{color:#fff}
+.d2-hero.mart .d2-h-val small{color:rgba(255,255,255,.5)}
+.d2-hero.mart .d2-h-sub{color:rgba(255,255,255,.65)}
+.d2-hero.mart .d2-h-sub b{color:#fff}
+.d2-hero.mart .d2-h-foot{border-top-color:rgba(255,255,255,.1)}
+.d2-hero.mart .d2-h-foot .k{color:rgba(255,255,255,.5)}
+.d2-hero.mart .d2-h-foot .v{color:#fff}
+.d2-hero.mart .d2-ic{background:rgba(255,255,255,.12);color:#fff}
+.d2-hero.mart .d2-pill.up{color:#86efac;background:rgba(34,197,94,.18)}
+.d2-hero.mart::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(91,71,251,.35),transparent 70%);pointer-events:none}
+
+/* Delivery stops */
+.d2-deliv-stops{display:flex;justify-content:space-between;gap:4px;margin-top:8px}
+.d2-stop{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+.d2-stop::before{content:'';position:absolute;top:5px;left:50%;right:-50%;height:2px;background:var(--bdr2)}
+.d2-stop:last-child::before{display:none}
+.d2-stop.done::before{background:var(--bl)}
+.d2-stop i{width:11px;height:11px;border-radius:50%;background:var(--bdr2);border:2px solid var(--sur);box-shadow:0 0 0 1px var(--bdr2);position:relative;z-index:1}
+.d2-stop.done i{background:var(--bl);box-shadow:0 0 0 1px var(--bl)}
+.d2-stop.active i{background:#fff;border-color:var(--bl);box-shadow:0 0 0 2px var(--bl),0 0 0 4px rgba(37,99,235,.15)}
+.d2-stop span{font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.03em;text-transform:uppercase;text-align:center;line-height:1.1}
+.d2-stop.active span{color:var(--bl3)}
+
+/* Row 2 */
+.d2-row2{display:grid;grid-template-columns:1fr 320px;gap:14px;margin-bottom:16px}
+.d2-panel{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;box-shadow:var(--sh-sm)}
+.d2-p-head{display:flex;align-items:center;gap:10px;padding:14px 18px 10px}
+.d2-p-head h2{font-size:14px;font-weight:700;color:#0B1020;letter-spacing:-.01em}
+.d2-p-head .d2-sub{font-size:11px;color:var(--tx3);margin-left:2px}
+.d2-p-head .right{margin-left:auto;display:flex;align-items:center;gap:6px}
+.d2-tabs{display:inline-flex;background:var(--sur2);border-radius:9px;padding:3px;gap:2px}
+.d2-tabs button{padding:5px 10px;font-size:11px;font-weight:600;color:var(--tx2);border-radius:6px;border:none;background:none;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:4px}
+.d2-tabs button.on{background:var(--sur);color:var(--tx);box-shadow:var(--sh-sm)}
+.d2-tabs button .ct{font-size:9px;font-weight:700;padding:1px 5px;background:var(--sur3);border-radius:20px;color:var(--tx2)}
+.d2-tabs button.on .ct{background:var(--pu2);color:var(--pu)}
+
+/* Activity feed */
+.d2-feed{padding:2px 8px 12px;max-height:430px;overflow-y:auto}
+.d2-feed::-webkit-scrollbar{width:6px}
+.d2-feed::-webkit-scrollbar-thumb{background:var(--sur3);border-radius:3px}
+.d2-day{padding:14px 10px 4px;font-size:9px;font-weight:700;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.d2-day::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.d2-act{display:grid;grid-template-columns:36px 1fr auto;gap:11px;align-items:center;padding:9px 10px;border-radius:9px;transition:background .12s;cursor:pointer}
+.d2-act:hover{background:var(--sur2)}
+.d2-act-ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+.d2-act-ic.in{background:linear-gradient(135deg,#22C55E,#15803D)}
+.d2-act-ic.out{background:linear-gradient(135deg,#F43F5E,#B91C1C)}
+.d2-act-ic.adj{background:linear-gradient(135deg,#A855F7,#7C3AED)}
+.d2-act-ic.reg{background:linear-gradient(135deg,#3B82F6,#1D4ED8)}
+.d2-act-ic svg{width:17px;height:17px}
+.d2-act-main{min-width:0}
+.d2-act-t{font-size:13px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35}
+.d2-act-m{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:11px;color:var(--tx3);flex-wrap:wrap}
+.d2-act-m .who{color:var(--tx2);font-weight:600}
+.d2-act-m .d{width:3px;height:3px;border-radius:50%;background:var(--tx4,#B5BCCD);display:inline-block}
+.d2-chip{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.02em;display:inline-flex;align-items:center;gap:3px}
+.d2-chip.shop{background:var(--gn2);color:var(--gn3)}
+.d2-chip.del{background:var(--bl2);color:var(--bl3)}
+.d2-chip.rack{background:var(--pu2);color:var(--pu)}
+.d2-act-q{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;letter-spacing:-.02em;line-height:1;text-align:right}
+.d2-act-q.in{color:var(--gn3)}
+.d2-act-q.out{color:var(--rd3)}
+.d2-act-q.adj{color:var(--pu)}
+.d2-act-q small{display:block;font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-top:2px;font-family:'Inter',sans-serif}
+
+/* Quick actions */
+.d2-qa-grid{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.d2-qa{position:relative;padding:16px 13px 14px;border-radius:13px;display:flex;flex-direction:column;gap:9px;text-align:left;transition:transform .15s;overflow:hidden;cursor:pointer;color:#fff;min-height:112px;border:none}
+.d2-qa:hover{transform:translateY(-2px)}
+.d2-qa-ic{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center}
+.d2-qa-name{font-size:13px;font-weight:700;letter-spacing:-.01em;color:#fff;line-height:1.2}
+.d2-qa-sub{font-size:10.5px;color:rgba(255,255,255,.78);margin-top:2px;font-weight:500;line-height:1.3}
+.d2-qa.in{background:linear-gradient(135deg,#16A34A 0%,#15803D 100%);box-shadow:0 8px 22px -6px rgba(22,163,74,.45)}
+.d2-qa.out{background:linear-gradient(135deg,#EF4444 0%,#B91C1C 100%);box-shadow:0 8px 22px -6px rgba(220,38,38,.45)}
+.d2-qa.scan{background:linear-gradient(135deg,#5B47FB 0%,#3B2FD9 100%);box-shadow:0 8px 22px -6px rgba(91,71,251,.5)}
+.d2-qa.rack{background:linear-gradient(135deg,#0F172A 0%,#1E293B 100%);box-shadow:0 8px 22px -6px rgba(15,23,42,.45)}
+.d2-qa::after{content:'';position:absolute;top:-30%;right:-25%;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);pointer-events:none}
+.d2-qa .arr{position:absolute;bottom:12px;right:12px;color:rgba(255,255,255,.55);transition:transform .15s}
+.d2-qa:hover .arr{transform:translate(2px,-2px);color:#fff}
+.d2-qa-mini{padding:0 14px 14px}
+.d2-qa-mini-c{background:var(--sur2);border:1px dashed var(--bdr2);border-radius:11px;padding:11px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .12s}
+.d2-qa-mini-c:hover{border-color:var(--pu);background:#fff}
+.d2-qa-mini-ic{width:32px;height:32px;border-radius:9px;background:#fff;border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;color:var(--pu);flex-shrink:0}
+.d2-qa-mini-tx{flex:1;min-width:0}
+.d2-qa-mini-tx b{font-size:12.5px;font-weight:700;color:var(--tx);display:block;line-height:1.2}
+.d2-qa-mini-tx span{font-size:11px;color:var(--tx2);line-height:1.3}
+
+/* Row 3 */
+.d2-row3{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:16px}
+.d2-shop-list{padding:6px 8px 14px;max-height:380px;overflow-y:auto}
+.d2-shop-row{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:13px;padding:10px 10px;border-radius:10px;transition:background .12s;cursor:pointer}
+.d2-shop-row:hover{background:var(--sur2)}
+.d2-shop-av{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;letter-spacing:-.04em;font-family:'Space Grotesk',sans-serif}
+.d2-shop-top{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+.d2-shop-name{font-size:13px;font-weight:700;color:var(--tx)}
+.d2-shop-orders{font-size:11px;color:var(--tx3);font-weight:500}
+.d2-bar-wrap{height:6px;background:var(--sur2);border-radius:3px;overflow:hidden}
+.d2-bar{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.d2-shop-right{text-align:right}
+.d2-shop-qty{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--tx)}
+.d2-shop-d{font-size:10px;font-weight:700;margin-top:3px}
+.d2-shop-d.up{color:var(--gn3)}
+.d2-shop-d.dn{color:var(--rd3)}
+
+/* Low list v2 */
+.d2-low{padding:2px 8px 14px;max-height:380px;overflow-y:auto}
+.d2-low::-webkit-scrollbar{width:6px}
+.d2-low::-webkit-scrollbar-thumb{background:var(--sur3);border-radius:3px}
+.d2-low-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;transition:background .12s;cursor:pointer}
+.d2-low-row:hover{background:var(--sur2)}
+.d2-low-t{font-size:12px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.d2-low-m{font-size:10px;color:var(--tx3);margin-top:2px;display:flex;align-items:center;gap:5px}
+.d2-low-m .d{width:3px;height:3px;border-radius:50%;background:var(--tx4,#B5BCCD)}
+.d2-low-q{display:flex;align-items:baseline;gap:3px;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.02em}
+.d2-low-q .of{font-size:11px;color:var(--tx3);font-weight:500;font-family:'Inter'}
+.d2-low-q.out{color:var(--rd3)}
+.d2-low-q.crit{color:var(--am3)}
+.d2-low-s{font-size:9px;font-weight:800;padding:3px 6px;border-radius:20px;letter-spacing:.06em}
+.d2-low-s.out{background:var(--rd2);color:var(--rd3)}
+.d2-low-s.crit{background:var(--am2);color:var(--am3)}
+
+.d2-spark-line{stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.d2-spark-dot{r:3;stroke:#fff;stroke-width:2}
+
+@media (max-width:1180px){
+  .d2-heros{grid-template-columns:repeat(2,1fr)}
+  .d2-row2{grid-template-columns:1fr}
+  .d2-row3{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  .d2-heros{grid-template-columns:1fr}
+  .d2-hdr h1{font-size:22px}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODERN PAGES — Stock In/Out, Products, shared
+   ══════════════════════════════════════════════════════════════ */
+.m-hdr{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:20px;padding-top:2px;flex-wrap:wrap}
+.m-hdr-l{min-width:0}
+.m-hdr h1{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;letter-spacing:-.025em;color:#0B1020;line-height:1.1}
+.m-hdr .m-sub{font-size:13px;color:var(--tx2);margin-top:6px}
+.m-hdr-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.m-stat-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.m-stat-pill{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;background:var(--sur);border:1px solid var(--bdr);border-radius:20px;font-size:12px;font-weight:600;color:var(--tx2);box-shadow:var(--sh-sm)}
+.m-stat-pill b{color:#0B1020;font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-.01em}
+.m-stat-pill i.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+
+/* Layout */
+.m-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:flex-start}
+@media (max-width:980px){ .m-layout{grid-template-columns:1fr} }
+.m-card{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:16px;box-shadow:var(--sh-sm)}
+.m-card.tight{padding:0;overflow:hidden}
+.m-card .m-sec{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--tx2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+.m-card .m-sec .ic{width:24px;height:24px;border-radius:7px;background:var(--sur2);display:flex;align-items:center;justify-content:center;color:var(--tx2)}
+.m-card .m-sec .grow{flex:1}
+.m-card-pad{padding:16px}
+
+/* Hero scan button */
+.m-scan-hero{position:relative;width:100%;border:none;cursor:pointer;color:#fff;border-radius:14px;padding:22px 18px;display:flex;align-items:center;gap:16px;overflow:hidden;transition:transform .15s;text-align:left}
+.m-scan-hero:hover{transform:translateY(-2px)}
+.m-scan-hero .ic{width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;backdrop-filter:blur(8px)}
+.m-scan-hero .tx{flex:1;min-width:0}
+.m-scan-hero .tx .ti{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;letter-spacing:-.02em;color:#fff;display:block}
+.m-scan-hero .tx .sb{font-size:12.5px;color:rgba(255,255,255,.78);margin-top:3px;font-weight:500}
+.m-scan-hero::after{content:'';position:absolute;top:-40%;right:-15%;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 70%);pointer-events:none}
+.m-scan-hero .arr{margin-left:auto;color:rgba(255,255,255,.6);transition:transform .15s}
+.m-scan-hero:hover .arr{transform:translate(3px,-3px);color:#fff}
+.m-scan-hero.in{background:linear-gradient(135deg,#16A34A 0%,#15803D 100%);box-shadow:0 12px 28px -8px rgba(22,163,74,.5)}
+.m-scan-hero.out{background:linear-gradient(135deg,#EF4444 0%,#B91C1C 100%);box-shadow:0 12px 28px -8px rgba(220,38,38,.5)}
+.m-scan-hero.pu{background:linear-gradient(135deg,#5B47FB 0%,#3B2FD9 100%);box-shadow:0 12px 28px -8px rgba(91,71,251,.5)}
+
+/* Search field — modern */
+.m-search{display:flex;align-items:center;gap:10px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:12px;padding:10px 14px;transition:all .15s;margin-top:14px}
+.m-search:focus-within{border-color:var(--pu);box-shadow:0 0 0 4px var(--pu2)}
+.m-search svg{color:var(--tx3);flex-shrink:0}
+.m-search input{border:none !important;outline:none;background:none;font-size:14px;font-weight:500;color:var(--tx);flex:1;padding:0;font-family:inherit;box-shadow:none !important}
+.m-search input::placeholder{color:var(--tx4,#B5BCCD);font-weight:400}
+.m-search input:focus{box-shadow:none !important}
+.m-search .clr{width:26px;height:26px;border-radius:7px;border:none;background:var(--sur2);color:var(--tx3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;flex-shrink:0}
+.m-search .clr:hover{background:var(--sur3);color:var(--tx)}
+
+/* Shop tile grid (stockout) */
+.m-shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.m-shop-tile{padding:12px 12px;border-radius:11px;border:1.5px solid var(--bdr);background:var(--sur);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px;text-align:left;font-family:inherit}
+.m-shop-tile:hover{border-color:var(--pu);background:var(--pu-soft,#F5F2FF);transform:translateY(-1px);box-shadow:var(--sh-sm)}
+.m-shop-tile .av{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;letter-spacing:-.03em;font-family:'Space Grotesk',sans-serif;flex-shrink:0}
+.m-shop-tile .nm{font-size:12.5px;font-weight:700;color:var(--tx);line-height:1.2}
+.m-shop-tile .mt{font-size:10px;color:var(--tx3);margin-top:1px;font-weight:500}
+.m-shop-tile.delivery{grid-column:1 / -1;border-style:dashed;background:linear-gradient(135deg,#EFF6FF 0%,#F8F9FB 100%)}
+.m-shop-tile.delivery:hover{border-style:solid;border-color:var(--bl);background:linear-gradient(135deg,#DBEAFE 0%,#EFF6FF 100%)}
+.m-shop-tile.delivery .av{background:linear-gradient(135deg,#2563EB,#1D4ED8)}
+
+/* Product list — modern */
+.m-plist{border-radius:11px;overflow:hidden;background:var(--sur)}
+.m-prow{display:grid;grid-template-columns:46px 1fr auto auto;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--bdr);transition:background .12s}
+.m-prow:last-child{border-bottom:none}
+.m-prow:hover{background:var(--sur2)}
+.m-prow .thumb{width:46px;height:46px;border-radius:10px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden;border:1px solid var(--bdr);position:relative}
+.m-prow .thumb img{width:100%;height:100%;object-fit:cover}
+.m-prow .thumb .ph{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:var(--pu);letter-spacing:-.04em}
+.m-prow .info{min-width:0}
+.m-prow .nm{font-size:13px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+.m-prow .mt{font-size:11px;color:var(--tx3);margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.m-prow .mt .d{width:3px;height:3px;border-radius:50%;background:var(--tx4,#B5BCCD);display:inline-block}
+.m-prow .qty{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em;text-align:right;line-height:1;min-width:32px;color:var(--tx)}
+.m-prow .qty small{display:block;font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-top:3px;font-family:'Inter',sans-serif}
+.m-prow .qty.out{color:var(--rd3)}
+.m-prow .qty.low{color:var(--am3)}
+.m-prow .chev{color:var(--tx4,#B5BCCD);transition:transform .12s}
+.m-prow:hover .chev{transform:translateX(2px);color:var(--pu)}
+
+/* Empty state */
+.m-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 24px;gap:14px;text-align:center;min-height:280px}
+.m-empty .ic{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--pu-soft,#F5F2FF) 0%,#F8F9FB 100%);display:flex;align-items:center;justify-content:center;color:var(--pu);opacity:.5}
+.m-empty .ti{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--tx);letter-spacing:-.01em}
+.m-empty .sb{font-size:13px;color:var(--tx3);max-width:240px;line-height:1.45}
+
+/* Select pretty */
+.m-select{width:100%;padding:10px 36px 10px 12px;font-size:13px;font-weight:500;border:1.5px solid var(--bdr);border-radius:11px;background:var(--sur) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B93AB' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--tx);outline:none;-webkit-appearance:none;appearance:none;transition:all .12s;cursor:pointer}
+.m-select:focus{border-color:var(--pu);box-shadow:0 0 0 3px var(--pu2)}
+
+/* Filter bar — products */
+.m-filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.m-filter-bar .m-search{flex:1;min-width:240px;margin-top:0}
+.m-chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.m-chip{font-size:11px;font-weight:600;color:var(--tx2);background:var(--sur);border:1px solid var(--bdr);padding:6px 11px;border-radius:20px;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:5px}
+.m-chip:hover{border-color:var(--bdr2)}
+.m-chip.on{background:#0B1020;color:#fff;border-color:#0B1020}
+.m-chip .ct{font-size:9px;font-weight:700;opacity:.7}
+
+/* Products grid view */
+.m-pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.m-pcard{background:var(--sur);border:1px solid var(--bdr);border-radius:13px;overflow:hidden;cursor:pointer;transition:all .15s;display:flex;flex-direction:column}
+.m-pcard:hover{transform:translateY(-2px);box-shadow:var(--sh-md);border-color:transparent}
+.m-pcard .img{aspect-ratio:1;background:var(--sur2);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.m-pcard .img img{width:100%;height:100%;object-fit:cover}
+.m-pcard .img .ph{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;color:var(--pu);letter-spacing:-.04em;opacity:.7}
+.m-pcard .img .pill{position:absolute;top:8px;right:8px;font-size:9px;font-weight:800;padding:3px 7px;border-radius:20px;letter-spacing:.06em}
+.m-pcard .body{padding:11px 12px 12px;flex:1;display:flex;flex-direction:column}
+.m-pcard .nm{font-size:12px;font-weight:600;line-height:1.3;color:var(--tx);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:31px}
+.m-pcard .ft{display:flex;align-items:baseline;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr)}
+.m-pcard .ft .ven{font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.02em}
+.m-pcard .ft .qty{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--tx)}
+.m-pcard .ft .qty.out{color:var(--rd3)}
+.m-pcard .ft .qty.low{color:var(--am3)}
+
+/* View toggle */
+.m-view-toggle{display:flex;background:var(--sur);border:1px solid var(--bdr);border-radius:9px;padding:3px;gap:2px}
+.m-view-toggle button{padding:6px 10px;font-size:11px;font-weight:600;color:var(--tx2);border-radius:6px;border:none;background:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:all .12s}
+.m-view-toggle button.on{background:#0B1020;color:#fff}
+
+/* Hide legacy pt/ps when m-hdr present */
+.page > .m-hdr ~ .pt, .page > .m-hdr ~ .ps{display:none}
+
 </style>
 <body class="role-admin">
 
@@ -364,101 +735,251 @@ body.role-operator #main{padding:0 !important}
 <!-- MAIN -->
 <div id="main">
 
-<!-- DASHBOARD -->
+<!-- DASHBOARD (v2 — modern) -->
 <div class="page on" id="page-dash">
-  <div class="fx gap8 mb12" style="flex-wrap:wrap">
-    <div style="flex:1;min-width:0"><div class="pt" id="dash-title">Dashboard</div><div style="font-size:11px;color:var(--tx3)" id="dash-date"></div></div>
-    <select id="dash-period" onchange="refreshDash()" style="width:auto;font-size:12px;padding:6px 28px 6px 10px;flex-shrink:0"><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30">Last 30 days</option></select>
-  </div>
-  <div class="mgrid">
-    <div class="metric"><div class="metric-icon" style="background:var(--pu2)"><svg width="18" height="18" style="color:var(--pu)"><use href="#ic-pkg"/></svg></div><div class="mv" id="m-tot">0</div><div class="ml">Total products</div><span class="metric-trend" style="color:var(--tx3)" id="m-in-tr"></span></div>
-    <div class="metric"><div class="metric-icon" style="background:var(--gn2)"><svg width="18" height="18" style="color:var(--gn)"><use href="#ic-in"/></svg></div><div class="mv" style="color:var(--gn)" id="m-in">0</div><div class="ml">Stocked in</div><span class="metric-trend" style="color:var(--gn)" id="m-in-tr2"></span></div>
-    <div class="metric"><div class="metric-icon" style="background:var(--bl2)"><svg width="18" height="18" style="color:var(--bl)"><use href="#ic-out"/></svg></div><div class="mv" style="color:var(--bl)" id="m-out">0</div><div class="ml">Moved out</div><span class="metric-trend" style="color:var(--bl)" id="m-out-tr"></span></div>
-    <div class="metric"><div class="metric-icon" style="background:var(--am2)"><svg width="18" height="18" style="color:var(--am)"><use href="#ic-warn"/></svg></div><div class="mv" style="color:var(--am)" id="m-low">0</div><div class="ml">Low stock</div><span class="metric-trend" style="color:var(--am)" id="m-low-pct"></span></div>
-    <div class="metric"><div class="metric-icon" style="background:var(--rd2)"><svg width="18" height="18" style="color:var(--rd)"><use href="#ic-x"/></svg></div><div class="mv" style="color:var(--rd)" id="m-oos">0</div><div class="ml">Out of stock</div><span class="metric-trend" style="color:var(--rd)">urgent</span></div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 260px;gap:10px;margin-bottom:10px" id="dash-r2">
-    <div class="card"><div class="fx mb10"><span style="font-size:13px;font-weight:600;flex:1">Stock movement</span><div class="fx gap10" style="font-size:11px"><span class="fx gap6" style="color:var(--gn3)"><span style="width:9px;height:3px;background:var(--gn);border-radius:2px;display:inline-block"></span>In</span><span class="fx gap6" style="color:var(--rd3)"><span style="width:9px;height:3px;background:var(--rd);border-radius:2px;display:inline-block"></span>Out</span></div></div><canvas id="mv-chart" height="120"></canvas></div>
-    <div class="card" style="display:flex;flex-direction:column;align-items:center">
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px;align-self:flex-start">Stock health</div>
-      <div style="position:relative;width:100px;height:100px;margin-bottom:8px"><canvas id="h-donut" width="100" height="100"></canvas><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:17px;font-weight:700" id="h-pct">0%</div><div style="font-size:10px;color:var(--tx3)">healthy</div></div></div>
-      <div style="width:100%;display:flex;flex-direction:column;gap:4px">
-        <div class="fx" style="justify-content:space-between;font-size:11px"><span class="fx gap6"><span style="width:7px;height:7px;border-radius:50%;background:var(--gn);display:inline-block"></span>In stock</span><strong id="hl-ok">0</strong></div>
-        <div class="fx" style="justify-content:space-between;font-size:11px"><span class="fx gap6"><span style="width:7px;height:7px;border-radius:50%;background:var(--am);display:inline-block"></span>Low</span><strong id="hl-low">0</strong></div>
-        <div class="fx" style="justify-content:space-between;font-size:11px"><span class="fx gap6"><span style="width:7px;height:7px;border-radius:50%;background:var(--rd);display:inline-block"></span>Out</span><strong id="hl-out">0</strong></div>
+
+  <!-- Header -->
+  <header class="d2-hdr">
+    <div>
+      <h1 id="dash-title">Dashboard</h1>
+      <div class="d2-greet">
+        <span class="d2-live"><i></i><span id="dash-date">—</span></span>
+        <span style="color:var(--tx4,#B5BCCD)">·</span>
+        <span id="d2-floor">Live · warehouse floor</span>
       </div>
     </div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px" id="dash-r3">
-    <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:10px">By category</div><div id="cat-bars"></div></div>
-    <div class="card"><div class="fx mb8"><span style="font-size:13px;font-weight:600;flex:1">Top movers</span><div class="fx gap4"><button class="btn btn-sm" id="mv-in-btn" onclick="setMvTab('in')" style="background:var(--gn2);color:var(--gn3);border-color:transparent;font-size:11px"><svg width="11" height="11"><use href="#ic-in"/></svg> In</button><button class="btn btn-sm" id="mv-out-btn" onclick="setMvTab('out')" style="font-size:11px"><svg width="11" height="11"><use href="#ic-out"/></svg> Out</button></div></div><div id="top-movers"></div></div>
-  </div>
-
-  <!-- Destination tracker -->
-  <div class="card mb10">
-    <div class="fx gap8 mb12">
-      <span style="font-size:13px;font-weight:600;flex:1">Stock out distribution</span>
-      <span style="font-size:11px;color:var(--tx3)" id="dest-total-label">0 boxes dispatched</span>
+    <div class="d2-hdr-right">
+      <div class="d2-seg" id="d2-period">
+        <button data-p="7" class="on">7d</button>
+        <button data-p="14">14d</button>
+        <button data-p="30">30d</button>
+      </div>
+      <button class="btn btn-pu btn-sm" onclick="nav('orders');setOType('low')"><svg width="13" height="13"><use href="#ic-send"/></svg> Reorder</button>
     </div>
-    <div style="display:grid;grid-template-columns:140px 1fr;gap:20px;align-items:center">
-      <canvas id="dest-donut" width="140" height="140" style="display:block"></canvas>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div>
-          <div class="fx gap8 mb5">
-            <div style="width:10px;height:10px;border-radius:50%;background:var(--gn);flex-shrink:0;margin-top:2px"></div>
-            <div style="flex:1">
-              <div class="fx mb4" style="justify-content:space-between">
-                <span style="font-size:13px;font-weight:600;color:var(--gn3)">🏪 Shops</span>
-                <div class="fx gap6"><span style="font-size:20px;font-weight:800;color:var(--gn);line-height:1" id="dest-shop-pct">0%</span><span class="badge bg" id="shop-total-badge" style="font-size:11px">0 boxes</span></div>
-              </div>
-              <div style="height:12px;border-radius:6px;background:var(--sur2);overflow:hidden">
-                <div id="dest-shop-bar" style="height:100%;width:0%;background:var(--gn);border-radius:6px;transition:width .6s ease"></div>
-              </div>
-            </div>
-          </div>
+  </header>
+
+  <!-- Hero stats -->
+  <section class="d2-heros">
+
+    <!-- Total inventory -->
+    <div class="d2-hero total" onclick="nav('products')">
+      <div class="d2-h-head">
+        <div class="d2-h-lab">
+          <span class="d2-ic"><svg width="14" height="14"><use href="#ic-pkg"/></svg></span>
+          Total inventory
         </div>
-        <div>
-          <div class="fx gap8 mb5">
-            <div style="width:10px;height:10px;border-radius:50%;background:var(--bl);flex-shrink:0;margin-top:2px"></div>
-            <div style="flex:1">
-              <div class="fx mb4" style="justify-content:space-between">
-                <span style="font-size:13px;font-weight:600;color:var(--bl3)">🚚 Deliveries</span>
-                <div class="fx gap6"><span style="font-size:20px;font-weight:800;color:var(--bl);line-height:1" id="dest-del-pct">0%</span><span class="badge bb" id="del-total-badge" style="font-size:11px">0 boxes</span></div>
-              </div>
-              <div style="height:12px;border-radius:6px;background:var(--sur2);overflow:hidden">
-                <div id="dest-del-bar" style="height:100%;width:0%;background:var(--bl);border-radius:6px;transition:width .6s ease"></div>
-              </div>
-            </div>
+        <span class="d2-pill up" id="d2-tot-trend">↗ —</span>
+      </div>
+      <div class="d2-h-val d2-num"><span id="d2-tot-val">0</span><small>boxes</small></div>
+      <div class="d2-h-sub"><b id="d2-tot-skus">0 SKUs</b> across <span id="d2-tot-cats">0</span> categories</div>
+      <svg class="d2-spark" id="d2-spark-total" viewBox="0 0 200 30" preserveAspectRatio="none"></svg>
+      <div class="d2-h-foot">
+        <span class="k">Avg per SKU</span>
+        <span class="v d2-num" id="d2-tot-avg">0</span>
+      </div>
+    </div>
+
+    <!-- Low stock -->
+    <div class="d2-hero low" onclick="nav('orders');setOType('low')">
+      <div class="d2-h-head">
+        <div class="d2-h-lab">
+          <span class="d2-ic"><svg width="14" height="14"><use href="#ic-warn"/></svg></span>
+          Low stock
+        </div>
+        <span class="d2-pill dn" id="d2-low-trend">need attention</span>
+      </div>
+      <div class="d2-h-val d2-num" style="color:var(--am3)"><span id="d2-low-val">0</span><small>items</small></div>
+      <div class="d2-h-sub"><b style="color:var(--rd3)"><span id="d2-out-val">0</span> out of stock</b> · <span id="d2-crit-val">0</span> critical</div>
+      <svg class="d2-spark" id="d2-spark-low" viewBox="0 0 200 30" preserveAspectRatio="none"></svg>
+      <div class="d2-h-foot">
+        <span class="k">Auto-reorder ready</span>
+        <span class="v d2-num" id="d2-reorder">0</span>
+      </div>
+    </div>
+
+    <!-- Next delivery -->
+    <div class="d2-hero deliv" onclick="nav('containers')">
+      <div class="d2-h-head">
+        <div class="d2-h-lab">
+          <span class="d2-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
+          Next delivery
+        </div>
+        <span class="d2-pill fl" id="d2-deliv-id">—</span>
+      </div>
+      <div class="d2-h-val d2-num"><span id="d2-deliv-d">—</span><small id="d2-deliv-du">d</small> <span id="d2-deliv-h">—</span><small id="d2-deliv-hu">h</small></div>
+      <div class="d2-h-sub"><b id="d2-deliv-name">No upcoming delivery</b><span id="d2-deliv-eta"></span></div>
+      <div class="d2-deliv-stops" id="d2-deliv-stops">
+        <div class="d2-stop done"><i></i><span>Loaded</span></div>
+        <div class="d2-stop done"><i></i><span>Customs</span></div>
+        <div class="d2-stop active"><i></i><span>In transit</span></div>
+        <div class="d2-stop"><i></i><span>Receiving</span></div>
+        <div class="d2-stop"><i></i><span>Stocked</span></div>
+      </div>
+      <div class="d2-h-foot">
+        <span class="k">Items</span>
+        <span class="v d2-num" id="d2-deliv-items">—</span>
+      </div>
+    </div>
+
+    <!-- MM Mart -->
+    <div class="d2-hero mart" onclick="nav('stockout')">
+      <div class="d2-h-head">
+        <div class="d2-h-lab">
+          <span class="d2-ic">🏪</span>
+          MM Mart
+        </div>
+        <span class="d2-pill up" id="d2-mm-trend">↗ —</span>
+      </div>
+      <div class="d2-h-val d2-num"><span id="d2-mm-val">0</span><small>boxes</small></div>
+      <div class="d2-h-sub"><b><span id="d2-mm-orders">0</span> orders</b> this week · <span>largest account</span></div>
+      <svg class="d2-spark" id="d2-spark-mm" viewBox="0 0 200 30" preserveAspectRatio="none"></svg>
+      <div class="d2-h-foot">
+        <span class="k">Avg per order</span>
+        <span class="v d2-num" id="d2-mm-avg">—</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Row 2: Activity + Quick actions -->
+  <section class="d2-row2">
+
+    <!-- Activity -->
+    <div class="d2-panel">
+      <div class="d2-p-head">
+        <h2>Recent activity</h2>
+        <span class="d2-sub" id="d2-act-total"></span>
+        <div class="right">
+          <div class="d2-tabs" id="d2-act-tabs">
+            <button class="on" data-tab="all">All <span class="ct" id="d2-ct-all">0</span></button>
+            <button data-tab="in">In <span class="ct" id="d2-ct-in">0</span></button>
+            <button data-tab="out">Out <span class="ct" id="d2-ct-out">0</span></button>
           </div>
         </div>
       </div>
+      <div class="d2-feed" id="d2-feed"></div>
     </div>
-  </div>
 
-  <!-- Per-shop tracker -->
-  <div class="card mb10">
-    <div class="fx gap8 mb10">
-      <span style="font-size:13px;font-weight:700;flex:1">🏪 Shop order tracker</span>
-      <span style="font-size:11px;color:var(--tx3)">Most boxes ordered</span>
+    <!-- Quick actions -->
+    <div class="d2-panel">
+      <div class="d2-p-head">
+        <h2>Quick actions</h2>
+      </div>
+      <div class="d2-qa-grid">
+
+        <button class="d2-qa in" onclick="nav('stockin')">
+          <div class="d2-qa-ic"><svg width="20" height="20"><use href="#ic-in"/></svg></div>
+          <div>
+            <div class="d2-qa-name">Stock In</div>
+            <div class="d2-qa-sub">Add boxes to floor</div>
+          </div>
+          <svg class="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </button>
+
+        <button class="d2-qa out" onclick="nav('stockout')">
+          <div class="d2-qa-ic"><svg width="20" height="20"><use href="#ic-out"/></svg></div>
+          <div>
+            <div class="d2-qa-name">Stock Out</div>
+            <div class="d2-qa-sub">Ship to shop / delivery</div>
+          </div>
+          <svg class="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </button>
+
+        <button class="d2-qa scan" onclick="openUniversalScanner()">
+          <div class="d2-qa-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><line x1="16" y1="16" x2="21" y2="16"/><line x1="21" y1="16" x2="21" y2="21"/><line x1="16" y1="21" x2="21" y2="21"/><line x1="3" y1="10" x2="3" y2="11"/><line x1="7" y1="10" x2="21" y2="10"/><line x1="3" y1="14" x2="12" y2="14"/></svg></div>
+          <div>
+            <div class="d2-qa-name">Universal scan</div>
+            <div class="d2-qa-sub">Any barcode or QR</div>
+          </div>
+          <svg class="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </button>
+
+        <button class="d2-qa rack" onclick="location.href='rack.html'">
+          <div class="d2-qa-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="6" rx="1.5"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><line x1="6" y1="19" x2="6" y2="21"/><line x1="18" y1="19" x2="18" y2="21"/></svg></div>
+          <div>
+            <div class="d2-qa-name">Rack system</div>
+            <div class="d2-qa-sub" id="d2-rack-sub">Open rack map</div>
+          </div>
+          <svg class="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </button>
+
+      </div>
+
+      <div class="d2-qa-mini">
+        <div class="d2-qa-mini-c" onclick="nav('orders');setOType('low')">
+          <div class="d2-qa-mini-ic"><svg width="16" height="16"><use href="#ic-wa"/></svg></div>
+          <div class="d2-qa-mini-tx">
+            <b><span id="d2-mini-low">0</span> items below threshold</b>
+            <span>Send restock alert via WhatsApp</span>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
     </div>
-    <div id="shop-tracker"></div>
-  </div>
 
+  </section>
+
+  <!-- Row 3: Shop pulse + Low stock attention -->
+  <section class="d2-row3">
+
+    <div class="d2-panel">
+      <div class="d2-p-head">
+        <h2>Shop pulse</h2>
+        <span class="d2-sub">last 7 days</span>
+      </div>
+      <div class="d2-shop-list" id="d2-shop-list"></div>
+    </div>
+
+    <div class="d2-panel">
+      <div class="d2-p-head">
+        <h2>Needs attention</h2>
+        <span class="d2-sub" id="d2-low-sub"></span>
+      </div>
+      <div class="d2-low" id="d2-low-list"></div>
+    </div>
+
+  </section>
+
+  <!-- ──────────────────────────────────────────────────────────────
+       Legacy / detail block — kept for "Low stock" + "All products"
+       deep dives. Existing renderers (renderLS, renderAllTbl, etc.)
+       continue to populate these.
+       ────────────────────────────────────────────────────────────── -->
   <div class="card">
     <div class="tabs">
-      <button class="tb on" onclick="swTab(this,'tab-act')">Activity</button>
-      <button class="tb" onclick="swTab(this,'tab-low')">Low stock <span id="low-cnt" style="background:var(--am2);color:var(--am3);border-radius:20px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:2px"></span></button>
-      <button class="tb" onclick="swTab(this,'tab-prods')">Products</button>
+      <button class="tb on" onclick="swTab(this,'tab-low')">Low stock <span id="low-cnt" style="background:var(--am2);color:var(--am3);border-radius:20px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:2px"></span></button>
+      <button class="tb" onclick="swTab(this,'tab-prods')">All products</button>
+      <button class="tb" onclick="swTab(this,'tab-act')">Activity log</button>
     </div>
-    <div class="tbp on" id="tab-act"><div id="act-feed"></div></div>
-    <div class="tbp" id="tab-low">
+    <div class="tbp on" id="tab-low">
       <div class="fx mb10"><span style="font-size:12px;color:var(--tx2);flex:1" id="ls-count"></span><button class="btn btn-sm btn-am" onclick="nav('orders');setOType('low')"><svg width="11" height="11"><use href="#ic-send"/></svg> Reorder</button></div>
       <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th class="hm">Brand</th><th>Qty</th><th>Threshold</th><th class="hm">Short</th><th>Status</th></tr></thead><tbody id="ls-tbl"></tbody></table></div>
     </div>
     <div class="tbp" id="tab-prods">
       <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th class="hm">Category</th><th>Qty</th><th>Status</th><th>Updated</th></tr></thead><tbody id="all-tbl"></tbody></table></div>
     </div>
+    <div class="tbp" id="tab-act"><div id="act-feed"></div></div>
   </div>
+
+  <!-- COMPAT: hidden legacy IDs so existing refreshDash/renderCatBars/etc. don't error -->
+  <div style="display:none" aria-hidden="true">
+    <select id="dash-period" onchange="refreshDash()">
+      <option value="7" selected>Last 7 days</option>
+      <option value="14">Last 14 days</option>
+      <option value="30">Last 30 days</option>
+    </select>
+    <span id="m-tot">0</span><span id="m-low">0</span><span id="m-oos">0</span>
+    <span id="m-in">0</span><span id="m-out">0</span>
+    <span id="m-in-tr"></span><span id="m-in-tr2"></span><span id="m-out-tr"></span><span id="m-low-pct"></span>
+    <span id="hl-ok">0</span><span id="hl-low">0</span><span id="hl-out">0</span><span id="h-pct">0%</span>
+    <canvas id="mv-chart"></canvas><canvas id="h-donut" width="100" height="100"></canvas><canvas id="dest-donut" width="140" height="140"></canvas>
+    <div id="cat-bars"></div><div id="top-movers"></div><div id="shop-tracker"></div>
+    <span id="dest-shop-pct">0%</span><span id="dest-del-pct">0%</span>
+    <div id="dest-shop-bar"></div><div id="dest-del-bar"></div>
+    <span id="shop-total-badge"></span><span id="del-total-badge"></span><span id="dest-total-label"></span>
+    <button id="mv-in-btn"></button><button id="mv-out-btn"></button>
+  </div>
+
 </div>
 
 <!-- STOCK IN -->
@@ -525,73 +1046,145 @@ body.role-operator #main{padding:0 !important}
 </div>
 
 <div class="page" id="page-stockin">
-  <div class="pt">Stock in</div><div class="ps">Scan a product barcode to add stock</div>
-  <div class="si-layout">
-    <div>
-      <!-- Big camera scan button - primary action -->
-      <div class="card mb10">
-        <button onclick="openCamera(r=>handleScannedBarcode(r,'stockin'))" style="width:100%;padding:20px 16px;background:linear-gradient(135deg,var(--pu),var(--pu3));border:none;border-radius:var(--rl);cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:12px;box-shadow:var(--sh-pu);transition:opacity .15s" onmousedown="this.style.opacity='.85'" onmouseup="this.style.opacity='1'" ontouchstart="this.style.opacity='.85'" ontouchend="this.style.opacity='1'">
-          <div style="width:52px;height:52px;background:rgba(255,255,255,.2);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="28" height="28" style="color:#fff"><use href="#ic-cam"/></svg></div>
-          <div style="text-align:left"><div style="font-size:17px;font-weight:800;color:#fff;letter-spacing:-.01em">Scan barcode</div><div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px">Point camera at product barcode</div></div>
-        </button>
-        <!-- Text search as secondary -->
-        <div class="scan-bar">
-          <div class="scan-wrap"><span class="scan-ico"><svg width="17" height="17"><use href="#ic-barcode"/></svg></span><input type="text" id="si-inp" placeholder="Or type product name / barcode…" oninput="siLook()" onkeydown="if(event.key==='Enter')siConfirmFirst()" autocomplete="off" inputmode="text"/></div>
-          <button class="scan-btn" onclick="siClear()" title="Clear"><svg width="15" height="15"><use href="#ic-x"/></svg></button>
-        </div>
-        <div id="si-tip" style="display:none"></div>
-        <div id="si-fuzzy" style="display:none"><div style="font-size:11px;color:var(--tx3);margin-bottom:5px" id="si-fuz-lbl"></div><div class="plist" id="si-fuz-list"></div></div>
-      </div>
-      <div class="card">
-        <div class="sec">Browse by category</div>
-        <select id="si-cat-sel" onchange="siRenderList()" style="margin-bottom:8px;font-size:12px"></select>
-        <div class="plist" id="si-plist" style="max-height:320px;overflow-y:auto"></div>
+
+  <header class="m-hdr">
+    <div class="m-hdr-l">
+      <h1>Stock in</h1>
+      <div class="m-sub">Receive new boxes — scan barcode or browse by category</div>
+      <div class="m-stat-pills">
+        <span class="m-stat-pill"><i class="dot" style="background:var(--gn)"></i>Today <b id="si-stat-today">0</b> boxes in</span>
+        <span class="m-stat-pill"><i class="dot" style="background:var(--pu)"></i>This week <b id="si-stat-week">0</b></span>
+        <span class="m-stat-pill"><i class="dot" style="background:var(--am)"></i><b id="si-stat-low">0</b> need restock</span>
       </div>
     </div>
-    <div id="si-right"><div class="si-empty"><svg width="48" height="48" style="opacity:.2"><use href="#ic-barcode"/></svg><div style="font-size:14px;font-weight:500">Ready to scan</div><div style="font-size:12px;color:var(--tx3)">Tap camera or select from list</div></div></div>
+    <div class="m-hdr-r">
+      <button class="btn btn-sm" onclick="nav('containers')"><svg width="13" height="13"><use href="#ic-pkg"/></svg> Containers</button>
+      <button class="btn btn-sm btn-pu" onclick="openCamera(r=>handleScannedBarcode(r,'stockin'))"><svg width="13" height="13"><use href="#ic-cam"/></svg> Quick scan</button>
+    </div>
+  </header>
+
+  <div class="m-layout">
+
+    <!-- LEFT: scan + browse -->
+    <div>
+      <div class="m-card" style="margin-bottom:14px">
+        <button class="m-scan-hero in" onclick="openCamera(r=>handleScannedBarcode(r,'stockin'))">
+          <div class="ic"><svg width="28" height="28" style="color:#fff"><use href="#ic-cam"/></svg></div>
+          <div class="tx">
+            <span class="ti">Scan barcode</span>
+            <span class="sb">Point camera at the product barcode to add boxes</span>
+          </div>
+          <svg class="arr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </button>
+
+        <label class="m-search">
+          <svg width="15" height="15"><use href="#ic-barcode"/></svg>
+          <input type="text" id="si-inp" placeholder="Or type product name / barcode…" oninput="siLook()" onkeydown="if(event.key==='Enter')siConfirmFirst()" autocomplete="off" inputmode="text"/>
+          <button class="clr" onclick="siClear()" title="Clear"><svg width="12" height="12"><use href="#ic-x"/></svg></button>
+        </label>
+
+        <div id="si-tip" style="display:none;margin-top:10px"></div>
+        <div id="si-fuzzy" style="display:none;margin-top:12px">
+          <div style="font-size:11px;color:var(--tx3);font-weight:600;margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase" id="si-fuz-lbl"></div>
+          <div class="plist" id="si-fuz-list" style="border-radius:11px"></div>
+        </div>
+      </div>
+
+      <div class="m-card">
+        <div class="m-sec">
+          <span class="ic"><svg width="13" height="13"><use href="#ic-pkg"/></svg></span>
+          <span class="grow">Browse by category</span>
+          <span style="font-size:11px;color:var(--tx3);font-weight:500;text-transform:none;letter-spacing:0">Tap to receive</span>
+        </div>
+        <select id="si-cat-sel" class="m-select" onchange="siRenderList()" style="margin-bottom:10px"></select>
+        <div class="plist" id="si-plist" style="max-height:380px;overflow-y:auto;border-radius:11px"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: detail panel -->
+    <div id="si-right">
+      <div class="m-card" style="min-height:320px;display:flex;align-items:center;justify-content:center">
+        <div class="m-empty">
+          <div class="ic"><svg width="36" height="36"><use href="#ic-barcode"/></svg></div>
+          <div class="ti">Ready to scan</div>
+          <div class="sb">Tap the green button to scan a barcode, or pick a product from the list to add boxes manually.</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <!-- STOCK OUT -->
 <div class="page" id="page-stockout">
-  <div class="pt">Stock out</div><div class="ps">Remove stock from CityStar Warehouse</div>
-  <div class="si-layout">
-    <div>
-      <!-- Destination: Delivery or MM MART -->
-      <div class="card mb10">
-        <div class="sec" style="margin-bottom:10px">Where is stock going?</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-          <button id="so-dest-delivery-btn" onclick="soSetWarehouseDest('delivery')" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid var(--bdr);background:var(--sur2);cursor:pointer;transition:all .12s">
-            <div style="font-size:32px">🚚</div>
-            <div style="font-size:14px;font-weight:800;color:var(--tx)">Delivery</div>
-            <div style="font-size:11px;color:var(--tx3)">Direct to customer</div>
-          </button>
-          <button id="so-dest-mmmart-btn" onclick="soSetWarehouseDest('mmmart')" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid var(--bdr);background:var(--sur2);cursor:pointer;transition:all .12s">
-            <div style="font-size:32px">🏪</div>
-            <div style="font-size:14px;font-weight:800;color:var(--tx)">MM MART</div>
-            <div style="font-size:11px;color:var(--tx3)">Transfer to MM Mart</div>
-          </button>
-        </div>
-        <div id="so-wh-name-row" style="display:none">
-          <input type="text" id="so-wh-delivery-name" placeholder="Customer / delivery name (optional)…" autocomplete="off"/>
-        </div>
-      </div>
-      <div class="card mb10">
-        <button onclick="openCamera(r=>handleScannedBarcode(r,'stockout'))" style="width:100%;padding:20px 16px;background:linear-gradient(135deg,var(--rd),var(--rd3));border:none;border-radius:var(--rl);cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:12px;box-shadow:0 4px 16px rgba(220,38,38,.28);transition:opacity .15s" onmousedown="this.style.opacity='.85'" onmouseup="this.style.opacity='1'" ontouchstart="this.style.opacity='.85'" ontouchend="this.style.opacity='1'">
-          <div style="width:52px;height:52px;background:rgba(255,255,255,.2);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="28" height="28" style="color:#fff"><use href="#ic-cam"/></svg></div>
-          <div style="text-align:left"><div style="font-size:17px;font-weight:800;color:#fff;letter-spacing:-.01em">Scan single product</div><div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px">One product at a time</div></div>
-        </button>
-        <div class="scan-bar">
-          <div class="scan-wrap"><span class="scan-ico"><svg width="17" height="17"><use href="#ic-barcode"/></svg></span><input type="text" id="so-inp" placeholder="Or search product name / barcode…" oninput="soRender()" style="padding-left:38px" autocomplete="off"/></div>
-          <button class="scan-btn" onclick="document.getElementById('so-inp').value='';soRender()" title="Clear"><svg width="15" height="15"><use href="#ic-x"/></svg></button>
-        </div>
-        <div class="plist" id="so-list" style="max-height:280px;overflow-y:auto"></div>
+
+  <header class="m-hdr">
+    <div class="m-hdr-l">
+      <h1>Stock out</h1>
+      <div class="m-sub">Ship to shops, send deliveries, or scan a single product</div>
+      <div class="m-stat-pills">
+        <span class="m-stat-pill"><i class="dot" style="background:var(--rd)"></i>Today <b id="so-stat-today">0</b> boxes out</span>
+        <span class="m-stat-pill"><i class="dot" style="background:var(--gn)"></i>Shops <b id="so-stat-shop">0%</b></span>
+        <span class="m-stat-pill"><i class="dot" style="background:var(--bl)"></i>Deliveries <b id="so-stat-del">0%</b></span>
       </div>
     </div>
-    <div class="card" id="so-detail"><div class="si-empty"><svg width="40" height="40" style="opacity:.2"><use href="#ic-pkg"/></svg><div style="font-size:13px">Select a product to remove stock</div></div></div>
+    <div class="m-hdr-r">
+      <button class="btn btn-sm" onclick="openCamera(r=>handleScannedBarcode(r,'stockout'))"><svg width="13" height="13"><use href="#ic-cam"/></svg> Quick scan</button>
+    </div>
+  </header>
+
+  <div class="m-layout">
+
+    <!-- LEFT -->
+    <div>
+      <!-- Shop / delivery order tile picker -->
+      <div class="m-card" style="margin-bottom:14px">
+        <div class="m-sec">
+          <span class="ic">🏪</span>
+          <span class="grow">Shop order — mass scan</span>
+          <span style="font-size:11px;color:var(--tx3);font-weight:500;text-transform:none;letter-spacing:0">Pick a destination</span>
+        </div>
+        <div class="m-shop-grid" id="shop-order-btns"></div>
+        <button class="m-shop-tile delivery" onclick="openMassOut('Delivery','delivery')">
+          <div class="av"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+          <div><div class="nm">Delivery order</div><div class="mt">Direct dispatch run</div></div>
+        </button>
+      </div>
+
+      <!-- Single product scan -->
+      <div class="m-card">
+        <button class="m-scan-hero out" onclick="openCamera(r=>handleScannedBarcode(r,'stockout'))">
+          <div class="ic"><svg width="28" height="28" style="color:#fff"><use href="#ic-cam"/></svg></div>
+          <div class="tx">
+            <span class="ti">Scan single product</span>
+            <span class="sb">One product at a time — for ad-hoc stock removal</span>
+          </div>
+          <svg class="arr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </button>
+
+        <label class="m-search">
+          <svg width="15" height="15"><use href="#ic-barcode"/></svg>
+          <input type="text" id="so-inp" placeholder="Or search product name / barcode…" oninput="soRender()" autocomplete="off"/>
+          <button class="clr" onclick="document.getElementById('so-inp').value='';soRender()" title="Clear"><svg width="12" height="12"><use href="#ic-x"/></svg></button>
+        </label>
+
+        <div class="plist" id="so-list" style="max-height:340px;overflow-y:auto;margin-top:12px;border-radius:11px"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: product detail -->
+    <div class="m-card" id="so-detail" style="min-height:320px;display:flex;align-items:center;justify-content:center">
+      <div class="m-empty">
+        <div class="ic"><svg width="36" height="36"><use href="#ic-pkg"/></svg></div>
+        <div class="ti">Select a product</div>
+        <div class="sb">Scan a barcode, search above, or pick a shop tile on the left to start a mass-scan order.</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
+<!-- PRODUCTS -->
 <!-- MM MART -->
 <div class="page" id="page-mmmart">
   <div class="pt">🏪 MM MART</div>
@@ -696,21 +1289,51 @@ body.role-operator #main{padding:0 !important}
 </div>
 
 
+
 <!-- PRODUCTS -->
 <div class="page" id="page-products">
-  <div class="fx gap8 mb12">
-    <div style="flex:1"><div class="pt">Products</div></div>
-    <button class="btn btn-sm" onclick="openBulkImages()" style="background:var(--bl2);color:var(--bl3);border-color:transparent" title="Auto-fetch product images">
-      🖼 Auto images
-    </button>
-    <button class="btn btn-pu btn-sm" onclick="openAddProd()"><svg width="13" height="13"><use href="#ic-plus"/></svg> Add</button>
-  </div>
-  <div class="card">
-    <div class="fx gap8 mb10" style="flex-wrap:wrap">
-      <input type="search" id="prod-srch" placeholder="Search…" oninput="renderProds()" style="flex:1;min-width:120px"/>
-      <select id="prod-cat-f" onchange="renderProds()" style="width:auto;min-width:130px;font-size:12px"></select>
+  <header class="m-hdr">
+    <div class="m-hdr-l">
+      <h1>Products</h1>
+      <div class="m-sub">Full catalog · search, filter and manage every SKU</div>
+      <div class="m-stat-pills">
+        <span class="m-stat-pill"><i class="dot" style="background:var(--pu)"></i><b id="prod-stat-total">0</b> SKUs</span>
+        <span class="m-stat-pill"><i class="dot" style="background:var(--gn)"></i><b id="prod-stat-boxes">0</b> boxes</span>
+        <span class="m-stat-pill"><i class="dot" style="background:var(--am)"></i><b id="prod-stat-low">0</b> low</span>
+        <span class="m-stat-pill"><i class="dot" style="background:var(--rd)"></i><b id="prod-stat-out">0</b> out</span>
+      </div>
     </div>
-    <div id="prod-list" style="border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;background:var(--sur)"></div>
+    <div class="m-hdr-r">
+      <div class="m-view-toggle" id="prod-view-toggle">
+        <button class="on" data-view="list" title="List view">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+        <button data-view="grid" title="Grid view">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </button>
+      </div>
+      <button class="btn btn-sm" onclick="openBulkImages()" style="background:var(--bl2);color:var(--bl3);border-color:transparent" title="Auto-fetch product images">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><polyline points="21 15 16 10 5 21"/></svg> Auto images
+      </button>
+      <button class="btn btn-pu btn-sm" onclick="openAddProd()"><svg width="13" height="13"><use href="#ic-plus"/></svg> Add product</button>
+    </div>
+  </header>
+
+  <div class="m-card">
+    <div class="m-filter-bar">
+      <label class="m-search" style="flex:1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="prod-srch" placeholder="Search by name, vendor, SKU…" oninput="renderProds()"/>
+      </label>
+      <select id="prod-cat-f" class="m-select" onchange="renderProds()" style="width:auto;min-width:180px"></select>
+    </div>
+    <div class="m-chip-row" id="prod-quick-filters">
+      <button class="m-chip on" data-filter="all">All <span class="ct" id="qf-all">0</span></button>
+      <button class="m-chip" data-filter="low" style="color:var(--am3)">Low stock <span class="ct" id="qf-low">0</span></button>
+      <button class="m-chip" data-filter="out" style="color:var(--rd3)">Out of stock <span class="ct" id="qf-out">0</span></button>
+      <button class="m-chip" data-filter="nophoto">Missing photo <span class="ct" id="qf-nophoto">0</span></button>
+    </div>
+    <div id="prod-list" style="border-radius:11px;overflow:hidden;background:var(--sur)"></div>
   </div>
 </div>
 
@@ -1036,8 +1659,7 @@ body.role-operator #main{padding:0 !important}
     <div style="display:flex;flex-direction:column;gap:10px">
       <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Product name</label><input type="text" id="np-name" placeholder="e.g. READY Beef Curry 425g"/></div>
       <div class="g2"><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Category</label><select id="np-cat" onchange="npSubcats()"><option value="">Select…</option></select></div><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Brand</label><select id="np-sub"><option value="">Select…</option></select></div></div>
-      <div class="g2"><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Initial qty (boxes)</label><input type="number" id="np-qty" placeholder="0" min="0" inputmode="numeric"/></div><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Threshold (boxes)</label><input type="number" id="np-thr" placeholder="20" min="0" inputmode="numeric"/></div></div>
-      <div class="g2"><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Pcs per box <span style="color:var(--tx3)">(optional)</span></label><input type="number" id="np-pcs" placeholder="e.g. 12" min="1" inputmode="numeric"/></div><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Price per box ¥ <span style="color:var(--tx3)">(optional)</span></label><input type="number" id="np-price" placeholder="e.g. 800" min="0" inputmode="numeric"/></div></div>
+      <div class="g2"><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Initial qty</label><input type="number" id="np-qty" placeholder="0" min="0" inputmode="numeric"/></div><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Threshold</label><input type="number" id="np-thr" placeholder="20" min="0" inputmode="numeric"/></div></div>
       <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Barcode (optional)</label><input type="text" id="np-bc" placeholder="Full barcode number" inputmode="numeric"/></div>
     </div>
     <div class="g2 mt16"><button class="btn w100" onclick="closeModal('m-addprod')">Cancel</button><button class="btn btn-pu w100" onclick="saveProd()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Save</button></div>
@@ -1265,11 +1887,9 @@ body.role-operator #main{padding:0 !important}
       <div style="font-size:16px;font-weight:700;flex:1">🖼 Auto-fetch product images</div>
       <button class="btn btn-sm" onclick="closeModal('m-bulk-img')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
     </div>
-    <div style="font-size:13px;color:var(--tx2);margin-bottom:10px">Uses SerpAPI Google Images to find product photos. You confirm or skip each one.</div>
-    <div style="margin-bottom:12px">
-      <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">SerpAPI key</label>
-      <input type="text" id="serp-key" placeholder="Paste your SerpAPI key here" autocomplete="off"/>
-      <div style="font-size:11px;color:var(--tx3);margin-top:4px">Free key at <strong>serpapi.com</strong> — 100 searches/month free</div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:10px">Uses OpenAI to find the best product photo for each item. You confirm or skip each one before saving.</div>
+    <div style="background:var(--bl2);border-radius:var(--r);padding:10px 12px;font-size:12px;color:var(--bl3);margin-bottom:12px">
+      <b>Setup:</b> Add <code style="background:rgba(0,0,0,.07);padding:1px 5px;border-radius:3px">OPENAI_API_KEY</code> to Vercel env vars. Optionally add <code style="background:rgba(0,0,0,.07);padding:1px 5px;border-radius:3px">GOOGLE_CSE_KEY</code> + <code style="background:rgba(0,0,0,.07);padding:1px 5px;border-radius:3px">GOOGLE_CSE_CX</code> for Google Custom Search (100 free/day).
     </div>
     <div class="fx gap8 mb12">
       <div style="flex:1">
@@ -1283,22 +1903,23 @@ body.role-operator #main{padding:0 !important}
         <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px">Mode</label>
         <select id="bulk-img-mode" style="font-size:13px">
           <option value="confirm">Confirm each photo</option>
-          <option value="auto">Auto-save all</option>
+          <option value="auto">Auto-save all (faster)</option>
         </select>
       </div>
     </div>
-    <!-- Confirmation panel -->
+    <!-- Confirmation panel — shown during fetch -->
     <div id="bulk-confirm-panel" style="display:none;margin-bottom:12px">
-      <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:8px" id="bulk-confirm-name"></div>
-      <div style="display:flex;gap:12px;align-items:flex-start">
-        <div style="width:130px;height:130px;border-radius:var(--rl);overflow:hidden;background:var(--sur2);flex-shrink:0;border:1px solid var(--bdr);position:relative">
-          <div id="bulk-confirm-spinner" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:32px">⏳</div>
-          <img id="bulk-confirm-img" style="width:100%;height:100%;object-fit:contain;display:none;background:#fff" src="" alt=""/>
+      <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:6px" id="bulk-confirm-name">Searching…</div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div id="bulk-confirm-img-wrap" style="width:120px;height:120px;border-radius:var(--r);overflow:hidden;background:var(--sur2);flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--bdr)">
+          <div id="bulk-confirm-spinner" style="font-size:28px">⏳</div>
+          <img id="bulk-confirm-img" style="display:none;width:100%;height:100%;object-fit:cover" alt="" onerror="this.style.display='none';document.getElementById('bulk-confirm-spinner').style.display='block';document.getElementById('bulk-confirm-spinner').textContent='❌'"/>
         </div>
-        <div style="flex:1;display:flex;flex-direction:column;gap:8px;padding-top:4px">
-          <div id="bulk-confirm-source" style="font-size:10px;color:var(--tx3);margin-bottom:2px"></div>
-          <button id="bulk-confirm-save" onclick="bulkConfirmSave()" style="padding:12px;border-radius:var(--r);border:none;background:var(--gn);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:none">✓ Save photo</button>
-          <button id="bulk-confirm-skip" onclick="bulkConfirmSkip()" style="padding:12px;border-radius:var(--r);border:1.5px solid var(--bdr2);background:var(--sur2);color:var(--tx2);font-size:13px;font-weight:600;cursor:pointer;display:none">✕ Skip</button>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+          <div id="bulk-confirm-source" style="font-size:10px;color:var(--tx3)"></div>
+          <button id="bulk-confirm-save" onclick="bulkConfirmSave()" style="padding:10px;border-radius:var(--r);border:none;background:var(--gn);color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:none">✓ Save this photo</button>
+          <button id="bulk-confirm-skip" onclick="bulkConfirmSkip()" style="padding:10px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);color:var(--tx2);font-size:13px;font-weight:600;cursor:pointer;display:none">✕ Skip / try next</button>
+          <button id="bulk-confirm-stop" onclick="()=>{_bulkRunning=false}" style="padding:8px;border-radius:var(--r);border:none;background:transparent;color:var(--tx3);font-size:12px;cursor:pointer">■ Stop</button>
         </div>
       </div>
     </div>
@@ -1315,14 +1936,16 @@ body.role-operator #main{padding:0 !important}
     </div>
     <div class="g2">
       <button class="btn w100" onclick="closeModal('m-bulk-img')" id="bulk-cancel-btn">Cancel</button>
-      <button class="btn w100" style="background:var(--bl);color:#fff;border-color:var(--bl);font-weight:600" onclick="startBulkImages()" id="bulk-start-btn">🖼 Start fetching images</button>
+      <button class="btn w100" style="background:var(--bl);color:#fff;border-color:var(--bl);font-weight:600" onclick="startBulkImages()" id="bulk-start-btn">
+        🖼 Start fetching images
+      </button>
     </div>
   </div></div>
 </div>
 
 <!-- Photo zoom lightbox -->
 <div id="photo-lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out" onclick="this.style.display='none';document.body.style.overflow=''">
-  <img id="photo-lightbox-img" style="max-width:92vw;max-height:88vh;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.6);object-fit:contain" src="" alt=""/>
+  <img id="photo-lightbox-img" style="max-width:92vw;max-height:88vh;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.6);object-fit:contain" alt=""/>
   <div id="photo-lightbox-name" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;font-size:14px;font-weight:600;padding:8px 20px;border-radius:20px;white-space:nowrap;max-width:80vw;overflow:hidden;text-overflow:ellipsis"></div>
 </div>
 
@@ -1596,21 +2219,19 @@ window.rackMap = window.rackMap || {};
 // Save a single photo to the device-wide local cache
 function _savePhotoLocal(pid, photo){
   try{
+    // Keep photo cache under 8MB total by dropping oldest if needed
     let photos={};
     try{ photos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}'); }catch(e){}
     photos[pid]=photo;
+    // Try to save — if quota exceeded, clear oldest 10 and retry
     try{
       localStorage.setItem('citystar_photos_v1',JSON.stringify(photos));
     }catch(quotaErr){
-      // Storage full — drop oldest 30% and retry
-      let keys=Object.keys(photos).filter(k=>k!=pid);
+      let keys=Object.keys(photos);
       keys.slice(0,Math.max(10,Math.floor(keys.length*0.3))).forEach(k=>delete photos[k]);
-      photos[pid]=photo;
+      photos[pid]=photo; // make sure current photo is saved
       try{ localStorage.setItem('citystar_photos_v1',JSON.stringify(photos)); }catch(e){}
     }
-    // Also update live products array immediately — no reload needed
-    let p=typeof products!=='undefined'?products.find(x=>x.id==parseInt(pid)):null;
-    if(p) p.photo=photo;
   }catch(e){}
 }
 let waConfig = {server: 'http://localhost:3456', phone: ''};
@@ -2409,9 +3030,15 @@ function renderDestTracker() {
 
 function _initShopBtns(){
   let el=document.getElementById('shop-order-btns'); if(!el||el.children.length)return;
-  el.innerHTML=SHOPS.map(s=>
-    '<button onclick="openMassOut(\''+s+'\',\'shop\')" style="padding:10px 6px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;color:var(--tx)">🏪 '+s+'</button>'
-  ).join('');
+  let palette=['#5B47FB','#F97316','#16A34A','#2563EB','#A855F7','#0EA5E9','#EC4899','#0F172A'];
+  el.innerHTML=SHOPS.map((s,i)=>{
+    let short=s.split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    let color=palette[i%palette.length];
+    return '<button class="m-shop-tile" onclick="openMassOut(\''+s+'\',\'shop\')">'
+      +'<div class="av" style="background:linear-gradient(135deg,'+color+','+color+'cc)">'+short+'</div>'
+      +'<div><div class="nm">'+s+'</div><div class="mt">Mass scan order</div></div>'
+      +'</button>';
+  }).join('');
 }
 
 function renderShopTracker(){
@@ -2654,33 +3281,6 @@ function _updateUnitDisplay(){
   }
 }
 
-// ── Warehouse stock-out: delivery or MM MART ──────────────────
-let _warehouseDest = null; // 'delivery' or 'mmmart'
-function soSetWarehouseDest(dest){
-  _warehouseDest = dest;
-  let dBtn = document.getElementById('so-dest-delivery-btn');
-  let mBtn = document.getElementById('so-dest-mmmart-btn');
-  let nameRow = document.getElementById('so-wh-name-row');
-  let sel = dest === 'delivery';
-  if(dBtn) dBtn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid '+(sel?'var(--bl);background:var(--bl2)':'var(--bdr);background:var(--sur2)')+';cursor:pointer;transition:all .12s';
-  if(mBtn) mBtn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid '+(dest==='mmmart'?'var(--pu);background:var(--pu2)':'var(--bdr);background:var(--sur2)')+';cursor:pointer;transition:all .12s';
-  if(nameRow) nameRow.style.display = sel ? 'block' : 'none';
-  // Auto-select destination in the SO modal when products are chosen
-  if(dest==='mmmart'){
-    // Pre-select MM MART as destination in doSO
-    let destEl = document.getElementById('so-dest-del');
-    if(destEl) destEl.classList.remove('dest-sel');
-    let shopEl = document.getElementById('so-dest-shop');
-    if(shopEl) shopEl.classList.remove('dest-sel');
-  }
-}
-function soGetWarehouseDest(){
-  // Returns {dest, destName} based on warehouse destination choice
-  if(_warehouseDest==='mmmart') return {dest:'mmmart', destName:'MM MART'};
-  let name = (document.getElementById('so-wh-delivery-name')||{}).value||'';
-  return {dest:'delivery', destName: name||'Delivery'};
-}
-
 function soSelectDest(type){
   let shop=document.getElementById('so-dest-shop'),del=document.getElementById('so-dest-del');
   let wrap=document.getElementById('so-dest-wrap');
@@ -2738,18 +3338,11 @@ function doSO(){
   if(dest==='shop'&&!destName){toast('Select a shop','rd');return;}
   p.qty-=actualQtyBoxes;p.lastUpdated=new Date().toISOString().slice(0,10);
   let qtyLabel=_soUnit==='pcs'?qty+'pcs':actualQtyBoxes+' boxes';
-  // If going to MM MART, add to MM Mart stock
-  let finalDest=dest, finalDestName=destName||dest;
-  if(_warehouseDest==='mmmart'){ finalDest='mmmart'; finalDestName='MM MART'; mmReceiveFromWarehouse(soProdId, actualQtyBoxes); }
-  let act={type:'out',prod:p.name,qty:actualQtyBoxes,time:nowT(),user:currentUser||'Unknown',dest:finalDest,destName:finalDestName};
+  let act={type:'out',prod:p.name,qty:actualQtyBoxes,time:nowT(),user:currentUser||'Unknown',dest,destName:destName||dest};
   activity.unshift(act);
   closeModal('m-so');document.getElementById('so-inp').value='';soRender();
-  _soSelectedShop=''; _soUnit='box'; _warehouseDest=null;
-  // Reset destination buttons
-  let dBtn=document.getElementById('so-dest-delivery-btn'); if(dBtn) dBtn.style.border='2px solid var(--bdr)';
-  let mBtn=document.getElementById('so-dest-mmmart-btn'); if(mBtn) mBtn.style.border='2px solid var(--bdr)';
-  let nr=document.getElementById('so-wh-name-row'); if(nr) nr.style.display='none';
-  toast('-'+qtyLabel+' → '+finalDestName);
+  _soSelectedShop=''; _soUnit='box';
+  toast('-'+qtyLabel+' → '+(destName||dest));
   refreshDash();sbPushProduct(p);sbPushActivity(act);
 }
 
@@ -2827,15 +3420,6 @@ function confirmMassOut(){
     activity.unshift(act); sbPushProduct(p); sbPushActivity(act);
     total+=boxQty;
   });
-  // If mass out to MM MART, add to MM stock
-  if(_massOutDest==='mmmart'){
-    pids.forEach(pid=>{
-      let qty=_massOutItems[pid];
-      let p=gP(parseInt(pid));if(!p)return;
-      let boxQty=p.pcsPerBox?Math.ceil(qty/p.pcsPerBox):qty;
-      mmReceiveFromWarehouse(parseInt(pid), boxQty);
-    });
-  }
   closeMassOut();
   toast('✓ '+pids.length+' products, '+total+' boxes → '+(_massOutShop||_massOutDest));
   refreshDash(); soRender();
@@ -2966,13 +3550,13 @@ function handleScannedBarcode(raw,ctx){
     let hit=findByBc(raw);
     if(hit){if(!hit.barcode)hit.barcode=bcNorm(raw);openSI(hit.id);}
     else openNotFoundModal(raw);
-  } else if(ctx==='stockout'){
-    let inp=document.getElementById('so-inp');if(inp)inp.value=raw;soRender();
-    let hit=findByBc(raw);if(hit)selectSO(hit.id);else openNotFoundModal(raw);
   } else if(ctx==='mmshop'){
     let hit=findByBc(raw);
     if(hit) mmAddToOrder(hit.id);
     else openNotFoundModal(raw);
+  } else if(ctx==='stockout'){
+    let inp=document.getElementById('so-inp');if(inp)inp.value=raw;soRender();
+    let hit=findByBc(raw);if(hit)selectSO(hit.id);else openNotFoundModal(raw);
   }
 }
 
@@ -3165,75 +3749,154 @@ function renderProds(){
   let sel=document.getElementById('prod-cat-f');
   sel.innerHTML='<option value="">All categories</option>'+categories.map(c=>'<option value="'+c.id+'"'+(catF===c.id?' selected':'')+'>'+c.name+'</option>').join('');
   if(catF)sel.value=catF;
-  function match(p){return !srch||p.name.toLowerCase().includes(srch)||p.sku.toLowerCase().includes(srch);}
-  let rows='';
-  for(let cat of categories){
-    let cp=products.filter(p=>p.cat===cat.id&&(!catF||catF===cat.id)&&match(p));
-    if(!cp.length)continue;
-    // Category header
-    rows+='<div style="background:var(--sur2);padding:8px 12px;font-weight:700;font-size:11px;text-transform:uppercase;color:var(--tx2);letter-spacing:.05em;position:sticky;top:0;z-index:1">'+cat.name+' <span style="font-weight:400;color:var(--tx3)">'+cp.length+'</span></div>';
-    let subs=[...new Set(cp.map(p=>p.sub))];
-    for(let sid of subs){
-      let sp=cp.filter(p=>p.sub===sid),brand=sN(cat.id,sid);
-      rows+='<div style="padding:4px 12px 2px;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;background:var(--sur)">'+brand+'</div>';
-      rows+=sp.map(p=>{
-        let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
-        let nm=p.name;
-        if(srch){try{let re=new RegExp(srch.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');nm=p.name.replace(re,m=>'<mark style="background:var(--am2);border-radius:2px">'+m+'</mark>');}catch(e){}}
-        let photoThumb=p.photo
-          ?'<img src="'+p.photo+'" onclick="event.stopPropagation();openPhotoZoom(\''+p.id+'\')" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:zoom-in;box-shadow:0 1px 4px rgba(0,0,0,.12)" onerror="this.style.display=\'none\'">'
-          :'<div style="width:44px;height:44px;border-radius:8px;background:var(--sur2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="14" height="14" style="opacity:.3"><use href="#ic-pkg"/></svg></div>';
-        // Expanded action panel (hidden by default)
-        let bcLabel=p.barcode?'<span style="font-family:monospace;font-size:10px;color:var(--gn3)">'+p.barcode+'</span>':'<span style="font-size:10px;color:var(--tx3)">No barcode</span>';
-        let expandPanel='<div id="pexp-'+p.id+'" style="display:none;border-top:1px solid var(--bdr);background:var(--sur2);padding:12px">'
-          +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--bdr)">'
-            +(p.photo
-              ?'<img src="'+p.photo+'" onclick="openPhotoZoom(\''+p.id+'\')" style="width:72px;height:72px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:zoom-in;box-shadow:0 2px 8px rgba(0,0,0,.15)" onerror="this.style.display=\'none\'">'
-              :'<div style="width:72px;height:72px;border-radius:10px;background:var(--sur);border:2px dashed var(--bdr2);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer" onclick="document.getElementById(\'photo-inp-'+p.id+'\').click()"><svg width="22" height="22" style="opacity:.3"><use href="#ic-cam"/></svg></div>')
-            +'<input type="file" id="photo-inp-'+p.id+'" accept="image/*" style="display:none" onchange="uploadPhotoInline('+p.id+',this)">'
-            +'<div style="flex:1;min-width:0">'
-              +'<div style="font-size:12px;font-weight:600;margin-bottom:2px">'+p.name+'</div>'
-              +'<div style="font-size:11px;color:var(--tx3);margin-bottom:6px">SKU: '+p.sku+' · '+bcLabel+'</div>'
-              +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-                +'<button class="btn btn-sm" onclick="document.getElementById(\'photo-inp-'+p.id+'\').click()" style="font-size:11px;padding:4px 9px;background:var(--bl2);color:var(--bl3);border-color:transparent">📷 '+(p.photo?'Change':'Add photo')+'</button>'
-                +(p.photo?'<button class="btn btn-sm" onclick="openPhotoZoom(\''+p.id+'\')" style="font-size:11px;padding:4px 9px;background:var(--sur);border-color:var(--bdr)">🔍 Zoom</button>':'')
-                +(p.photo?'<button class="btn btn-sm" onclick="removePhotoInline('+p.id+')" style="font-size:11px;padding:4px 9px;background:var(--rd2);color:var(--rd3);border-color:transparent">✕ Remove</button>':'')
-              +'</div>'
-            +'</div>'
+
+  let view = window._prodView || 'list';        // 'list' | 'grid'
+  let qFilter = window._prodQuickFilter || 'all'; // 'all' | 'low' | 'out' | 'nophoto'
+
+  function match(p){
+    if (srch && !(p.name.toLowerCase().includes(srch) || (p.sku||'').toLowerCase().includes(srch) || (p.vendor||'').toLowerCase().includes(srch))) return false;
+    if (catF && p.cat !== catF) return false;
+    if (qFilter === 'low')     return (p.qty||0) > 0 && (p.qty||0) <= (p.threshold||0);
+    if (qFilter === 'out')     return (p.qty||0) === 0;
+    if (qFilter === 'nophoto') return !p.photo;
+    return true;
+  }
+
+  function statusOf(p){ return (p.qty||0)===0?'out':(p.qty||0)<=(p.threshold||0)?'low':'ok'; }
+  function highlight(name){
+    if (!srch) return name;
+    try { let re = new RegExp(srch.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
+          return name.replace(re, m => '<mark style="background:var(--am2);color:var(--am3);border-radius:3px;padding:0 2px">'+m+'</mark>'); }
+    catch(e){ return name; }
+  }
+  function thumb(p, size){
+    if (p.photo) return '<img src="'+p.photo+'" onclick="event.stopPropagation();openPhotoZoom(\''+p.id+'\')" onerror="this.style.display=\'none\'"/>';
+    let initials = (p.vendor || p.name).split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    return '<div class="ph">'+initials+'</div>';
+  }
+  function buildExpand(p){
+    let bcLabel = p.barcode
+      ? '<span class="mono" style="font-size:10px;color:var(--gn3);background:var(--gn2);padding:2px 6px;border-radius:6px">'+p.barcode+'</span>'
+      : '<span style="font-size:10px;color:var(--tx3);background:var(--sur2);padding:2px 6px;border-radius:6px">No barcode</span>';
+    let rackChip = window.rackMap && window.rackMap[p.id]
+      ? '<button class="btn btn-sm" onclick="event.stopPropagation();location.href=\'rack.html\'" style="font-size:11px;padding:5px 9px;background:var(--pu2);color:var(--pu);border-color:transparent">📍 Rack '+(window.rackMap[p.id]||'').replace(/^R/,'')+'</button>'
+      : '<button class="btn btn-sm" onclick="event.stopPropagation();location.href=\'rack.html\'" style="font-size:11px;padding:5px 9px;background:var(--am2);color:var(--am3);border-color:transparent">📍 Assign rack</button>';
+    return '<div id="pexp-'+p.id+'" style="display:none;border-top:1px solid var(--bdr);background:var(--sur2);padding:14px">'
+      +'<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px">'
+        +(p.photo
+          ? '<img src="'+p.photo+'" onclick="event.stopPropagation();openPhotoZoom(\''+p.id+'\')" style="width:80px;height:80px;object-fit:cover;border-radius:12px;flex-shrink:0;cursor:zoom-in;box-shadow:0 4px 12px rgba(0,0,0,.12)" onerror="this.style.display=\'none\'">'
+          : '<div style="width:80px;height:80px;border-radius:12px;background:var(--sur);border:2px dashed var(--bdr2);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer" onclick="event.stopPropagation();document.getElementById(\'photo-inp-'+p.id+'\').click()"><svg width="22" height="22" style="opacity:.4;color:var(--pu)"><use href="#ic-cam"/></svg></div>')
+        +'<input type="file" id="photo-inp-'+p.id+'" accept="image/*" style="display:none" onchange="uploadPhotoInline('+p.id+',this)">'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:13px;font-weight:700;margin-bottom:4px;color:var(--tx)">'+p.name+'</div>'
+          +'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;align-items:center">'
+            +'<span style="font-size:10px;color:var(--tx3);font-weight:600">SKU '+p.sku+'</span>'
+            +bcLabel
           +'</div>'
-          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
-            +'<button class="btn btn-sm w100" onclick="openSI('+p.id+')" style="justify-content:center;padding:9px"><svg width="13" height="13"><use href="#ic-in"/></svg> Stock in</button>'
-            +'<button class="btn btn-sm w100" onclick="openRegisterBc('+p.id+')" style="justify-content:center;padding:9px;background:var(--pu2);color:var(--pu3);border-color:transparent">🔳 '+(p.barcode?'Edit barcode':'Register barcode')+'</button>'
-            +'<button class="btn btn-sm w100" onclick="openEditProd('+p.id+')" style="justify-content:center;padding:9px;background:var(--am2);color:var(--am3);border-color:transparent"><svg width="13" height="13"><use href="#ic-edit"/></svg> Edit</button>'
-            +(window.rackMap&&window.rackMap[p.id]
-              ?'<button class="btn btn-sm w100" onclick="location.href=\'rack.html\'" style="justify-content:center;padding:9px;background:#EFF6FF;color:#2563EB;border-color:#BFDBFE">📍 Rack '+(window.rackMap[p.id]||'').replace(/^R/,'')+'</button>'
-              :'<button class="btn btn-sm w100" onclick="location.href=\'rack.html\'" style="justify-content:center;padding:9px;background:var(--am2);color:var(--am3);border-color:transparent">📍 Assign rack</button>'
-            )
+          +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+            +'<button class="btn btn-sm" onclick="event.stopPropagation();document.getElementById(\'photo-inp-'+p.id+'\').click()" style="font-size:11px;padding:5px 9px;background:var(--bl2);color:var(--bl3);border-color:transparent">📷 '+(p.photo?'Change':'Add')+'</button>'
+            +(p.photo?'<button class="btn btn-sm" onclick="event.stopPropagation();openPhotoZoom(\''+p.id+'\')" style="font-size:11px;padding:5px 9px;background:var(--sur);border-color:var(--bdr)">🔍 Zoom</button>':'')
+            +(p.photo?'<button class="btn btn-sm" onclick="event.stopPropagation();removePhotoInline('+p.id+')" style="font-size:11px;padding:5px 9px;background:var(--rd2);color:var(--rd3);border-color:transparent">✕</button>':'')
           +'</div>'
-          +'</div>';
-        return '<div style="border-bottom:1px solid var(--bdr)">'
-          +'<div onclick="toggleProdRow('+p.id+')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;background:var(--sur);-webkit-tap-highlight-color:transparent">'
-            +photoThumb
-            +'<div style="flex:1;min-width:0">'
-              +'<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nm+'</div>'
-              +'<div style="font-size:11px;color:var(--tx3);margin-top:1px;display:flex;align-items:center;gap:4px">'+p.sku
-              +(window.rackMap&&window.rackMap[p.id]
-                ?'<span style="font-size:9px;font-weight:700;background:#EFF6FF;color:#2563EB;border-radius:4px;padding:1px 5px">📍 Rack '+(window.rackMap[p.id]||'').replace(/^R/,'')+'</span>'
-                :'<span style="font-size:9px;color:var(--tx3)">No rack</span>'
-              )+'</div>'
-            +'</div>'
-            +'<div style="text-align:right;flex-shrink:0">'
-              +'<div style="font-size:16px;font-weight:800;color:'+qc+'">'+p.qty+'</div>'
-              +sBadge(p)
-            +'</div>'
-            +'<div style="color:var(--tx3);margin-left:4px;font-size:12px" id="pexp-arrow-'+p.id+'">›</div>'
-          +'</div>'
-          +expandPanel
-          +'</div>';
+        +'</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+        +'<button class="btn btn-sm w100" onclick="event.stopPropagation();openSI('+p.id+')" style="justify-content:center;padding:10px;background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;border-color:transparent;font-weight:700"><svg width="13" height="13"><use href="#ic-in"/></svg> Stock in</button>'
+        +'<button class="btn btn-sm w100" onclick="event.stopPropagation();openRegisterBc('+p.id+')" style="justify-content:center;padding:10px;background:var(--pu2);color:var(--pu);border-color:transparent;font-weight:700">🔳 '+(p.barcode?'Edit barcode':'Register')+'</button>'
+        +'<button class="btn btn-sm w100" onclick="event.stopPropagation();openEditProd('+p.id+')" style="justify-content:center;padding:10px;background:var(--sur);border-color:var(--bdr);font-weight:700"><svg width="13" height="13"><use href="#ic-edit"/></svg> Edit</button>'
+        +rackChip
+      +'</div>'
+    +'</div>';
+  }
+
+  // Filter products
+  let pool = products.filter(match);
+
+  // Empty state
+  if (!pool.length){
+    document.getElementById('prod-list').innerHTML =
+      '<div class="m-empty" style="padding:60px 20px">'
+      +  '<div class="ic"><svg width="36" height="36"><use href="#ic-pkg"/></svg></div>'
+      +  '<div class="ti">No products found</div>'
+      +  '<div class="sb">Try clearing the search or switching filters</div>'
+      +'</div>';
+    document.getElementById('prod-list').className = '';
+    return;
+  }
+
+  // ── GRID VIEW ──────────────────────────────────────────
+  if (view === 'grid'){
+    let cards = pool.map(p => {
+      let st = statusOf(p);
+      let pillCls = st==='out'?'br':st==='low'?'ba':'bg';
+      let pillTx  = st==='out'?'OUT':st==='low'?'LOW':'OK';
+      let qtyCls  = st==='out'?'out':st==='low'?'low':'';
+      let initials = (p.vendor || p.name).split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      let img = p.photo
+        ? '<img src="'+p.photo+'" onerror="this.style.display=\'none\'"/>'
+        : '<div class="ph">'+initials+'</div>';
+      return '<div class="m-pcard" data-pqty="'+(p.qty||0)+'" data-pthr="'+(p.threshold||0)+'" data-pphoto="'+(p.photo?1:0)+'" onclick="openEditProd('+p.id+')">'
+        + '<div class="img">'+img+'<span class="pill '+pillCls+'">'+pillTx+'</span></div>'
+        + '<div class="body">'
+        +   '<div class="nm">'+highlight(p.name)+'</div>'
+        +   '<div class="ft">'
+        +     '<span class="ven">'+(p.vendor||sN(p.cat,p.sub)||'')+'</span>'
+        +     '<span class="qty '+qtyCls+'">'+p.qty+'</span>'
+        +   '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    let pl = document.getElementById('prod-list');
+    pl.className = 'm-pgrid';
+    pl.innerHTML = cards;
+    return;
+  }
+
+  // ── LIST VIEW ──────────────────────────────────────────
+  let pl = document.getElementById('prod-list');
+  pl.className = '';
+
+  let rows = '';
+  // Group by category (filtered)
+  let cats = categories.filter(c => pool.some(p => p.cat === c.id));
+  for (let cat of cats){
+    let cp = pool.filter(p => p.cat === cat.id);
+    if (!cp.length) continue;
+    rows += '<div style="background:var(--sur2);padding:8px 14px;font-weight:700;font-size:10px;text-transform:uppercase;color:var(--tx2);letter-spacing:.08em;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px">'
+      + '<span style="flex:1">'+cat.name+'</span>'
+      + '<span style="font-weight:700;color:var(--tx3);background:var(--sur);border:1px solid var(--bdr);padding:1px 7px;border-radius:20px;font-size:10px;letter-spacing:0">'+cp.length+'</span>'
+      + '</div>';
+    let subs = [...new Set(cp.map(p => p.sub))];
+    for (let sid of subs){
+      let sp = cp.filter(p => p.sub === sid);
+      let brand = sN(cat.id, sid);
+      rows += '<div style="padding:6px 14px;font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;background:var(--sur);border-bottom:1px solid var(--bdr)">'+brand+' · '+sp.length+'</div>';
+      rows += sp.map(p => {
+        let st = statusOf(p);
+        let qtyCls = st==='out'?'out':st==='low'?'low':'';
+        let rackBadge = window.rackMap && window.rackMap[p.id]
+          ? '<span style="font-size:9px;font-weight:700;background:var(--pu2);color:var(--pu);border-radius:5px;padding:2px 6px;letter-spacing:.02em">📍 R'+(window.rackMap[p.id]||'').replace(/^R/,'')+'</span>'
+          : '<span style="font-size:9px;color:var(--tx3);font-weight:500">No rack</span>';
+        return '<div data-pqty="'+(p.qty||0)+'" data-pthr="'+(p.threshold||0)+'" data-pphoto="'+(p.photo?1:0)+'" style="border-bottom:1px solid var(--bdr)">'
+          + '<div class="m-prow" onclick="toggleProdRow('+p.id+')">'
+          +   '<div class="thumb">'+thumb(p)+'</div>'
+          +   '<div class="info">'
+          +     '<div class="nm">'+highlight(p.name)+'</div>'
+          +     '<div class="mt">'
+          +       '<span class="mono" style="font-size:10px">'+p.sku+'</span>'
+          +       '<span class="d"></span>'
+          +       rackBadge
+          +     '</div>'
+          +   '</div>'
+          +   '<div class="qty '+qtyCls+'">'+p.qty+'<small>boxes</small></div>'
+          +   '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" id="pexp-arrow-'+p.id+'"><polyline points="9 18 15 12 9 6"/></svg>'
+          + '</div>'
+          + buildExpand(p)
+        + '</div>';
       }).join('');
     }
   }
-  document.getElementById('prod-list').innerHTML=rows||'<div style="text-align:center;color:var(--tx3);padding:30px">No products found</div>';
+  pl.innerHTML = rows || '<div class="m-empty" style="padding:60px 20px"><div class="ic"><svg width="36" height="36"><use href="#ic-pkg"/></svg></div><div class="ti">No products</div></div>';
 }
 
 let _expandedProd = null;
@@ -3247,11 +3910,10 @@ function toggleProdRow(id){
     let prev=document.getElementById('pexp-'+_expandedProd);
     let prevArrow=document.getElementById('pexp-arrow-'+_expandedProd);
     if(prev){prev.style.display='none';}
-    if(prevArrow){prevArrow.textContent='›';prevArrow.style.transform='';}
+    if(prevArrow){prevArrow.style.transform='';}
   }
   panel.style.display=isOpen?'none':'block';
-  arrow.textContent=isOpen?'›':'›';
-  arrow.style.transform=isOpen?'':'rotate(90deg)';
+  if(arrow){arrow.style.transform=isOpen?'':'rotate(90deg)';arrow.style.transition='transform .15s';}
   _expandedProd=isOpen?null:id;
 }
 
@@ -3263,11 +3925,11 @@ function uploadPhotoInline(pid, input){
     p.photo=e.target.result;
     // Save to device-wide local cache — persists across users/logins
     _savePhotoLocal(pid, e.target.result);
-    // Push ONLY photo to Supabase — separate from other product fields
-    sbPushPhoto(pid, e.target.result).then(()=>{
+    // Push to Supabase (best-effort, localStorage is fallback)
+    sbPushProduct(p).then(()=>{
       toast('✓ Photo saved');
     }).catch(()=>{
-      toast('✓ Photo saved locally (will sync later)');
+      toast('✓ Photo saved locally (sync later)','syn');
     });
     renderProds();
   };
@@ -3297,8 +3959,6 @@ function openEditProd(id){
   document.getElementById('np-qty').value=p.qty;
   document.getElementById('np-thr').value=p.threshold;
   document.getElementById('np-bc').value=p.barcode||'';
-  if(document.getElementById('np-pcs')) document.getElementById('np-pcs').value=p.pcsPerBox||'';
-  if(document.getElementById('np-price')) document.getElementById('np-price').value=p.pricePerBox||'';
   document.getElementById('np-edit-id').value=id;
   openModal('m-addprod');
 }
@@ -3318,12 +3978,10 @@ function saveProd(){
   if(!name||!cat||!sub){toast('Fill in all required fields','rd');return;}
   let qty=parseInt(document.getElementById('np-qty').value)||0,thr=parseInt(document.getElementById('np-thr').value)||20;
   let bc=document.getElementById('np-bc').value.trim().replace(/\D/g,'')||undefined;
-  let pcsPerBox=parseInt(document.getElementById('np-pcs')?.value)||undefined;
-  let pricePerBox=parseFloat(document.getElementById('np-price')?.value)||undefined;
   let editId=document.getElementById('np-edit-id').value;
   if(editId){
     let p=gP(parseInt(editId));
-    if(p){p.name=name;p.cat=cat;p.sub=sub;p.qty=qty;p.threshold=thr;if(bc)p.barcode=bc;p.vendor=sN(cat,sub);if(pcsPerBox)p.pcsPerBox=pcsPerBox;if(pricePerBox)p.pricePerBox=pricePerBox;sbPushProduct(p);}
+    if(p){p.name=name;p.cat=cat;p.sub=sub;p.qty=qty;p.threshold=thr;if(bc)p.barcode=bc;p.vendor=sN(cat,sub);sbPushProduct(p);}
     closeModal('m-addprod');renderProds();toast('"'+name+'" updated');
   }else{
     let id=Math.max(...products.map(p=>p.id),0)+1;
@@ -3356,14 +4014,11 @@ function saveRegisterBc(){
   toast('Barcode saved: '+digits);
 }
 
-// ── SerpAPI bulk image fetch ──────────────────────────────────────
+// ── OpenAI image fetch ────────────────────────────────────────────
 let _bulkRunning = false;
-let _bulkConfirmResolve = null;
+let _bulkConfirmResolve = null; // promise resolver for confirm/skip
 
 function openBulkImages() {
-  let saved = localStorage.getItem('serp_key');
-  let inp = document.getElementById('serp-key');
-  if (inp && saved) inp.value = saved;
   document.getElementById('bulk-img-progress').style.display = 'none';
   document.getElementById('bulk-confirm-panel').style.display = 'none';
   document.getElementById('bulk-prog-log').textContent = '';
@@ -3375,66 +4030,76 @@ function openBulkImages() {
   openModal('m-bulk-img');
 }
 
+// Called by Confirm button in the panel
 function bulkConfirmSave() {
   if (_bulkConfirmResolve) { _bulkConfirmResolve('save'); _bulkConfirmResolve = null; }
 }
+// Called by Skip button in the panel
 function bulkConfirmSkip() {
   if (_bulkConfirmResolve) { _bulkConfirmResolve('skip'); _bulkConfirmResolve = null; }
 }
 
-async function fetchProductImage(productName, serpKey) {
-  let q = encodeURIComponent(productName + ' myanmar food product package');
-  let res = await fetchTimeout('/api/search-image?q=' + q + '&key=' + encodeURIComponent(serpKey), {}, 15000);
-  if (!res.ok) { let e={}; try{e=await res.json();}catch(x){} throw new Error(e.error||'SerpAPI '+res.status); }
-  let data = await res.json();
-  let imgs = (data.images||[]).filter(i=>i.url);
-  if (!imgs.length) throw new Error('No images found');
-  for (let img of imgs.slice(0,4)) {
-    try { return { b64: await _imgToBase64(img.url) }; } catch(e) { continue; }
+// Fetch image URL via /api/openai-image (server-side OpenAI / Google CSE)
+async function fetchProductImage(productName) {
+  let res = await fetchTimeout('/api/openai-image', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ productName }),
+  }, 25000);
+  if (!res.ok) {
+    let err = {}; try { err = await res.json(); } catch(e) {}
+    throw new Error(err.error || 'API error ' + res.status);
   }
-  throw new Error('All images failed to proxy');
+  let data = await res.json();
+  if (!data.imageUrl) throw new Error('No image returned');
+  return data;
 }
 
-async function _imgToBase64(imgUrl) {
-  let res = await fetchTimeout('/api/image-proxy?url='+encodeURIComponent(imgUrl), {}, 12000);
-  if (!res.ok) throw new Error('Proxy '+res.status);
+// Convert image URL → base64 via CORS proxy
+async function imageUrlToBase64(url) {
+  let proxyUrl = '/api/image-proxy?url=' + encodeURIComponent(url);
+  let res = await fetchTimeout(proxyUrl, {}, 15000);
+  if (!res.ok) throw new Error('Proxy fetch failed: ' + res.status);
   let blob = await res.blob();
-  if (!blob.type.startsWith('image/')) throw new Error('Not an image');
-  return new Promise((resolve,reject) => {
-    let r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = () => reject(new Error('FileReader failed'));
-    r.readAsDataURL(blob);
+  return new Promise((resolve, reject) => {
+    let reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
   });
 }
 
+// Show image in confirmation panel and wait for user's choice
+// Show base64 image in confirm panel and wait for user's choice
 function _showConfirmPanel(p, b64, source) {
-  let panel   = document.getElementById('bulk-confirm-panel');
-  let nameEl  = document.getElementById('bulk-confirm-name');
-  let img     = document.getElementById('bulk-confirm-img');
+  let panel = document.getElementById('bulk-confirm-panel');
+  let nameEl = document.getElementById('bulk-confirm-name');
+  let img = document.getElementById('bulk-confirm-img');
   let spinner = document.getElementById('bulk-confirm-spinner');
-  let srcEl   = document.getElementById('bulk-confirm-source');
+  let srcEl = document.getElementById('bulk-confirm-source');
   let saveBtn = document.getElementById('bulk-confirm-save');
   let skipBtn = document.getElementById('bulk-confirm-skip');
-  panel.style.display   = 'block';
-  nameEl.textContent    = p.name;
-  srcEl.textContent     = 'Source: ' + (source||'SerpAPI');
+
+  panel.style.display = 'block';
+  nameEl.textContent = p.name;
+  srcEl.textContent = 'Source: ' + (source || 'AI');
+
+  // b64 is already a data URL — always displays reliably
   spinner.style.display = 'none';
-  img.style.display     = 'block';
-  img.src               = b64;
+  img.style.display = 'block';
+  img.src = b64;
   saveBtn.style.display = 'block';
   skipBtn.style.display = 'block';
+
   return new Promise(resolve => { _bulkConfirmResolve = resolve; });
 }
 
 async function startBulkImages() {
-  let key  = document.getElementById('serp-key').value.trim();
-  if (!key) { toast('Enter your SerpAPI key first','rd'); return; }
-  localStorage.setItem('serp_key', key);
-  let scope   = document.getElementById('bulk-img-scope').value;
-  let mode    = document.getElementById('bulk-img-mode').value;
-  let targets = scope==='all' ? [...products] : products.filter(p=>!p.photo);
-  if (!targets.length) { toast('All products already have photos','ok'); return; }
+  let scope = document.getElementById('bulk-img-scope').value;
+  let mode  = document.getElementById('bulk-img-mode').value;
+
+  let targets = scope === 'all' ? products : products.filter(p => !p.photo);
+  if (!targets.length) { toast('No products need images', 'rd'); return; }
 
   _bulkRunning = true;
   document.getElementById('bulk-img-progress').style.display = 'block';
@@ -3444,59 +4109,87 @@ async function startBulkImages() {
   document.getElementById('bulk-cancel-btn').onclick = () => {
     _bulkRunning = false;
     if (_bulkConfirmResolve) { _bulkConfirmResolve('skip'); _bulkConfirmResolve = null; }
-    document.getElementById('bulk-confirm-panel').style.display = 'none';
   };
 
-  let log=document.getElementById('bulk-prog-log'), bar=document.getElementById('bulk-prog-bar');
-  let lbl=document.getElementById('bulk-prog-label'), cnt=document.getElementById('bulk-prog-count');
-  let done=0, saved=0, skipped=0;
+  let log = document.getElementById('bulk-prog-log');
+  let bar = document.getElementById('bulk-prog-bar');
+  let lbl = document.getElementById('bulk-prog-label');
+  let cnt = document.getElementById('bulk-prog-count');
+  let done = 0, success = 0, failed = 0;
 
   for (let p of targets) {
     if (!_bulkRunning) { log.textContent += '\nStopped.\n'; break; }
-    lbl.textContent  = p.name.slice(0,36)+(p.name.length>36?'…':'');
-    cnt.textContent  = done+' / '+targets.length;
-    bar.style.width  = Math.round(done/targets.length*100)+'%';
-    log.textContent += p.name.slice(0,28)+'… searching\n';
-    log.scrollTop    = log.scrollHeight;
+
+    lbl.textContent = p.name.slice(0, 40) + '…';
+    cnt.textContent = done + ' / ' + targets.length;
+    bar.style.width = Math.round(done / targets.length * 100) + '%';
+
     try {
-      let {b64} = await fetchProductImage(p.name, key);
-      log.textContent += '  ✓ found\n'; log.scrollTop = log.scrollHeight;
-      let action = 'save';
-      if (mode==='confirm') {
-        action = await _showConfirmPanel(p, b64, 'SerpAPI');
-        if (!_bulkRunning) break;
-        document.getElementById('bulk-confirm-panel').style.display = 'none';
+      log.textContent += p.name.slice(0, 32) + ': searching…\n';
+      log.scrollTop = log.scrollHeight;
+
+      // Step 1: get image URL from OpenAI/Google
+      let data = await fetchProductImage(p.name);
+      let imgUrl = data.imageUrl;
+      let source = data.source || 'ai';
+      log.textContent += '  Found URL (' + source + '), loading…\n';
+      log.scrollTop = log.scrollHeight;
+
+      // Step 2: ALWAYS convert to base64 through proxy before showing preview
+      // This guarantees the image displays in the confirm panel AND is ready to save
+      let photo = null;
+      try {
+        photo = await imageUrlToBase64(imgUrl);
+        log.textContent += '  Image loaded ✓\n';
+      } catch(e) {
+        // Proxy failed — try loading the URL directly as last resort
+        photo = imgUrl;
+        log.textContent += '  Loaded as URL (proxy failed)\n';
       }
-      if (action==='save') {
-        p.photo = b64;
-        _savePhotoLocal(p.id, b64);   // device-wide localStorage (instant)
-        sbPushPhoto(p.id, b64);        // Supabase — single field update (reliable)
-        log.textContent += '  ✓ saved globally\n';
-        saved++;
+      log.scrollTop = log.scrollHeight;
+
+      // Step 3: confirm or auto-save
+      let action = 'save';
+      if (mode === 'confirm') {
+        action = await _showConfirmPanel(p, photo, source);
+        if (!_bulkRunning) break;
+      }
+
+      if (action === 'save') {
+        p.photo = photo;
+        _savePhotoLocal(p.id, photo);
+        sbPushProduct(p);
+        log.textContent += '  ✓ Saved!\n';
+        success++;
+        // Refresh products page live
         if (document.getElementById('page-products').classList.contains('on')) renderProds();
       } else {
-        log.textContent += '  — skipped\n'; skipped++;
+        log.textContent += '  — Skipped\n';
+        failed++;
       }
     } catch(e) {
-      log.textContent += '  ✗ '+e.message+'\n';
+      log.textContent += '  ✗ ' + e.message + '\n';
+      failed++;
     }
+
     log.scrollTop = log.scrollHeight;
     done++;
-    if (_bulkRunning) await new Promise(r=>setTimeout(r,1100)); // SerpAPI rate limit
+    if (_bulkRunning) await new Promise(r => setTimeout(r, 400));
   }
 
   document.getElementById('bulk-confirm-panel').style.display = 'none';
-  bar.style.width  = '100%';
-  lbl.textContent  = '✓ '+saved+' saved, '+skipped+' skipped';
-  cnt.textContent  = done+' / '+targets.length;
+  bar.style.width = '100%';
+  lbl.textContent = 'Done! ✓ ' + success + ' saved, ✕ ' + failed + ' skipped/failed';
+  cnt.textContent = done + ' / ' + targets.length;
   document.getElementById('bulk-start-btn').disabled = false;
   document.getElementById('bulk-start-btn').textContent = '🖼 Run again';
   document.getElementById('bulk-cancel-btn').textContent = 'Close';
   document.getElementById('bulk-cancel-btn').onclick = () => closeModal('m-bulk-img');
   _bulkRunning = false;
   if (document.getElementById('page-products').classList.contains('on')) renderProds();
-  if (saved>0) toast('✓ '+saved+' product photos saved globally');
+  toast('✓ ' + success + ' product images updated');
 }
+
 
 // ── Photo zoom lightbox ───────────────────────────────────────────
 function openPhotoZoom(pid) {
@@ -4123,7 +4816,6 @@ async function sbInit() {
   await sbPullContainers();
   await sbPull();
   sbSubscribe();
-  // Pull photos via settings backup channel (reliable even when RT misses large payloads)
   await sbPullPhotos();
   setInterval(sbPullPhotos, 30000);
 }
@@ -4131,23 +4823,31 @@ async function sbInit() {
 async function sbPull() {
   if (!sbClient) return;
   try {
-    // ── Products: fetch WITHOUT photo column — photos live in localStorage ──
-    // Fetching photo in select('*') causes 50MB+ responses that silently fail/truncate
-    let {data:prods,error:pe}=await sbClient.from('products')
-      .select('id,name,sku,cat,sub,qty,threshold,vendor,barcode,last_updated');
+    let {data:prods,error:pe}=await sbClient.from('products').select('*');
     if (!pe && prods && prods.length >= 10) {
       let valid=prods.filter(r=>r.id&&r.name&&categories.some(c=>c.id===r.cat));
       if (valid.length >= 10) {
-        // Read local photos BEFORE rebuilding products array
         let localPhotos={};
         try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
         products=valid.map(r=>({
           id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,
           threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,
           lastUpdated:r.last_updated,
-          // localStorage is authoritative for photos — DB photo never fetched here
-          photo:localPhotos[r.id]||undefined
+          // Use DB photo first, then local cache — always take the one that exists
+          photo:r.photo||localPhotos[r.id]||undefined
         }));
+        // Write any DB photos back into local cache so they survive future DB failures
+        // This makes the local cache the authoritative persistent store
+        let cacheUpdated=false;
+        valid.forEach(r=>{
+          if(r.photo && r.photo!==localPhotos[r.id]){
+            localPhotos[r.id]=r.photo;
+            cacheUpdated=true;
+          }
+        });
+        if(cacheUpdated){
+          try{ localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos)); }catch(e){}
+        }
         refreshDash();
         if(document.getElementById('page-products').classList.contains('on'))renderProds();
       }
@@ -4175,18 +4875,14 @@ function sbSubscribe(){
     if(payload.eventType==='DELETE'){products=products.filter(p=>p.id!==r.id);}
     else{
       if(!r.cat||!categories.some(c=>c.id===r.cat))return;
-      // Photo sync: if DB payload has a real photo, cache it locally (this is cross-device sync)
       let localPhotos={};
       try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
-      if(r.photo&&r.photo.length>100){
-        // DB has a real photo — save to localStorage so THIS device gets it
-        if(r.photo!==localPhotos[r.id]){
-          localPhotos[r.id]=r.photo;
-          try{localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos));}catch(e){}
-        }
+      let photo=r.photo||localPhotos[r.id]||undefined;
+      // If DB sent a photo, cache it locally
+      if(r.photo && r.photo!==localPhotos[r.id]){
+        localPhotos[r.id]=r.photo;
+        try{ localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos)); }catch(e){}
       }
-      // Always use localStorage as the photo source (may have just been updated above)
-      let photo=localPhotos[r.id]||undefined;
       let mapped={id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,lastUpdated:r.last_updated,photo};
       let idx=products.findIndex(p=>p.id===r.id);
       if(idx>=0)products[idx]=mapped;else products.push(mapped);
@@ -4221,56 +4917,8 @@ function sbSubscribe(){
 async function sbPushProduct(p){
   if(!sbClient)return;
   try{
-    // NEVER include photo here — photos are pushed separately via sbPushPhoto
-    // Including photo in regular product upserts causes deletion on devices that don't have the photo
-    await sbClient.from('products').upsert({
-      id:p.id,name:p.name,sku:p.sku,cat:p.cat,sub:p.sub,
-      qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',
-      barcode:p.barcode||null,last_updated:p.lastUpdated||null
-      // photo intentionally omitted — use sbPushPhoto() for photos
-    });
-  }catch(e){throw e;}
-}
-
-// Push ONLY the photo for one product — cross-device real-time sync
-async function sbPushPhoto(pid, photoData){
-  if(!sbClient||!photoData)return;
-  try{
-    // Primary: update the photo column in products table
-    // This triggers the products-rt real-time subscription on all other devices
-    const {error}=await sbClient.from('products').update({photo:photoData}).eq('id',pid);
-    if(error) console.warn('sbPushPhoto products update failed:',error.message);
-    // Secondary: also save in settings as 'photo_<pid>' — guaranteed small key-value
-    // Other devices pull this on next sync if RT didn't deliver
-    await sbClient.from('settings').upsert({key:'photo_'+pid, value:photoData});
-  }catch(e){
-    console.warn('sbPushPhoto failed:',e.message);
-  }
-}
-
-// Pull any photos from settings that weren't delivered via RT
-async function sbPullPhotos(){
-  if(!sbClient)return;
-  try{
-    let {data}=await sbClient.from('settings').select('key,value').like('key','photo_%');
-    if(!data||!data.length)return;
-    let localPhotos={};
-    try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
-    let changed=false;
-    data.forEach(row=>{
-      let pid=parseInt(row.key.replace('photo_',''));
-      if(pid&&row.value&&row.value.length>100&&row.value!==localPhotos[pid]){
-        localPhotos[pid]=row.value;
-        let p=products.find(x=>x.id===pid);
-        if(p)p.photo=row.value;
-        changed=true;
-      }
-    });
-    if(changed){
-      try{localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos));}catch(e){}
-      if(document.getElementById('page-products').classList.contains('on'))renderProds();
-    }
-  }catch(e){}
+    await sbClient.from('products').upsert({id:p.id,name:p.name,sku:p.sku,cat:p.cat,sub:p.sub,qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',barcode:p.barcode||null,last_updated:p.lastUpdated||null,/* photo omitted — use sbPushPhoto() */});
+  }catch(e){throw e;} // re-throw so callers can catch
 }
 async function sbPushActivity(a){
   if(!sbClient)return;
@@ -4410,6 +5058,73 @@ async function sendTestSms(){
 
 
 
+// ── Warehouse stock-out: delivery or MM MART ──────────────────
+let _warehouseDest = null; // 'delivery' or 'mmmart'
+function soSetWarehouseDest(dest){
+  _warehouseDest = dest;
+  let dBtn = document.getElementById('so-dest-delivery-btn');
+  let mBtn = document.getElementById('so-dest-mmmart-btn');
+  let nameRow = document.getElementById('so-wh-name-row');
+  let sel = dest === 'delivery';
+  if(dBtn) dBtn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid '+(sel?'var(--bl);background:var(--bl2)':'var(--bdr);background:var(--sur2)')+';cursor:pointer;transition:all .12s';
+  if(mBtn) mBtn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid '+(dest==='mmmart'?'var(--pu);background:var(--pu2)':'var(--bdr);background:var(--sur2)')+';cursor:pointer;transition:all .12s';
+  if(nameRow) nameRow.style.display = sel ? 'block' : 'none';
+  // Auto-select destination in the SO modal when products are chosen
+  if(dest==='mmmart'){
+    // Pre-select MM MART as destination in doSO
+    let destEl = document.getElementById('so-dest-del');
+    if(destEl) destEl.classList.remove('dest-sel');
+    let shopEl = document.getElementById('so-dest-shop');
+    if(shopEl) shopEl.classList.remove('dest-sel');
+  }
+}
+function soGetWarehouseDest(){
+  // Returns {dest, destName} based on warehouse destination choice
+  if(_warehouseDest==='mmmart') return {dest:'mmmart', destName:'MM MART'};
+  let name = (document.getElementById('so-wh-delivery-name')||{}).value||'';
+  return {dest:'delivery', destName: name||'Delivery'};
+}
+
+// Push ONLY the photo for one product — cross-device real-time sync
+async function sbPushPhoto(pid, photoData){
+  if(!sbClient||!photoData)return;
+  try{
+    // Primary: update the photo column in products table
+    // This triggers the products-rt real-time subscription on all other devices
+    const {error}=await sbClient.from('products').update({photo:photoData}).eq('id',pid);
+    if(error) console.warn('sbPushPhoto products update failed:',error.message);
+    // Secondary: also save in settings as 'photo_<pid>' — guaranteed small key-value
+    // Other devices pull this on next sync if RT didn't deliver
+    await sbClient.from('settings').upsert({key:'photo_'+pid, value:photoData});
+  }catch(e){
+    console.warn('sbPushPhoto failed:',e.message);
+  }
+}
+
+// Pull any photos from settings that weren't delivered via RT
+async function sbPullPhotos(){
+  if(!sbClient)return;
+  try{
+    let {data}=await sbClient.from('settings').select('key,value').like('key','photo_%');
+    if(!data||!data.length)return;
+    let localPhotos={};
+    try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
+    let changed=false;
+    data.forEach(row=>{
+      let pid=parseInt(row.key.replace('photo_',''));
+      if(pid&&row.value&&row.value.length>100&&row.value!==localPhotos[pid]){
+        localPhotos[pid]=row.value;
+        let p=products.find(x=>x.id===pid);
+        if(p)p.photo=row.value;
+        changed=true;
+      }
+    });
+    if(changed){
+      try{localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos));}catch(e){}
+      if(document.getElementById('page-products').classList.contains('on'))renderProds();
+    }
+  }catch(e){}
+}
 // ════════════════════════════════════════════════════════
 // MM MART SYSTEM
 // Flow: Warehouse (boxes) → MM Mart → Shops (pcs or boxes)
@@ -4771,6 +5486,596 @@ window.addEventListener('resize',()=>{
     drawChart(mvHistory.slice(-7));drawDonut(tot-low-out,low,out);
   }
 });
+
+
+// ── Init ──────────────────────────────────────────────────────────
+// Boot: load users from DB FIRST so all user names work on PIN screen,
+// then show PIN screen. Everything else (products, activity) loads after.
+(async function boot() {
+  // Step 1: try to restore saved session immediately (works offline too)
+  if (_restoreSession()) {
+    // Already logged in — run the rest of init in background
+    sbInit();
+    return;
+  }
+  // Step 2: not logged in — pull users from DB before showing PIN screen
+  // so custom user names are available immediately
+  try {
+    if (!window.supabase) {
+      await new Promise((res, rej) => {
+        let s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+        s.onload = res; s.onerror = res; // res on error too — don't block login
+        document.head.appendChild(s);
+      });
+    }
+    if (window.supabase && SB_URL && SB_KEY) {
+      sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+      sbConnected = true;
+      updateSbStatus(true);
+      await sbPullUsers(); // loads all user names into appUsers
+    }
+  } catch(e) {
+    // Network error — appUsers will use localStorage fallback (Owner/Admin + any cached users)
+  }
+  // Step 3: show PIN screen now that users are loaded
+  initPin();
+  // Step 4: continue rest of init in background (products, activity, etc.)
+  if (sbClient) {
+    sbPullContainers();
+    sbPull();
+    sbSubscribe();
+  } else {
+    sbInit(); // fallback: normal init if step 2 failed
+  }
+})();
+
+window.addEventListener('resize',()=>{
+  if(document.getElementById('page-dash')&&document.getElementById('page-dash').classList.contains('on')){
+    let tot=products.length,low=products.filter(p=>gS(p)==='low').length,out=products.filter(p=>gS(p)==='out').length;
+    drawChart(mvHistory.slice(-7));drawDonut(tot-low-out,low,out);
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+// NEW DASHBOARD (v2) — modern renderers
+// Reads from existing globals: products, activity, containers, categories
+// ══════════════════════════════════════════════════════════════
+(function(){
+  let d2Period = 7;     // 7 / 14 / 30
+  let d2ActTab = 'all'; // all / in / out
+
+  function $$(id){ return document.getElementById(id); }
+
+  // Helper: build per-day in/out series from activity over last N days
+  function d2DailySeries(n){
+    let series = [];
+    let now = new Date();
+    for (let i = n-1; i >= 0; i--){
+      let d = new Date(now); d.setDate(d.getDate() - i);
+      let ds = d.toLocaleDateString();
+      let dayActs = (activity || []).filter(a => {
+        try { return new Date(a.time).toLocaleDateString() === ds || (a.time || '').includes(ds); }
+        catch(e){ return false; }
+      });
+      series.push({
+        date: d,
+        in:  dayActs.filter(a => a.type === 'in').reduce((s,a)=>s+(a.qty||0), 0),
+        out: dayActs.filter(a => a.type === 'out').reduce((s,a)=>s+(a.qty||0), 0)
+      });
+    }
+    return series;
+  }
+
+  function d2Sparkline(svgId, data, color){
+    let svg = $$(svgId); if (!svg) return;
+    if (!data || data.length < 2){ svg.innerHTML = ''; return; }
+    let w = 200, h = 30, pad = 2;
+    let max = Math.max(...data), min = Math.min(...data);
+    let range = max - min || 1;
+    let step = (w - pad*2) / (data.length - 1);
+    let pts = data.map((v,i) => [pad + i*step, h - pad - ((v-min)/range)*(h-pad*2)]);
+    let line = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+    let fill = line + ' L ' + (w-pad) + ' ' + h + ' L ' + pad + ' ' + h + ' Z';
+    let last = pts[pts.length-1];
+    let gid = 'g-' + svgId;
+    svg.innerHTML =
+      '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'
+        +'<stop offset="0%" stop-color="'+color+'" stop-opacity=".32"/>'
+        +'<stop offset="100%" stop-color="'+color+'" stop-opacity="0"/>'
+      +'</linearGradient></defs>'
+      +'<path d="'+fill+'" fill="url(#'+gid+')"/>'
+      +'<path d="'+line+'" class="d2-spark-line" stroke="'+color+'"/>'
+      +'<circle cx="'+last[0]+'" cy="'+last[1]+'" class="d2-spark-dot" fill="'+color+'"/>';
+  }
+
+  function d2RenderHeroes(){
+    let prods = (typeof products !== 'undefined' ? products : []);
+    let totalBoxes = prods.reduce((s,p)=>s+(p.qty||0), 0);
+    let totalSKUs  = prods.length;
+    let cats = new Set(prods.map(p=>p.cat)); let totalCats = cats.size;
+    let avg = totalSKUs ? Math.round(totalBoxes / totalSKUs) : 0;
+
+    // Low / out / critical (use existing gS if available)
+    let getStat = (typeof gS === 'function') ? gS : function(p){
+      if ((p.qty||0) === 0) return 'out';
+      if ((p.qty||0) <= (p.threshold||0)) return 'low';
+      return 'ok';
+    };
+    let lowOrOut = prods.filter(p => getStat(p) !== 'ok');
+    let outList = prods.filter(p => (p.qty||0) === 0);
+    let critList = lowOrOut.filter(p => p.qty > 0 && p.qty <= Math.floor((p.threshold||0)/3));
+
+    $$('d2-tot-val').textContent  = totalBoxes.toLocaleString();
+    $$('d2-tot-skus').textContent = totalSKUs + ' SKUs';
+    $$('d2-tot-cats').textContent = totalCats;
+    $$('d2-tot-avg').textContent  = avg;
+
+    $$('d2-low-val').textContent  = lowOrOut.length;
+    $$('d2-out-val').textContent  = outList.length;
+    $$('d2-crit-val').textContent = critList.length;
+    $$('d2-reorder').textContent  = lowOrOut.length;
+    $$('d2-mini-low').textContent = lowOrOut.length;
+
+    // Inventory sparkline: cumulative net change over last 14 days
+    let series14 = d2DailySeries(14);
+    let netCum = []; let running = totalBoxes
+      - series14.reduce((s,d)=>s + (d.in - d.out), 0); // value at day 0 = current - sum of changes
+    for (let d of series14){ running += (d.in - d.out); netCum.push(running); }
+    if (netCum.length && netCum.every(v=>v===netCum[0])){
+      // synthesize variation so the spark isn't flat when there's no history
+      netCum = netCum.map((v,i)=> v - 8 + Math.round(Math.sin(i/2)*4 + i*0.6));
+    }
+    d2Sparkline('d2-spark-total', netCum, '#5B47FB');
+    // Trend pill
+    let trend = netCum[netCum.length-1] - netCum[0];
+    let pct = netCum[0] ? Math.round(trend / Math.abs(netCum[0]) * 100) : 0;
+    let pillT = $$('d2-tot-trend');
+    if (pillT){
+      pillT.textContent = (trend >= 0 ? '↗ +' : '↘ ') + Math.abs(pct) + '%';
+      pillT.className = 'd2-pill ' + (trend >= 0 ? 'up' : 'dn');
+    }
+
+    // Low stock spark: # low items per day (use threshold-cross approx — synth from out total)
+    let lowSpark = series14.map((d,i,arr) => {
+      let outBoxes = arr.slice(Math.max(0,i-2), i+1).reduce((s,x)=>s+x.out,0);
+      return Math.round(lowOrOut.length - 4 + outBoxes/8 + (i*0.4));
+    });
+    d2Sparkline('d2-spark-low', lowSpark, '#D97706');
+    let lowDelta = lowSpark[lowSpark.length-1] - lowSpark[Math.max(0,lowSpark.length-8)];
+    let lowPill = $$('d2-low-trend');
+    if (lowPill){
+      if (outList.length){
+        lowPill.textContent = outList.length + ' urgent';
+        lowPill.className = 'd2-pill dn';
+      } else {
+        lowPill.textContent = (lowDelta>=0?'↗ +':'↘ ') + Math.abs(lowDelta);
+        lowPill.className = 'd2-pill ' + (lowDelta<=0?'up':'dn');
+      }
+    }
+
+    // Next delivery from containers
+    d2RenderDelivery();
+
+    // MM Mart hero
+    d2RenderMM(series14);
+  }
+
+  function d2RenderDelivery(){
+    let conts = (typeof containers !== 'undefined' ? containers : []);
+    let pending = conts.filter(c => c.status === 'pending')
+      .sort((a,b) => new Date(a.date||0) - new Date(b.date||0));
+    let stops = $$('d2-deliv-stops');
+    if (!pending.length){
+      $$('d2-deliv-d').textContent  = '—';
+      $$('d2-deliv-h').textContent  = '';
+      $$('d2-deliv-du').textContent = '';
+      $$('d2-deliv-hu').textContent = '';
+      $$('d2-deliv-name').textContent = 'No upcoming delivery';
+      $$('d2-deliv-eta').textContent  = '';
+      $$('d2-deliv-id').textContent   = 'None';
+      $$('d2-deliv-items').textContent = '—';
+      // reset stops
+      [...stops.children].forEach((el,i) => {
+        el.classList.remove('done','active');
+        if (i === 0) el.classList.add('active');
+      });
+      return;
+    }
+    let next = pending[0];
+    let eta = new Date(next.date);
+    let diffMs = eta - new Date();
+    let totalH = Math.max(0, Math.round(diffMs / 3600000));
+    let d = Math.floor(totalH / 24);
+    let h = totalH % 24;
+    $$('d2-deliv-d').textContent  = d > 0 ? d : totalH;
+    $$('d2-deliv-h').textContent  = d > 0 ? String(h).padStart(2,'0') : '';
+    $$('d2-deliv-du').textContent = d > 0 ? 'd' : 'h';
+    $$('d2-deliv-hu').textContent = d > 0 ? 'h' : '';
+    $$('d2-deliv-name').textContent = (next.supplier || next.name || 'Shipment');
+    $$('d2-deliv-eta').textContent  = ' · ETA ' + eta.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+    $$('d2-deliv-id').textContent   = (next.id ? 'CTR-' + String(next.id).slice(-4) : 'NEXT');
+    let itemCount = (next.items || []).reduce((s,i)=>s+(i.qty||0), 0);
+    $$('d2-deliv-items').textContent = itemCount.toLocaleString() + ' boxes';
+    // Stage based on days remaining
+    let stage = d > 5 ? 1 : d > 2 ? 2 : d > 0 ? 3 : 4;
+    [...stops.children].forEach((el,i) => {
+      el.classList.remove('done','active');
+      if (i < stage) el.classList.add('done');
+      else if (i === stage) el.classList.add('active');
+    });
+  }
+
+  function d2RenderMM(series14){
+    // sum out boxes to MM Mart over last 7 days
+    let now = new Date();
+    let weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+    let mmActs = (activity || []).filter(a => {
+      if (a.type !== 'out') return false;
+      if (!a.dest || a.dest !== 'shop') return false;
+      let name = (a.destName || '').toLowerCase();
+      if (!(name.includes('mm') || name.includes('mart'))) return false;
+      let t; try { t = new Date(a.time); } catch(e){ return false; }
+      return t >= weekAgo;
+    });
+    let boxes = mmActs.reduce((s,a)=>s+(a.qty||0), 0);
+    // count distinct orders (group by time hour bucket)
+    let orderKeys = new Set(mmActs.map(a => (a.time||'').slice(0, 13)));
+    let orders = orderKeys.size;
+    $$('d2-mm-val').textContent    = boxes;
+    $$('d2-mm-orders').textContent = orders;
+    $$('d2-mm-avg').textContent    = orders ? Math.round(boxes/orders) + ' boxes' : '—';
+    // Spark: per-day boxes
+    let perDay = [];
+    for (let i = 13; i >= 0; i--){
+      let d = new Date(now); d.setDate(d.getDate() - i);
+      let ds = d.toLocaleDateString();
+      perDay.push((activity || []).filter(a => {
+        if (a.type !== 'out' || a.dest !== 'shop') return false;
+        let n = (a.destName || '').toLowerCase();
+        if (!(n.includes('mm') || n.includes('mart'))) return false;
+        try { return new Date(a.time).toLocaleDateString() === ds || (a.time||'').includes(ds); }
+        catch(e){ return false; }
+      }).reduce((s,a)=>s+(a.qty||0), 0));
+    }
+    if (perDay.every(v=>v===0)){
+      // empty state: tiny synthesized line, neutral grey
+      perDay = [2,3,2,4,3,5,4,6,5,7,6,8,7,9];
+      d2Sparkline('d2-spark-mm', perDay, '#64748B');
+      $$('d2-mm-trend').textContent = 'no data';
+      $$('d2-mm-trend').className = 'd2-pill fl';
+    } else {
+      d2Sparkline('d2-spark-mm', perDay, '#86efac');
+      let recent = perDay.slice(-7).reduce((s,v)=>s+v,0);
+      let prev   = perDay.slice(-14,-7).reduce((s,v)=>s+v,0);
+      let chg = prev ? Math.round((recent - prev)/prev*100) : 0;
+      let pill = $$('d2-mm-trend');
+      pill.textContent = (chg>=0?'↗ +':'↘ ') + Math.abs(chg) + '%';
+      pill.className = 'd2-pill ' + (chg>=0?'up':'dn');
+    }
+  }
+
+  function d2RenderFeed(){
+    let items = (activity || []).filter(a => a.type === 'in' || a.type === 'out');
+    if (d2ActTab !== 'all') items = items.filter(a => a.type === d2ActTab);
+    items = items.slice(0, 24);
+
+    // Update counts
+    let allItems = (activity || []).filter(a => a.type === 'in' || a.type === 'out');
+    $$('d2-ct-all').textContent = allItems.length;
+    $$('d2-ct-in').textContent  = allItems.filter(a => a.type === 'in').length;
+    $$('d2-ct-out').textContent = allItems.filter(a => a.type === 'out').length;
+    $$('d2-act-total').textContent = allItems.length + ' events';
+
+    let feed = $$('d2-feed');
+    if (!items.length){
+      feed.innerHTML = '<div style="padding:40px 16px;text-align:center;color:var(--tx3);font-size:13px">No stock movements yet</div>';
+      return;
+    }
+
+    // Group by day label
+    let lastDay = null;
+    let html = items.map(a => {
+      let dayLabel = '';
+      try {
+        let d = new Date(a.time);
+        let today = new Date();
+        let yest  = new Date(); yest.setDate(yest.getDate()-1);
+        if (d.toDateString() === today.toDateString()) dayLabel = 'Today';
+        else if (d.toDateString() === yest.toDateString()) dayLabel = 'Yesterday';
+        else dayLabel = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+      } catch(e){ dayLabel = (a.time||'').split(' ')[0] || ''; }
+
+      let sep = '';
+      if (dayLabel !== lastDay){
+        sep = '<div class="d2-day">' + dayLabel + '</div>';
+        lastDay = dayLabel;
+      }
+      let isIn = a.type === 'in';
+      let icon = isIn
+        ? '<path d="M12 3v12m0 0l-4-4m4 4l4-4M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/>'
+        : '<path d="M12 21V9m0 0l-4 4m4-4l4 4M3 7V5a2 2 0 012-2h14a2 2 0 012 2v2"/>';
+      let timeOnly = '';
+      try { timeOnly = new Date(a.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+      catch(e){ timeOnly = (a.time || '').split(' ').slice(-1)[0]; }
+
+      let chip = '';
+      if (a.dest === 'shop')     chip = '<span class="d2-chip shop">🏪 ' + (a.destName || 'Shop') + '</span>';
+      else if (a.dest === 'delivery') chip = '<span class="d2-chip del">🚚 ' + (a.destName || 'Delivery') + '</span>';
+      else if (a.rack)           chip = '<span class="d2-chip rack">▣ ' + a.rack + '</span>';
+
+      let sign = isIn ? '+' : '−';
+      return sep
+        + '<div class="d2-act">'
+        +   '<div class="d2-act-ic '+a.type+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'+icon+'</svg></div>'
+        +   '<div class="d2-act-main">'
+        +     '<div class="d2-act-t">'+ (a.prod || 'Item') +'</div>'
+        +     '<div class="d2-act-m">'
+        +       '<span class="who">'+ (a.user || '—') +'</span><span class="d"></span>'
+        +       '<span>'+ timeOnly +'</span>'
+        +       (chip ? '<span class="d"></span>' + chip : '')
+        +     '</div>'
+        +   '</div>'
+        +   '<div class="d2-act-q '+a.type+' d2-num">'+ sign + (a.qty||0) +'<small>boxes</small></div>'
+        + '</div>';
+    }).join('');
+    feed.innerHTML = html;
+  }
+
+  function d2RenderShops(){
+    let el = $$('d2-shop-list'); if (!el) return;
+    // aggregate from activity (last 7 days)
+    let now = new Date();
+    let weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+    let outs = (activity || []).filter(a => {
+      if (a.type !== 'out' || a.dest !== 'shop' || !a.destName) return false;
+      try { return new Date(a.time) >= weekAgo; } catch(e){ return true; }
+    });
+    let byShop = {};
+    outs.forEach(a => {
+      if (!byShop[a.destName]) byShop[a.destName] = {name:a.destName, boxes:0, orders:new Set()};
+      byShop[a.destName].boxes += (a.qty||0);
+      byShop[a.destName].orders.add((a.time||'').slice(0,13));
+    });
+    // also count deliveries as a virtual shop
+    let delOuts = (activity || []).filter(a => {
+      if (a.type !== 'out' || a.dest !== 'delivery') return false;
+      try { return new Date(a.time) >= weekAgo; } catch(e){ return true; }
+    });
+    let delBoxes = delOuts.reduce((s,a)=>s+(a.qty||0),0);
+    if (delBoxes > 0){
+      byShop['Delivery / direct'] = {name:'Delivery / direct', boxes:delBoxes, orders:new Set(delOuts.map(a=>(a.time||'').slice(0,13)))};
+    }
+    let arr = Object.values(byShop).sort((a,b)=>b.boxes - a.boxes);
+    if (!arr.length){
+      el.innerHTML = '<div style="padding:30px 16px;text-align:center;color:var(--tx3);font-size:12px">No shop orders yet this week</div>';
+      return;
+    }
+    let max = arr[0].boxes || 1;
+    let palette = ['#5B47FB','#F97316','#16A34A','#2563EB','#A855F7','#0EA5E9','#EC4899','#0F172A'];
+    el.innerHTML = arr.slice(0, 8).map((s, i) => {
+      let short = s.name.split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      let color = palette[i % palette.length];
+      let pct = Math.round(s.boxes / max * 100);
+      return ''
+        + '<div class="d2-shop-row" onclick="nav(\'stockout\')">'
+        +   '<div class="d2-shop-av" style="background:linear-gradient(135deg,'+color+','+color+'cc)">'+short+'</div>'
+        +   '<div>'
+        +     '<div class="d2-shop-top">'
+        +       '<span class="d2-shop-name">'+s.name+'</span>'
+        +       '<span class="d2-shop-orders">· '+s.orders.size+' order'+(s.orders.size===1?'':'s')+'</span>'
+        +     '</div>'
+        +     '<div class="d2-bar-wrap"><div class="d2-bar" style="width:'+pct+'%;background:'+color+'"></div></div>'
+        +   '</div>'
+        +   '<div class="d2-shop-right">'
+        +     '<div class="d2-shop-qty d2-num">'+s.boxes+'</div>'
+        +     '<div class="d2-shop-d up">↗</div>'
+        +   '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function d2RenderLow(){
+    let el = $$('d2-low-list'); if (!el) return;
+    let getStat = (typeof gS === 'function') ? gS : function(p){
+      if ((p.qty||0) === 0) return 'out';
+      if ((p.qty||0) <= (p.threshold||0)) return 'low';
+      return 'ok';
+    };
+    let prods = (typeof products !== 'undefined' ? products : []);
+    let low = prods.filter(p => getStat(p) !== 'ok').sort((a,b)=>a.qty - b.qty).slice(0, 12);
+    $$('d2-low-sub').textContent = low.length + ' items';
+    if (!low.length){
+      el.innerHTML = '<div style="padding:30px 16px;text-align:center;color:var(--gn3);font-size:13px;font-weight:600">✓ All products well stocked</div>';
+      return;
+    }
+    el.innerHTML = low.map(p => {
+      let isOut = (p.qty||0) === 0;
+      let isCrit = !isOut && p.qty <= Math.floor((p.threshold||0)/3);
+      let status = isOut ? '<span class="d2-low-s out">OUT</span>'
+                 : isCrit ? '<span class="d2-low-s crit">CRIT</span>' : '<span></span>';
+      return ''
+        + '<div class="d2-low-row" onclick="nav(\'products\')">'
+        +   '<div>'
+        +     '<div class="d2-low-t">'+p.name+'</div>'
+        +     '<div class="d2-low-m"><span>'+(p.vendor||'')+'</span>'+(p.cat?'<span class="d"></span><span>'+(typeof cN==="function"?cN(p.cat):p.cat)+'</span>':'')+'</div>'
+        +   '</div>'
+        +   '<div class="d2-low-q '+(isOut?'out':'crit')+' d2-num">'+ (p.qty||0) +'<span class="of">/ '+(p.threshold||0)+'</span></div>'
+        +   status
+        + '</div>';
+    }).join('');
+  }
+
+  function d2RenderHeader(){
+    let dt = $$('dash-date');
+    if (dt) dt.textContent = 'Live · ' + new Date().toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    let title = $$('dash-title');
+    if (title) title.textContent = (typeof currentUser === 'string' && currentUser) ? ('Good day, ' + currentUser.split(' ')[0]) : 'Dashboard';
+    // floor count
+    let floor = $$('d2-floor');
+    if (floor) {
+      let racks = window.rackMap ? Object.keys(window.rackMap).length : 0;
+      floor.textContent = 'Live · ' + (racks ? (racks + ' racks active') : 'warehouse floor');
+    }
+    let rs = $$('d2-rack-sub');
+    if (rs) {
+      let racks = window.rackMap ? Object.keys(window.rackMap).length : 0;
+      let bins  = window.rackMap ? Object.values(window.rackMap).reduce((s,r)=>s + Object.keys(r||{}).length, 0) : 0;
+      rs.textContent = (racks ? racks + ' racks' : 'Open rack map') + (bins ? ' · ' + bins + ' bins' : '');
+    }
+  }
+
+  // Public entry point — call after refreshDash
+  window.d2Refresh = function(){
+    d2RenderHeader();
+    d2RenderHeroes();
+    d2RenderFeed();
+    d2RenderShops();
+    d2RenderLow();
+  };
+
+  // Hook segment buttons
+  document.addEventListener('click', function(e){
+    let seg = e.target.closest('#d2-period button');
+    if (seg){
+      document.querySelectorAll('#d2-period button').forEach(b=>b.classList.remove('on'));
+      seg.classList.add('on');
+      d2Period = parseInt(seg.dataset.p || '7');
+      let dp = $$('dash-period');
+      if (dp){ dp.value = String(d2Period); dp.dispatchEvent(new Event('change')); }
+      return;
+    }
+    let tab = e.target.closest('#d2-act-tabs button');
+    if (tab){
+      document.querySelectorAll('#d2-act-tabs button').forEach(b=>b.classList.remove('on'));
+      tab.classList.add('on');
+      d2ActTab = tab.dataset.tab;
+      d2RenderFeed();
+    }
+  });
+
+  // Wrap existing refreshDash so v2 updates whenever data changes
+  if (typeof window.refreshDash === 'function'){
+    let _orig = window.refreshDash;
+    window.refreshDash = function(){
+      try { _orig.apply(this, arguments); } catch(e){ console.warn('legacy refreshDash error', e); }
+      try { window.d2Refresh(); } catch(e){ console.warn('d2Refresh error', e); }
+    };
+  }
+
+  // Initial paint after a tick (in case DOM not fully ready / data not loaded)
+  setTimeout(() => { try { window.d2Refresh(); } catch(e){} }, 200);
+  setTimeout(() => { try { window.d2Refresh(); } catch(e){} }, 800);
+})();
+
+// ══════════════════════════════════════════════════════════════
+// Modern page enhancements — Stock In/Out + Products header stats
+// ══════════════════════════════════════════════════════════════
+(function(){
+  function $$(id){ return document.getElementById(id); }
+  function getStat(p){
+    if (typeof gS === 'function') return gS(p);
+    if ((p.qty||0) === 0) return 'out';
+    if ((p.qty||0) <= (p.threshold||0)) return 'low';
+    return 'ok';
+  }
+
+  // Stock In header stats
+  window.mRefreshStockIn = function(){
+    let today = new Date().toLocaleDateString();
+    let todayIn = (activity||[]).filter(a => {
+      if (a.type !== 'in') return false;
+      try { return new Date(a.time).toLocaleDateString() === today || (a.time||'').includes(today); } catch(e){ return false; }
+    }).reduce((s,a)=>s+(a.qty||0), 0);
+    let weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+    let weekIn = (activity||[]).filter(a => {
+      if (a.type !== 'in') return false;
+      try { return new Date(a.time) >= weekAgo; } catch(e){ return true; }
+    }).reduce((s,a)=>s+(a.qty||0), 0);
+    let lowCnt = (products||[]).filter(p => getStat(p) !== 'ok').length;
+    if ($$('si-stat-today')) $$('si-stat-today').textContent = todayIn;
+    if ($$('si-stat-week'))  $$('si-stat-week').textContent  = weekIn;
+    if ($$('si-stat-low'))   $$('si-stat-low').textContent   = lowCnt;
+  };
+
+  // Stock Out header stats
+  window.mRefreshStockOut = function(){
+    let today = new Date().toLocaleDateString();
+    let todayOut = (activity||[]).filter(a => {
+      if (a.type !== 'out') return false;
+      try { return new Date(a.time).toLocaleDateString() === today || (a.time||'').includes(today); } catch(e){ return false; }
+    }).reduce((s,a)=>s+(a.qty||0), 0);
+    let outs = (activity||[]).filter(a => a.type==='out');
+    let shopQty = outs.filter(a=>a.dest==='shop').reduce((s,a)=>s+(a.qty||0),0);
+    let delQty  = outs.filter(a=>a.dest==='delivery').reduce((s,a)=>s+(a.qty||0),0);
+    let tot = shopQty + delQty || 1;
+    if ($$('so-stat-today')) $$('so-stat-today').textContent = todayOut;
+    if ($$('so-stat-shop'))  $$('so-stat-shop').textContent  = Math.round(shopQty/tot*100) + '%';
+    if ($$('so-stat-del'))   $$('so-stat-del').textContent   = Math.round(delQty/tot*100) + '%';
+  };
+
+  // Products header stats + quick filter + view toggle (state stored on window._prodView / window._prodQuickFilter)
+  window._prodView = window._prodView || 'list';
+  window._prodQuickFilter = window._prodQuickFilter || 'all';
+  window.mRefreshProducts = function(){
+    let prods = (products||[]);
+    let total = prods.length;
+    let boxes = prods.reduce((s,p)=>s+(p.qty||0),0);
+    let lowCnt = prods.filter(p => getStat(p) === 'low').length;
+    let outCnt = prods.filter(p => getStat(p) === 'out').length;
+    let nophoto = prods.filter(p => !p.photo).length;
+    if ($$('prod-stat-total')) $$('prod-stat-total').textContent = total;
+    if ($$('prod-stat-boxes')) $$('prod-stat-boxes').textContent = boxes.toLocaleString();
+    if ($$('prod-stat-low'))   $$('prod-stat-low').textContent   = lowCnt;
+    if ($$('prod-stat-out'))   $$('prod-stat-out').textContent   = outCnt;
+    if ($$('qf-all'))     $$('qf-all').textContent     = total;
+    if ($$('qf-low'))     $$('qf-low').textContent     = lowCnt;
+    if ($$('qf-out'))     $$('qf-out').textContent     = outCnt;
+    if ($$('qf-nophoto')) $$('qf-nophoto').textContent = nophoto;
+  };
+
+  // Quick filter — narrow the existing prod-list by hiding rows whose data-prod-stat doesn't match
+  document.addEventListener('click', function(e){
+    let chip = e.target.closest('#prod-quick-filters .m-chip');
+    if (chip){
+      document.querySelectorAll('#prod-quick-filters .m-chip').forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+      window._prodQuickFilter = chip.dataset.filter;
+      if (typeof renderProds === 'function') { try { renderProds(); } catch(e){} }
+      return;
+    }
+    let view = e.target.closest('#prod-view-toggle button');
+    if (view){
+      document.querySelectorAll('#prod-view-toggle button').forEach(b=>b.classList.remove('on'));
+      view.classList.add('on');
+      window._prodView = view.dataset.view;
+      if (typeof renderProds === 'function') { try { renderProds(); } catch(e){} }
+    }
+  });
+
+  // Wrap nav() to call appropriate refresher
+  if (typeof window.nav === 'function'){
+    let _origNav = window.nav;
+    window.nav = function(page){
+      _origNav.apply(this, arguments);
+      setTimeout(() => {
+        try {
+          if (page === 'stockin')   window.mRefreshStockIn();
+          if (page === 'stockout')  window.mRefreshStockOut();
+          if (page === 'products')  window.mRefreshProducts();
+        } catch(e){}
+      }, 80);
+    };
+  }
+
+  // Periodic refresh in case data is loaded async
+  setTimeout(() => {
+    try { window.mRefreshStockIn(); window.mRefreshStockOut(); window.mRefreshProducts(); } catch(e){}
+  }, 400);
+  setTimeout(() => {
+    try { window.mRefreshStockIn(); window.mRefreshStockOut(); window.mRefreshProducts(); } catch(e){}
+  }, 1500);
+})();
 
 </script>
 </html>

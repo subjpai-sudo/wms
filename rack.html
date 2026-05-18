@@ -72,10 +72,10 @@ input{user-select:auto}
 /* PRODUCT CARD */
 .prod-card{display:flex;align-items:center;gap:12px;background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all .12s}
 .prod-card:active{transform:scale(.98);border-color:var(--pu)}
-.prod-thumb{width:64px;height:64px;border-radius:12px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;overflow:hidden}
+.prod-thumb{width:50px;height:50px;border-radius:11px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden}
 .prod-thumb img{width:100%;height:100%;object-fit:cover}
 .prod-info{flex:1;min-width:0}
-.prod-name{font-size:14px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.prod-name{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prod-meta{font-size:11px;color:var(--tx3);margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .loc-tag{font-size:10px;font-weight:800;background:var(--bl2);color:var(--bl);padding:2px 8px;border-radius:6px;letter-spacing:.03em}
 .loc-tag.none{background:var(--am2);color:var(--am)}
@@ -222,6 +222,619 @@ input{user-select:auto}
 .rs-card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:12px;text-align:center}
 .rs-card-n{font-size:22px;font-weight:900;line-height:1}
 .rs-card-l{font-size:10px;color:var(--tx3);margin-top:3px;font-weight:600;text-transform:uppercase}
+/* Modern SaaS redesign layer */
+:root{
+  --pu:#2563EB;--pu2:#EAF2FF;--pu3:#1D4ED8;
+  --bg:#F4F7FB;--sur:#FFFFFF;--sur2:#F8FAFC;--sur3:#E7EEF7;
+  --bdr:#DDE6F2;--bdr2:#B9C8DC;
+  --tx:#101828;--tx2:#526173;--tx3:#8A99AD;
+  --gn:#10B981;--gn2:#EAFBF5;--gn3:#047857;
+  --am:#F59E0B;--am2:#FFF7E8;--am3:#B45309;
+  --rd:#EF4444;--rd2:#FFF0F0;--rd3:#B91C1C;
+  --bl:#06B6D4;--bl2:#E7FAFE;--bl3:#0E7490;
+  --r:8px;--rl:8px;--rx:10px;
+  --sh-sm:0 1px 2px rgba(16,24,40,.05),0 1px 1px rgba(16,24,40,.03);
+  --sh-md:0 14px 34px rgba(16,24,40,.1);
+}
+body{background:linear-gradient(180deg,#F8FBFF 0%,#F0F5FA 62%,#EDF4F8 100%);color:var(--tx)}
+html,body{max-width:100%;overflow-x:hidden}
+#topbar{height:60px;background:rgba(255,255,255,.9);backdrop-filter:blur(18px);border-bottom:1px solid rgba(221,230,242,.9);padding:0 16px;box-shadow:0 10px 32px rgba(16,24,40,.06)}
+.logo{font-size:15px;color:#0B1220}
+.logo-ic{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#2563EB,#06B6D4);box-shadow:0 10px 22px rgba(37,99,235,.24)}
+.logo small{color:#7B8A9E}
+.logo{min-width:0}.logo>div:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sync-btn,.link-main{border-radius:8px;font-weight:800}
+#sync-btn{background:#EAFBF5;color:#047857;border-color:#B8EFD9}
+.link-main{background:#EAF2FF;color:#1D4ED8;border-color:#BFD7FF}
+.page-pad{padding:18px}
+.sec-h{font-size:22px;font-weight:850;letter-spacing:0;color:#0B1220}
+.sec-sub{color:#64748B}
+.rack-grid{gap:12px}
+.rack-card{min-width:0}
+.rack-card,.prod-card,.rs-card,.sheet,.loc-big{border-radius:8px;border:1px solid rgba(205,216,230,.95);box-shadow:0 10px 26px rgba(16,24,40,.06);background:rgba(255,255,255,.95)}
+.rack-card{padding:18px;min-height:132px}
+.rack-card:active,.prod-card:active{transform:scale(.985)}
+.rack-card-ic,.prod-thumb,.tx-ic{border-radius:8px;background:linear-gradient(135deg,#EAF2FF,#ECFEFF);color:#1D4ED8}
+.rack-card-count,.chip,.loc-tag,.rt-status{border-radius:8px;font-weight:850}
+.rack-card-count{background:#EAFBF5;color:#047857}
+.rack-card-count.empty{background:#F1F5F9;color:#94A3B8}
+.scan-cta{border-radius:8px;background:linear-gradient(135deg,#EAF2FF,#E7FAFE);border-color:#BFD7FF;box-shadow:0 10px 26px rgba(37,99,235,.08)}
+.scan-cta-ic{border-radius:8px;background:linear-gradient(135deg,#2563EB,#06B6D4);box-shadow:0 10px 22px rgba(37,99,235,.22)}
+.chips{gap:8px}
+.chip{background:#fff;border-color:#DDE6F2;color:#526173}
+.chip.on{background:#EAF2FF;border-color:#BFD7FF;color:#1D4ED8}
+.prod-card{padding:13px}
+.prod-qty-n,.rt-qty,.rs-card-n{color:#0B1220}
+.sheet{border-radius:10px 10px 0 0}
+.act-btn,.qbtn,.qnum,.loc-opt,.fld,.search-bar input,.cam-manual input,.cam-manual button{border-radius:8px}
+.ab-in{background:#10B981;color:#062F22}
+.ab-out{background:#EF4444;color:#fff}
+.ab-loc{background:#06B6D4;color:#052F38}
+.qnum{border-color:#06B6D4;color:#0B1220}
+.rack-table th{background:#F8FAFC;color:#7B8A9E}
+.rack-table tr:hover td{background:#F7FBFF}
+#botnav{height:68px;background:rgba(255,255,255,.92);backdrop-filter:blur(18px);box-shadow:0 -12px 28px rgba(16,24,40,.08)}
+.nav-btn{font-weight:800}
+.nav-btn.on{color:#2563EB}
+#toast{border-radius:8px}
+.sw-box::before,.sw-box::after,.sw-tr,.sw-bl{border-color:#22D3EE}
+.sw-line{background:linear-gradient(90deg,transparent,#22D3EE 30%,#fff 50%,#22D3EE 70%,transparent);box-shadow:0 0 18px #22D3EE}
+@media(max-width:768px){
+  #topbar{gap:8px}
+  .link-main{display:none}
+  #sync-btn{padding:6px 10px;max-width:92px;overflow:hidden;text-overflow:ellipsis}
+  .page-pad{padding:16px 14px}
+  .rack-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .rack-card{padding:14px;min-height:130px}
+  .rack-card-count{position:absolute;top:12px;right:12px;display:inline-flex;width:auto;height:auto;padding:3px 8px;margin:0}
+  .rack-card-ic{width:38px;height:38px}
+  .prod-card{min-width:0}
+}
+/* ══════════════════════════════════════════════════════════════
+   MODERN PURPLE THEME — final override (matches main dashboard)
+   ══════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap');
+:root{
+  --pu:#5B47FB; --pu2:#EEEAFF; --pu3:#3B2FD9; --pu-soft:#F5F2FF;
+  --bg:#F6F7FB; --ink:#0B1020;
+  --sur:#FFFFFF; --sur2:#F4F5F9; --sur3:#E7EAF2;
+  --bdr:#E6E9F2; --bdr2:#D2D7E4;
+  --tx:#0F172A; --tx2:#4B5572; --tx3:#8B93AB; --tx4:#B5BCCD;
+  --gn:#16A34A; --gn2:#ECFDF3; --gn3:#15803D;
+  --am:#D97706; --am2:#FFFBEB; --am3:#B45309;
+  --rd:#DC2626; --rd2:#FEF2F2; --rd3:#B91C1C;
+  --bl:#2563EB; --bl2:#EFF6FF; --bl3:#1D4ED8;
+  --r:10px; --rl:13px; --rx:16px;
+  --sh-sm:0 1px 2px rgba(15,23,42,.04),0 1px 1px rgba(15,23,42,.03);
+  --sh-md:0 14px 34px rgba(15,23,42,.08),0 2px 6px rgba(15,23,42,.04);
+}
+body{background:linear-gradient(180deg,#F6F7FB 0%,#F0F1F8 100%);color:var(--tx)}
+.num,.rs-card-n,.rt-qty,.tx-q,.prod-qty-n,.loc-big-v,.qnum{font-family:'Space Grotesk','Inter',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* Top bar refresh */
+#topbar{height:60px;background:rgba(255,255,255,.92);backdrop-filter:blur(18px);border-bottom:1px solid rgba(230,233,242,.95);padding:0 16px;box-shadow:0 8px 24px -16px rgba(15,23,42,.12)}
+.logo{font-size:15px;color:var(--ink);font-weight:800;letter-spacing:-.015em}
+.logo-ic{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#7C6FFF,#5B47FB 60%,#3B2FD9);box-shadow:0 8px 20px -4px rgba(91,71,251,.45),inset 0 1px 0 rgba(255,255,255,.25);font-size:14px;letter-spacing:-.04em}
+.logo small{color:var(--tx3);font-weight:500;font-size:10px;margin-top:1px}
+#sync-btn{background:var(--gn2);color:var(--gn3);border:1px solid #BBF3D6;border-radius:9px;font-weight:700;padding:7px 13px;font-size:12px}
+.link-main{background:var(--pu2);color:var(--pu);border:1px solid #D6CCFF;border-radius:9px;font-weight:700;padding:7px 13px}
+
+/* Page header */
+.page-pad{padding:20px 18px 90px}
+.sec-h{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;letter-spacing:-.025em;color:var(--ink);line-height:1.1}
+.sec-sub{color:var(--tx2);font-size:13px;margin-top:6px;margin-bottom:18px}
+
+/* Cards / shapes */
+.rack-card,.prod-card,.rs-card,.loc-big{
+  background:var(--sur);
+  border:1px solid var(--bdr);
+  border-radius:14px;
+  box-shadow:var(--sh-sm);
+  transition:transform .18s,box-shadow .18s,border-color .18s
+}
+.rack-card{padding:16px;min-height:138px;position:relative;overflow:hidden}
+.rack-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md);border-color:transparent}
+.rack-card:active{transform:scale(.985)}
+.rack-card-ic{
+  width:42px;height:42px;border-radius:11px;
+  background:linear-gradient(135deg,var(--pu2),#F5F2FF);
+  color:var(--pu);box-shadow:inset 0 0 0 1px rgba(91,71,251,.12);
+  font-size:21px;margin-bottom:12px
+}
+.rack-card-name{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.015em;color:var(--ink)}
+.rack-card-meta{font-size:11px;color:var(--tx3);font-weight:500}
+.rack-card-count{
+  position:absolute;top:12px;right:12px;
+  font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:-.01em;
+  padding:4px 9px;border-radius:20px;
+  background:var(--gn2);color:var(--gn3);box-shadow:inset 0 0 0 1px #C7F2DC
+}
+.rack-card-count.empty{background:var(--sur2);color:var(--tx3);box-shadow:inset 0 0 0 1px var(--bdr)}
+
+/* Scan CTA */
+.scan-cta{
+  border-radius:14px;
+  background:linear-gradient(135deg,#5B47FB 0%,#3B2FD9 100%);
+  border:none;color:#fff;padding:18px;margin-bottom:18px;
+  box-shadow:0 14px 32px -8px rgba(91,71,251,.45);
+  position:relative;overflow:hidden
+}
+.scan-cta::after{content:'';position:absolute;top:-50%;right:-15%;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 70%);pointer-events:none}
+.scan-cta-ic{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.18);color:#fff;backdrop-filter:blur(6px);box-shadow:none;font-size:22px}
+.scan-cta-tx b{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.015em;color:#fff}
+.scan-cta-tx span{color:rgba(255,255,255,.78);font-size:12px;font-weight:500}
+
+/* Product cards */
+.prod-card{padding:13px;border-radius:12px;display:flex;align-items:center;gap:12px}
+.prod-card:hover{border-color:var(--pu);background:var(--pu-soft)}
+.prod-thumb{
+  width:48px;height:48px;border-radius:11px;
+  background:linear-gradient(135deg,var(--pu2),#F5F2FF);color:var(--pu);
+  font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;letter-spacing:-.04em
+}
+.prod-name{font-size:13.5px;font-weight:600;color:var(--tx);line-height:1.3}
+.prod-meta{font-size:11px;color:var(--tx3);margin-top:3px}
+.prod-qty-n{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;letter-spacing:-.025em;color:var(--ink)}
+.prod-qty-l{font-size:9px;color:var(--tx3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-top:2px}
+.loc-tag{font-size:10px;font-weight:700;background:var(--pu2);color:var(--pu);padding:3px 9px;border-radius:20px;letter-spacing:.04em}
+.loc-tag.none{background:var(--am2);color:var(--am3)}
+
+/* Chips */
+.chips{gap:8px}
+.chip{
+  background:var(--sur);border:1px solid var(--bdr);color:var(--tx2);
+  border-radius:20px;font-weight:600;font-size:12px;padding:7px 13px;
+  transition:all .12s;box-shadow:var(--sh-sm)
+}
+.chip:hover{border-color:var(--bdr2)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:0 4px 14px -2px rgba(11,16,32,.25)}
+
+/* Summary cards */
+.rack-summary{gap:10px;margin-bottom:18px}
+.rs-card{padding:14px 12px;text-align:center}
+.rs-card-n{font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-.03em}
+.rs-card-l{font-size:10px;color:var(--tx3);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+
+/* Tx log */
+.tx-row{padding:11px 0;border-bottom:1px solid var(--bdr)}
+.tx-ic{width:36px;height:36px;border-radius:10px;font-size:14px;color:#fff;font-weight:800}
+.tx-ic.in{background:linear-gradient(135deg,#22C55E,#15803D)}
+.tx-ic.out{background:linear-gradient(135deg,#F43F5E,#B91C1C)}
+.tx-ic.set{background:linear-gradient(135deg,#5B47FB,#3B2FD9)}
+.tx-q{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;letter-spacing:-.02em}
+.tx-q.in{color:var(--gn3)}.tx-q.out{color:var(--rd3)}.tx-q.set{color:var(--pu)}
+
+/* Search bar */
+.search-bar{margin-bottom:14px}
+.search-bar input{
+  background:var(--sur);border:1.5px solid var(--bdr);
+  border-radius:12px;padding:12px 14px 12px 40px;font-size:14px;color:var(--tx);
+  box-shadow:var(--sh-sm);transition:all .15s
+}
+.search-bar input:focus{border-color:var(--pu);box-shadow:0 0 0 4px var(--pu2)}
+.search-bar::before{content:'';width:16px;height:16px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238B93AB' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat center;position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:1}
+
+/* Bottom nav */
+#botnav{
+  height:66px;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(18px);
+  border-top:1px solid rgba(230,233,242,.95);
+  box-shadow:0 -12px 28px -8px rgba(15,23,42,.08)
+}
+.nav-btn{font-weight:700;color:var(--tx3);font-size:10.5px;gap:4px;padding-top:11px;transition:color .12s;position:relative}
+.nav-btn.on{color:var(--pu)}
+.nav-btn.on::before{content:'';position:absolute;top:5px;left:50%;transform:translateX(-50%);width:24px;height:3px;border-radius:0 0 3px 3px;background:var(--pu)}
+
+/* Scanner / cam */
+.sw-box::before,.sw-box::after,.sw-tr,.sw-bl{border-color:var(--pu)}
+.sw-line{background:linear-gradient(90deg,transparent,var(--pu) 30%,#fff 50%,var(--pu) 70%,transparent);box-shadow:0 0 14px var(--pu)}
+.cam-manual input{background:var(--sur2);border:1.5px solid var(--bdr2);border-radius:11px;color:var(--tx)}
+.cam-manual button{background:var(--pu);color:#fff;border-radius:11px;font-weight:700;padding:11px 18px}
+
+/* Sheet / modal */
+.sheet{border-radius:20px 20px 0 0}
+.sheet-h-t{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+.sheet-h-s{color:var(--tx2);font-size:12.5px}
+
+/* Action buttons */
+.act-btn{border-radius:12px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;letter-spacing:-.01em;padding:16px;transition:transform .12s,box-shadow .15s;box-shadow:var(--sh-sm)}
+.act-btn:active{transform:scale(.97)}
+.ab-in{background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;box-shadow:0 8px 22px -6px rgba(22,163,74,.4)}
+.ab-out{background:linear-gradient(135deg,#EF4444,#B91C1C);color:#fff;box-shadow:0 8px 22px -6px rgba(220,38,38,.4)}
+.ab-loc{background:linear-gradient(135deg,#5B47FB,#3B2FD9);color:#fff;box-shadow:0 8px 22px -6px rgba(91,71,251,.4)}
+.ab-sec{background:var(--sur);color:var(--tx2);border:1.5px solid var(--bdr2);box-shadow:var(--sh-sm)}
+
+/* Qty stepper */
+.qbtn{width:58px;height:58px;border-radius:13px;border:1.5px solid var(--bdr);background:var(--sur);color:var(--tx);box-shadow:var(--sh-sm);font-size:26px;font-weight:300}
+.qbtn:active{background:var(--sur2);transform:scale(.95)}
+.qnum{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:700;border-color:var(--pu);color:var(--ink);background:var(--sur);box-shadow:0 0 0 4px var(--pu2)}
+
+/* Location picker */
+.loc-big{
+  background:linear-gradient(135deg,#5B47FB,#3B2FD9);
+  border:none;color:#fff;padding:24px 16px;
+  box-shadow:0 14px 32px -8px rgba(91,71,251,.45);
+  position:relative;overflow:hidden
+}
+.loc-big::after{content:'';position:absolute;top:-50%;right:-15%;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);pointer-events:none}
+.loc-big-l{color:rgba(255,255,255,.75);font-weight:700}
+.loc-big-v{font-family:'Space Grotesk',sans-serif;font-size:44px;font-weight:700;letter-spacing:-.03em;color:#fff}
+.loc-big-n{color:rgba(255,255,255,.78);font-weight:500}
+.loc-opt{
+  background:var(--sur);border:1.5px solid var(--bdr);color:var(--tx);
+  border-radius:12px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;
+  box-shadow:var(--sh-sm);transition:all .12s
+}
+.loc-opt:hover{border-color:var(--bdr2)}
+.loc-opt.on{background:var(--pu2);border-color:var(--pu);color:var(--pu);box-shadow:0 0 0 3px var(--pu2)}
+
+/* Field */
+.fld{background:var(--sur);border:1.5px solid var(--bdr);border-radius:11px;color:var(--tx);box-shadow:var(--sh-sm)}
+.fld:focus{border-color:var(--pu);box-shadow:0 0 0 3px var(--pu2)}
+
+/* Tx table */
+.rack-table th{background:var(--sur2);color:var(--tx3);font-size:10px;font-weight:700;letter-spacing:.07em}
+.rack-table tr:hover td{background:var(--pu-soft)}
+.rt-name{color:var(--tx)}
+.rt-qty{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+.rt-status{border-radius:20px;font-weight:700;font-size:10px}
+.rs-ok{background:var(--gn2);color:var(--gn3)}
+.rs-low{background:var(--am2);color:var(--am3)}
+.rs-out{background:var(--rd2);color:var(--rd3)}
+
+/* Toast */
+#toast{border-radius:12px;font-family:'Inter',sans-serif;font-weight:700;backdrop-filter:blur(8px)}
+.t-ok{background:rgba(22,163,74,.95);color:#fff;border:none}
+.t-err{background:rgba(220,38,38,.95);color:#fff;border:none}
+.t-syn{background:rgba(91,71,251,.95);color:#fff;border:none}
+
+/* QR guide */
+.gs-num{background:linear-gradient(135deg,#5B47FB,#3B2FD9);box-shadow:0 4px 12px -2px rgba(91,71,251,.45);font-family:'Space Grotesk',sans-serif}
+.dl-btn{background:var(--ink);color:#fff;border-radius:12px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;letter-spacing:-.01em;box-shadow:0 8px 20px -6px rgba(15,23,42,.3)}
+
+@media(max-width:768px){
+  .page-pad{padding:18px 14px 86px}
+  .sec-h{font-size:24px}
+  .rack-grid{grid-template-columns:1fr;gap:10px}
+  .rack-card{padding:14px;min-height:auto}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3D RACK ILLUSTRATION + SHELF SYSTEM
+   ══════════════════════════════════════════════════════════════ */
+.rack3d{
+  --postW:7px;
+  --shelfH:5px;
+  --frame:#2A2F45;
+  --frameH:#4B5572;
+  position:relative;
+  width:100%;
+  aspect-ratio:16/11;
+  background:
+    radial-gradient(120% 80% at 50% 100%, rgba(15,23,42,.06), transparent 50%),
+    linear-gradient(180deg,#FBFBFE 0%,#EFF1F8 100%);
+  border-radius:10px;
+  padding:9px 7px 11px;
+  overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(15,23,42,.04)
+}
+/* Vertical posts (frame) */
+.rack3d::before,.rack3d::after{
+  content:'';
+  position:absolute;
+  top:8px;bottom:9px;
+  width:var(--postW);
+  background:linear-gradient(180deg,var(--frameH) 0%,var(--frame) 100%);
+  border-radius:2px;
+  box-shadow:inset 1px 0 0 rgba(255,255,255,.18),inset -1px 0 0 rgba(0,0,0,.25),2px 2px 4px rgba(15,23,42,.12)
+}
+.rack3d::before{left:7px;transform:skewY(-2deg)}
+.rack3d::after{right:7px;transform:skewY(2deg)}
+.rack3d-stack{
+  position:absolute;
+  inset:8px 17px 9px;
+  display:flex;
+  flex-direction:column;
+  gap:2px
+}
+.rack3d-lvl{
+  flex:1;
+  position:relative;
+  display:flex;
+  align-items:flex-end;
+  gap:2px;
+  padding:0 3px 5px;
+  border-bottom:var(--shelfH) solid var(--frame);
+  background:linear-gradient(180deg,transparent 60%,rgba(15,23,42,.04) 100%);
+  cursor:pointer;
+  transition:background .15s
+}
+.rack3d-lvl:last-child{border-bottom:var(--shelfH) solid var(--frame)}
+.rack3d-lvl::after{
+  content:'';
+  position:absolute;
+  left:-4px;right:-4px;
+  bottom:calc(-1 * var(--shelfH) - 2px);
+  height:3px;
+  background:linear-gradient(180deg,rgba(15,23,42,.18),transparent);
+  pointer-events:none
+}
+.rack3d-lvl.active{background:linear-gradient(180deg,rgba(91,71,251,.08) 0%,rgba(91,71,251,.16) 100%)}
+.rack3d-lvl:hover{background:linear-gradient(180deg,rgba(91,71,251,.05) 0%,rgba(91,71,251,.1) 100%)}
+
+.rack3d-tag{
+  position:absolute;
+  left:4px;top:3px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:8px;
+  font-weight:700;
+  color:var(--tx3);
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  pointer-events:none
+}
+.rack3d-cnt{
+  position:absolute;
+  right:4px;top:3px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:9px;
+  font-weight:800;
+  color:var(--ink);
+  background:#fff;
+  padding:1px 5px;
+  border-radius:6px;
+  box-shadow:0 1px 2px rgba(0,0,0,.08);
+  letter-spacing:-.02em
+}
+
+/* Cartons on each shelf */
+.rack3d-box{
+  flex:1;
+  min-width:5px;
+  max-width:14px;
+  height:62%;
+  border-radius:2px 2px 1px 1px;
+  background:linear-gradient(150deg,var(--bx,#A78BFA) 0%,var(--bxd,#7C3AED) 100%);
+  box-shadow:
+    inset 0 -3px 0 rgba(0,0,0,.18),
+    inset 1px 0 0 rgba(255,255,255,.22),
+    0 1px 2px rgba(0,0,0,.15);
+  position:relative
+}
+.rack3d-box::after{
+  content:'';
+  position:absolute;
+  top:34%;left:1px;right:1px;
+  height:2px;
+  background:rgba(255,255,255,.22);
+  border-radius:1px
+}
+.rack3d-box.short{height:48%}
+.rack3d-box.tall{height:74%}
+.rack3d-box.low{--bx:#FBBF24;--bxd:#D97706}
+.rack3d-box.out{
+  background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(15,23,42,.07) 3px 5px);
+  border:1px dashed rgba(15,23,42,.18);
+  box-shadow:none;
+  height:50%
+}
+.rack3d-empty{
+  flex:1;
+  color:var(--tx4,#B5BCCD);
+  font-size:9px;
+  font-style:italic;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+  letter-spacing:.05em;
+  text-transform:uppercase
+}
+
+/* Floor shadow */
+.rack3d::after{}
+.rack3d-floor{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:4px;
+  background:linear-gradient(180deg,rgba(15,23,42,.12),transparent);
+  pointer-events:none
+}
+
+/* Rack card refresh — uses 3D illustration */
+.rack-card.r3{padding:14px 14px 12px;min-height:auto}
+.rack-card.r3 .rack-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:8px}
+.rack-card.r3 .rack-card-ic{width:34px;height:34px;border-radius:9px;margin-bottom:0;font-size:17px}
+.rack-card.r3 .rack-card-meta{font-size:10.5px;color:var(--tx3);margin-top:1px}
+.rack-card.r3 .rack-card-name{font-size:14px;font-weight:700;line-height:1.2;color:var(--ink);margin-top:1px}
+.rack-card.r3 .rack-card-count{position:static;display:inline-flex;padding:3px 8px;margin:0}
+.rack-card.r3 .rack3d{margin-bottom:11px}
+.rack-card.r3 .rack-card-foot{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--tx3);font-weight:600;margin-top:8px;padding-top:9px;border-top:1px solid var(--bdr)}
+.rack-card.r3 .rack-card-foot .dot{width:5px;height:5px;border-radius:50%;display:inline-block}
+.rack-card.r3 .rack-card-foot .lv{display:inline-flex;align-items:center;gap:3px}
+
+/* Per-shelf product mini-list on rack card */
+.rack-shelves{display:flex;flex-direction:column;gap:4px;margin-top:2px}
+.rack-shelf-row{display:grid;grid-template-columns:18px 1fr auto;align-items:flex-start;gap:7px;padding:5px 6px;border-radius:7px;transition:background .12s}
+.rack-shelf-row:hover{background:var(--sur2)}
+.rack-shelf-row .lvl-ic{
+  width:18px;height:18px;border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Space Grotesk',sans-serif;font-size:9px;font-weight:800;
+  letter-spacing:-.02em
+}
+.rack-shelf-row.U .lvl-ic{background:#FEF3C7;color:#92400E}
+.rack-shelf-row.M .lvl-ic{background:#DBEAFE;color:#1E40AF}
+.rack-shelf-row.L .lvl-ic{background:#D1FAE5;color:#065F46}
+.rack-shelf-row.empty .lvl-ic{background:var(--sur2);color:var(--tx3)}
+.rack-shelf-row .names{
+  font-size:11px;
+  line-height:1.35;
+  color:var(--tx);
+  font-weight:500;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  min-width:0
+}
+.rack-shelf-row .names .more{
+  color:var(--tx3);font-weight:600;font-size:10.5px;white-space:nowrap
+}
+.rack-shelf-row.empty .names{color:var(--tx3);font-style:italic;font-weight:500;font-size:10.5px}
+.rack-shelf-row .cnt{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:-.02em;
+  color:var(--tx2);
+  background:var(--sur2);
+  padding:2px 7px;
+  border-radius:20px;
+  white-space:nowrap;
+  min-width:24px;text-align:center
+}
+.rack-shelf-row.empty .cnt{color:var(--tx4,#B5BCCD)}
+
+/* BIG 3D rack on rack-detail page */
+.rack3d-big{
+  --postW:13px;
+  --shelfH:8px;
+  aspect-ratio:16/9;
+  padding:18px 14px 22px;
+  border-radius:16px;
+  background:
+    radial-gradient(120% 60% at 50% 100%, rgba(15,23,42,.14), transparent 55%),
+    linear-gradient(180deg,#FAFBFE 0%,#EAEDF6 100%);
+  margin-bottom:16px;
+  position:relative
+}
+.rack3d-big::before{left:14px;top:14px;bottom:18px}
+.rack3d-big::after{right:14px;top:14px;bottom:18px}
+.rack3d-big .rack3d-stack{inset:14px 32px 18px;gap:4px}
+.rack3d-big .rack3d-lvl{padding:0 6px 10px;border-bottom-width:8px}
+.rack3d-big .rack3d-tag{font-size:11px;left:8px;top:6px;background:#fff;padding:2px 7px;border-radius:7px;box-shadow:var(--sh-sm)}
+.rack3d-big .rack3d-cnt{font-size:11px;right:8px;top:6px;padding:2px 9px}
+.rack3d-big .rack3d-box{max-width:32px;min-width:14px;height:78%;border-radius:3px 3px 2px 2px;position:relative;overflow:hidden}
+.rack3d-big .rack3d-box .bx-lbl{
+  position:absolute;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%) rotate(-90deg);
+  transform-origin:center;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:8.5px;font-weight:800;
+  color:rgba(255,255,255,.96);
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  pointer-events:none;
+  text-shadow:0 1px 2px rgba(0,0,0,.35);
+  max-width:60px;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+.rack3d-big .rack3d-box.out .bx-lbl{color:rgba(15,23,42,.45);text-shadow:none}
+
+/* Per-shelf name strip below big rack */
+.rack3d-names{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.rack3d-names-row{
+  display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:10px;
+  padding:9px 11px;border-radius:10px;background:var(--sur);border:1px solid var(--bdr)
+}
+.rack3d-names-row .lvl{
+  display:flex;align-items:center;gap:5px;
+  font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:800;
+  letter-spacing:.05em;text-transform:uppercase
+}
+.rack3d-names-row .lvl .badge-letter{
+  width:22px;height:22px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px
+}
+.rack3d-names-row.U .badge-letter{background:#FEF3C7;color:#92400E}
+.rack3d-names-row.M .badge-letter{background:#DBEAFE;color:#1E40AF}
+.rack3d-names-row.L .badge-letter{background:#D1FAE5;color:#065F46}
+.rack3d-names-row .prods{
+  font-size:12px;color:var(--tx);line-height:1.4;font-weight:500;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
+}
+.rack3d-names-row .prods .sep{color:var(--tx4,#B5BCCD);margin:0 4px}
+.rack3d-names-row .prods .qty-mini{color:var(--tx3);font-weight:600;font-size:11px}
+.rack3d-names-row .prods .more{color:var(--tx3);font-weight:600;font-size:11px}
+.rack3d-names-row.empty .prods{color:var(--tx3);font-style:italic;font-weight:500}
+.rack3d-names-row .cnt{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:13px;font-weight:700;letter-spacing:-.02em;
+  color:var(--ink);background:var(--sur2);
+  padding:3px 9px;border-radius:20px
+}
+.rack3d-names-row.empty .cnt{color:var(--tx4,#B5BCCD)}
+
+/* Shelf picker section on rack detail */
+.shelf-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.shelf-tile{
+  padding:12px 10px;
+  border-radius:12px;
+  border:1.5px solid var(--bdr);
+  background:var(--sur);
+  text-align:left;
+  cursor:pointer;
+  transition:all .15s;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  box-shadow:var(--sh-sm);
+  font-family:inherit
+}
+.shelf-tile:hover{border-color:var(--bdr2)}
+.shelf-tile.on{border-color:var(--pu);background:var(--pu2);box-shadow:0 0 0 3px var(--pu2)}
+.shelf-tile .ti{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em}
+.shelf-tile .ti .ic{width:22px;height:22px;border-radius:6px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:12px}
+.shelf-tile.on .ti{color:var(--pu)}
+.shelf-tile.on .ti .ic{background:#fff;box-shadow:0 0 0 2px var(--pu)}
+.shelf-tile .nm{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1}
+.shelf-tile .mt{font-size:10.5px;color:var(--tx3);font-weight:600}
+
+/* Shelf badge inline (level column in product table) */
+.shelf-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:-.01em;
+  background:var(--pu2);
+  color:var(--pu);
+  padding:3px 8px;
+  border-radius:20px
+}
+.shelf-badge.U{background:#FEF3C7;color:#92400E}
+.shelf-badge.M{background:#DBEAFE;color:#1E40AF}
+.shelf-badge.L{background:#D1FAE5;color:#065F46}
+.shelf-badge.none{background:var(--sur2);color:var(--tx3)}
+
+/* Shelf picker inside the location modal */
+.shelf-pick-modal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 4px}
+.shelf-pick-modal .shelf-mo{
+  padding:14px 6px;
+  border-radius:12px;
+  border:1.5px solid var(--bdr);
+  background:var(--sur);
+  cursor:pointer;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  color:var(--tx);
+  font-size:14px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  transition:all .15s;
+  box-shadow:var(--sh-sm)
+}
+.shelf-pick-modal .shelf-mo:hover{border-color:var(--bdr2)}
+.shelf-pick-modal .shelf-mo.on{border-color:var(--pu);background:var(--pu2);color:var(--pu);box-shadow:0 0 0 3px var(--pu2)}
+.shelf-pick-modal .shelf-mo .ic{font-size:22px}
+.shelf-pick-modal .shelf-mo .lb{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3);font-weight:600}
+.shelf-pick-modal .shelf-mo.on .lb{color:var(--pu);opacity:.7}
+
 /* ── VISUAL 3-SHELF RACK ── */
 .visual-rack{display:flex;flex-direction:column;gap:0;border-radius:18px;overflow:hidden;background:var(--sur);box-shadow:0 4px 24px rgba(0,0,0,.10);margin-bottom:16px}
 .shelf-section{display:flex;flex-direction:column}
@@ -313,8 +926,8 @@ input{user-select:auto}
 <!-- ═══ SETUP PAGE ═══ -->
 <div class="page" id="pg-setup">
   <div class="page-pad">
-    <div class="sec-h">Products</div>
-    <div class="sec-sub">Tap a product to assign it to a rack & shelf position.</div>
+    <div class="sec-h">Setup Locations</div>
+    <div class="sec-sub">Assign products to a rack & shelf. Barcodes stay unchanged.</div>
     <div class="scan-cta" onclick="openCam('setup')">
       <div class="scan-cta-ic">📷</div>
       <div class="scan-cta-tx"><b>Scan product to place it</b><span>Then pick its rack & shelf</span></div>
@@ -351,10 +964,7 @@ alter table rack_transactions enable row level security;
 create policy "anon ra" on rack_assignments
   for all using (true) with check (true);
 create policy "anon rt" on rack_transactions
-  for all using (true) with check (true);
-
--- If you already ran the old SQL, run this to add the shelf column:
-alter table rack_assignments add column if not exists shelf text default 'mid';</pre>
+  for all using (true) with check (true);</pre>
       <button onclick="copySQL()" style="width:100%;margin-top:10px;padding:11px;border-radius:10px;border:none;background:var(--am);color:#000;font-size:13px;font-weight:800;cursor:pointer">📋 Copy SQL</button>
     </div>
     <div style="background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:18px;margin-bottom:16px">
@@ -385,7 +995,7 @@ alter table rack_assignments add column if not exists shelf text default 'mid';<
   <button class="nav-btn" onclick="location.href='index.html'"><span class="ni">🏠</span>Home</button>
   <button class="nav-btn on" id="nav-racks" onclick="nav('racks')"><span class="ni">🗺️</span>Racks</button>
   <button class="nav-btn" id="nav-stock" onclick="nav('stock')"><span class="ni">🔍</span>Find</button>
-  <button class="nav-btn" id="nav-setup" onclick="nav('setup')"><span class="ni">📍</span>Products</button>
+  <button class="nav-btn" id="nav-setup" onclick="nav('setup')"><span class="ni">📍</span>Setup</button>
   <button class="nav-btn" id="nav-qr" onclick="nav('qr')"><span class="ni">🏷️</span>QR</button>
 </div>
 
@@ -417,15 +1027,12 @@ alter table rack_assignments add column if not exists shelf text default 'mid';<
 </div>
 
 <!-- ACTION MODAL -->
-<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+<div class="modal" id="modal">
   <div class="sheet">
     <div class="sheet-grab"></div>
-    <div class="sheet-h" style="display:flex;align-items:flex-start;gap:10px">
-      <div style="flex:1">
-        <div class="sheet-h-t" id="m-title">Product</div>
-        <div class="sheet-h-s" id="m-sub"></div>
-      </div>
-      <button onclick="closeModal()" style="background:var(--sur2);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:4px;font-size:18px;color:var(--tx2)">✕</button>
+    <div class="sheet-h">
+      <div class="sheet-h-t" id="m-title">Product</div>
+      <div class="sheet-h-s" id="m-sub"></div>
     </div>
     <div class="sheet-body" id="m-body"></div>
     <div class="sheet-foot" id="m-foot"></div>
@@ -441,28 +1048,23 @@ let products=[{"id": 2, "name": "FRIED MYEIK SHRIMP PASTE 160g", "sku": "DRY_-00
 // ── GLOBAL PRODUCT SYNC ──────────────────────────────────────────
 // Merges barcode/photo data saved by register.html into this page's products.
 // This is the shared key used by all CityStar apps on the same device.
-const GLOBAL_PRODS_KEY = 'citystar_barcodes_v1';
-const PHOTOS_KEY = 'citystar_photos_v1';
+const GLOBAL_PRODS_KEY = 'citystar_barcodes_v1'; // matches register.html
 function mergeLocalProducts(){
-  // Barcodes
   try{
     let raw=localStorage.getItem(GLOBAL_PRODS_KEY);
-    if(raw){let m=JSON.parse(raw);for(let pid in m){let p=products.find(x=>x.id==parseInt(pid));if(p&&m[pid])p.barcode=m[pid];}}
-  }catch(e){}
-  // Photos — most important: always apply from local cache
-  try{
-    let photos=JSON.parse(localStorage.getItem(PHOTOS_KEY)||'{}');
-    for(let pid in photos){
+    if(!raw)return;
+    let barcodeMap=JSON.parse(raw); // {pid: barcode}
+    for(let pid in barcodeMap){
       let p=products.find(x=>x.id==parseInt(pid));
-      if(p&&photos[pid])p.photo=photos[pid]; // always override — local is authoritative
+      if(p && barcodeMap[pid]) p.barcode=barcodeMap[pid];
     }
   }catch(e){}
 }
-mergeLocalProducts();
+mergeLocalProducts(); // run immediately so barcodes are ready
 
 // ── STATE ──
 let sbClient=null, _dbOk=false;
-let rackMap={};       // {productId: {rack:"R2", shelf:"mid"}} — shelf optional, default "mid"
+let rackMap={};       // {productId: "R5"}  (rack number only)
 let txLog=[];         // local transaction log
 let _pendingTx=[];    // tx rows not yet pushed to rack_transactions
 let _pendingLoc={};   // {pid: rack|null} not yet pushed to rack_assignments
@@ -484,17 +1086,124 @@ const nowISO=()=>new Date().toISOString();
 const nowT=()=>{let d=new Date();return [d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');};
 const fmtDate=iso=>{try{let d=new Date(iso);return d.toLocaleDateString()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}catch(e){return iso;}};
 function findByBc(raw){let d=bcD(raw);if(d.length<4)return null;return products.find(p=>p.barcode&&bcD(p.barcode)===d)||products.find(p=>{if(!p.barcode)return false;let s=bcD(p.barcode);if(s.length<4)return false;return d.startsWith(s)||s.startsWith(d);})||null;}
-// rackOf returns {rack:"R2", shelf:"mid"} or null. Handles legacy string format.
-function rackOf(pid){
-  let v=rackMap[pid]; if(!v)return null;
-  if(typeof v==='string')return {rack:v,shelf:'mid'}; // backward compat
-  return v;
-}
-function rackNum(pid){ let r=rackOf(pid); return r?r.rack:null; }
-function shelfOf(pid){ let r=rackOf(pid); return r?(r.shelf||'mid'):null; }
+function rackOf(pid){let raw=rackMap[pid];if(!raw)return null;return raw.split('-')[0];}
+function shelfOf(pid){let raw=rackMap[pid];if(!raw)return null;let p=raw.split('-');return p[1]||null;}
+function rawLocOf(pid){return rackMap[pid]||null;}
 function rackList(){let a=[];for(let i=1;i<=RACK_COUNT;i++)a.push('R'+i);return a;}
-function prodsInRack(rk){ return products.filter(p=>{ let r=rackOf(p.id); return r&&r.rack===rk; }); }
-function prodsOnShelf(rk,shelf){ return products.filter(p=>{ let r=rackOf(p.id); return r&&r.rack===rk&&(r.shelf||'mid')===shelf; }); }
+function prodsInRack(rk){return products.filter(p=>rackOf(p.id)===rk);}
+function prodsInShelf(rk,sh){return products.filter(p=>rackOf(p.id)===rk && shelfOf(p.id)===sh);}
+const SHELVES=[
+  {code:'U',name:'Upper',icon:'⬆'},
+  {code:'M',name:'Middle',icon:'▦'},
+  {code:'L',name:'Lower',icon:'⬇'}
+];
+function shelfName(sh){let s=SHELVES.find(x=>x.code===sh);return s?s.name:'Unassigned';}
+
+/* 3D rack illustration helper. Renders the SVG/CSS rack with mini-cartons per shelf. */
+function rack3dHTML(rk, opts){
+  opts = opts || {};
+  let big = opts.big ? ' rack3d-big' : '';
+  let activeShelf = opts.activeShelf || null;
+  let interactive = !!opts.interactive;
+  function boxLabel(p){
+    if (p.vendor) return p.vendor.slice(0, 4);
+    let n = (p.name || '').toUpperCase();
+    let parts = n.replace(/[^A-Z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+    return (parts[0] || '?').slice(0, 4);
+  }
+  // Expand a list of products into multiple cartons per product, weighted by qty.
+  // Fills the shelf so it looks loaded — like a real warehouse rack.
+  function expandCartons(prods, capacity){
+    if (!prods.length) return [];
+    let weights = prods.map(p => Math.max(1, Math.sqrt(Math.max(1, p.qty || 1))));
+    let sum = weights.reduce((s,w)=>s+w, 0);
+    // Initial allocation (min 1 each)
+    let alloc = prods.map((p,i) => Math.max(1, Math.round(weights[i] / sum * capacity)));
+    let total = alloc.reduce((s,v)=>s+v, 0);
+    // Trim if over capacity
+    while (total > capacity){
+      let idx = alloc.indexOf(Math.max(...alloc));
+      if (alloc[idx] > 1){ alloc[idx]--; total--; } else break;
+    }
+    // Build carton list (interleave a bit so colors mix nicely)
+    let out = [];
+    for (let i = 0; i < prods.length; i++){
+      for (let k = 0; k < alloc[i]; k++){
+        out.push({p: prods[i], first: k === 0});
+      }
+    }
+    return out;
+  }
+  let html = '<div class="rack3d'+big+'">';
+  html += '<div class="rack3d-stack">';
+  for (let sh of SHELVES){
+    let prods = prodsInShelf(rk, sh.code);
+    if (sh.code === 'M'){
+      let legacy = prodsInRack(rk).filter(p => !shelfOf(p.id));
+      prods = prods.concat(legacy);
+    }
+    let cnt = prods.length;
+    let isActive = activeShelf === sh.code ? ' active' : '';
+    let onClick = interactive ? ' onclick="filterShelf(\''+sh.code+'\')"' : '';
+    html += '<div class="rack3d-lvl'+isActive+'"'+onClick+'>';
+    html += '<span class="rack3d-tag">'+sh.name+'</span>';
+    if (cnt > 0) html += '<span class="rack3d-cnt">'+cnt+'</span>';
+    if (cnt === 0){
+      html += '<div class="rack3d-empty">empty</div>';
+    } else {
+      // Expand into many cartons — fill the shelf
+      let capacity = opts.big ? 14 : 9;
+      let cartons = expandCartons(prods, capacity);
+      cartons.forEach((c, i) => {
+        let p = c.p;
+        let stat = (p.qty||0) === 0 ? 'out' : (p.qty||0) <= (p.threshold||0) ? 'low' : '';
+        let h = (i % 4 === 0) ? 'tall' : (i % 4 === 1 || i % 4 === 3) ? '' : 'short';
+        // Show label on first carton of each product run (big mode only)
+        let label = (opts.big && c.first) ? '<span class="bx-lbl">'+boxLabel(p)+'</span>' : '';
+        html += '<div class="rack3d-box '+stat+' '+h+'" title="'+(p.name||'').replace(/"/g,'&quot;')+'">'+label+'</div>';
+      });
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  html += '<div class="rack3d-floor"></div>';
+  html += '</div>';
+  return html;
+}
+
+/* Per-shelf product name strip — shows on rack detail page below the big 3D rack */
+function rack3dNamesHTML(rk){
+  let html = '<div class="rack3d-names">';
+  for (let sh of SHELVES){
+    let prods = prodsInShelf(rk, sh.code);
+    if (sh.code === 'M'){
+      let legacy = prodsInRack(rk).filter(p => !shelfOf(p.id));
+      prods = prods.concat(legacy);
+    }
+    let isEmpty = prods.length === 0;
+    let body;
+    if (isEmpty){
+      body = '<span>nothing on this shelf</span>';
+    } else {
+      // Show up to 4 with qty
+      let show = prods.slice(0, 4).map(p => {
+        let qc = (p.qty||0) === 0 ? 'var(--rd3)' : (p.qty||0) <= (p.threshold||0) ? 'var(--am3)' : 'var(--tx2)';
+        let shortNm = (p.name || '').replace(/\s+\d+(\.\d+)?\s*(g|kg|ml|l|×.*?g)\b.*$/i, '').trim();
+        if (shortNm.length > 38) shortNm = shortNm.slice(0, 36) + '…';
+        return '<span>'+shortNm+' <span class="qty-mini" style="color:'+qc+'">('+(p.qty||0)+')</span></span>';
+      }).join('<span class="sep">·</span>');
+      let more = prods.length > 4 ? ' <span class="more">+'+(prods.length-4)+' more</span>' : '';
+      body = show + more;
+    }
+    html += '<div class="rack3d-names-row '+sh.code+(isEmpty?' empty':'')+'">'
+      + '<span class="lvl"><span class="badge-letter">'+sh.code+'</span>'+sh.name+'</span>'
+      + '<span class="prods">'+body+'</span>'
+      + '<span class="cnt">'+prods.length+'</span>'
+      + '</div>';
+  }
+  html += '</div>';
+  return html;
+}
 
 // ── LOCAL STORAGE ──
 function loadLocal(){
@@ -540,15 +1249,62 @@ function nav(pg){
 // ── RACKS ──
 function renderRacks(){
   let g=document.getElementById('rack-grid'),h='';
+  function shortName(p){
+    // Trim trailing weight/size suffix like " 160g", " 400g", " 20kg" so names are scannable
+    let n = (p.name||'').replace(/\s+\d+(\.\d+)?\s*(g|kg|ml|l|×.*?g)\b.*$/i, '').trim();
+    return n.length > 32 ? n.slice(0, 30) + '…' : n;
+  }
   for(let rk of rackList()){
     let ps=prodsInRack(rk);
-    let cls=ps.length?'':'empty';
-    h+='<div class="rack-card" onclick="openRack(\''+rk+'\')">'
-      +'<div class="rack-card-count '+cls+'">'+ps.length+' items</div>'
-      +'<div class="rack-card-ic">🗄️</div>'
-      +'<div class="rack-card-name">Rack '+rk.slice(1)+'</div>'
-      +'<div class="rack-card-meta">tap to open</div>'
-      +'</div>';
+    let lowOnRack = ps.filter(p => (p.qty||0) > 0 && (p.qty||0) <= (p.threshold||0)).length;
+    let outOnRack = ps.filter(p => (p.qty||0) === 0).length;
+    let healthDot = outOnRack ? '#EF4444' : lowOnRack ? '#F59E0B' : ps.length ? '#10B981' : '#94A3B8';
+    let healthTxt = outOnRack ? outOnRack + ' out of stock' : lowOnRack ? lowOnRack + ' low' : ps.length ? 'all stocked' : 'empty rack';
+    let cls = ps.length ? '' : 'empty';
+
+    // Build per-shelf product name list
+    let shelvesHTML = '<div class="rack-shelves">';
+    for (let sh of SHELVES){
+      let shelfPs = prodsInShelf(rk, sh.code);
+      if (sh.code === 'M'){
+        // include legacy (no-shelf) items in middle for display
+        let legacy = ps.filter(p => !shelfOf(p.id));
+        shelfPs = shelfPs.concat(legacy);
+      }
+      let isEmpty = shelfPs.length === 0;
+      let names = '';
+      if (isEmpty){
+        names = '<span>empty</span>';
+      } else {
+        let show = shelfPs.slice(0, 3).map(p => shortName(p)).join(' · ');
+        let more = shelfPs.length > 3 ? ' <span class="more">+' + (shelfPs.length - 3) + ' more</span>' : '';
+        names = show + more;
+      }
+      shelvesHTML += '<div class="rack-shelf-row '+sh.code+(isEmpty?' empty':'')+'">'
+        +   '<div class="lvl-ic">'+sh.code+'</div>'
+        +   '<div class="names">'+names+'</div>'
+        +   '<div class="cnt">'+shelfPs.length+'</div>'
+        + '</div>';
+    }
+    shelvesHTML += '</div>';
+
+    h += '<div class="rack-card r3" onclick="openRack(\''+rk+'\')">'
+      +    '<div class="rack-card-top">'
+      +      '<div class="rack-card-ic">🗄️</div>'
+      +      '<div style="flex:1;min-width:0">'
+      +        '<div class="rack-card-name">Rack '+rk.slice(1)+'</div>'
+      +        '<div class="rack-card-meta">'+ps.length+' product'+(ps.length===1?'':'s')+' across 3 shelves</div>'
+      +      '</div>'
+      +      '<div class="rack-card-count '+cls+'">'+ps.length+'</div>'
+      +    '</div>'
+      +    rack3dHTML(rk)
+      +    shelvesHTML
+      +    '<div class="rack-card-foot">'
+      +      '<span class="dot" style="background:'+healthDot+'"></span>'
+      +      '<span>'+healthTxt+'</span>'
+      +      '<span style="margin-left:auto;color:var(--pu);font-weight:700">Open →</span>'
+      +    '</div>'
+      +  '</div>';
   }
   g.innerHTML=h;
 }
@@ -572,74 +1328,122 @@ function rdTab(t){
   document.getElementById('rd-products').style.display=t==='prod'?'':'none';
   document.getElementById('rd-log').style.display=t==='log'?'':'none';
 }
+let _curShelfFilter = null; // null = all shelves, else 'U'/'M'/'L'
+function filterShelf(sh){
+  _curShelfFilter = (_curShelfFilter === sh) ? null : sh;
+  renderRackProducts();
+}
 function renderRackProducts(){
   let ps=prodsInRack(curRack);
   let el=document.getElementById('rd-products');
   if(!ps.length){
-    el.innerHTML='<div class="empty"><div class="empty-ic">📭</div><div class="empty-t">No products in this rack yet</div><div class="empty-s">Use Setup → assign products to this rack</div></div>';
+    el.innerHTML = rack3dHTML(curRack, {big:true, interactive:true})
+      + rack3dNamesHTML(curRack)
+      + '<div class="empty"><div class="empty-ic">📭</div><div class="empty-t">No products in this rack yet</div><div class="empty-s">Use Setup → assign products to this rack &amp; shelf</div></div>';
     return;
   }
-  let total=ps.length, outCount=ps.filter(p=>p.qty===0).length, lowCount=ps.filter(p=>p.qty>0&&p.qty<=p.threshold).length, okCount=total-lowCount-outCount;
-  let h='<div class="rack-summary" style="margin-bottom:14px">'
-    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--gn)">'+okCount+'</div><div class="rs-card-l">OK</div></div>'
-    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--am)">'+lowCount+'</div><div class="rs-card-l">Low</div></div>'
-    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--rd)">'+outCount+'</div><div class="rs-card-l">Out</div></div>'
-    +'</div>';
-  const SHELVES=[
-    {id:'upper',label:'Upper Shelf',icon:'⬆'},
-    {id:'mid',  label:'Middle Shelf',icon:'➡'},
-    {id:'lower', label:'Lower Shelf', icon:'⬇'}
-  ];
-  h+='<div class="visual-rack">';
-  for(let shelf of SHELVES){
-    let sProds=prodsOnShelf(curRack,shelf.id);
-    h+='<div class="shelf-section">'
-      +'<div class="shelf-label"><span class="shelf-label-icon">'+shelf.icon+'</span> '+shelf.label+'<span class="shelf-count">'+sProds.length+' product'+(sProds.length!==1?'s':'')+'</span></div>'
-      +'<div class="shelf-plank" style="position:relative">';
-    if(!sProds.length){
-      h+='<div class="shelf-empty">📭 Empty — assign in Setup</div>';
-    }else{
-      sProds.forEach(p=>{
-        let qc  = p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
-        let pct = p.threshold>0?Math.min(Math.round(p.qty/Math.max(p.qty,p.threshold*2)*100),100):50;
-        let sdCls = p.qty===0?'rd':p.qty<=p.threshold?'am':'gn';
-        let imgHtml = p.photo
-          ? '<img src="'+p.photo+'" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
-            +'<div class="slot-emoji" style="display:none;align-items:center;justify-content:center;height:100%;font-size:40px">📦</div>'
-          : '<div class="slot-emoji" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">📦</div>';
-        h+='<div class="prod-slot" onclick="openProd('+p.id+')">'
-          +'<div class="slot-img">'+imgHtml+'</div>'
-          +'<div class="slot-status-dot '+sdCls+'"></div>'
-          +'<div class="slot-info">'
-            +'<div class="slot-name">'+p.name+'</div>'
-            +(p.barcode?'<div class="slot-bc">'+p.barcode+'</div>':'<div class="slot-bc" style="color:var(--am3)">No barcode</div>')
-          +'</div>'
-          +'<div class="slot-footer">'
-            +'<div class="slot-qty" style="color:'+qc+'">'+p.qty+'</div>'
-            +'<div class="slot-bar"><div class="slot-bar-fill" style="width:'+pct+'%;background:'+qc+'"></div></div>'
-          +'</div>'
-          +'</div>';
-      });
-    }
-    h+='</div></div>';
+
+  // Filter by shelf if active
+  let shown = ps;
+  if (_curShelfFilter){
+    shown = ps.filter(p => {
+      let sh = shelfOf(p.id);
+      if (sh === _curShelfFilter) return true;
+      // Legacy (no shelf) items show under M filter
+      if (!sh && _curShelfFilter === 'M') return true;
+      return false;
+    });
   }
-  h+='</div>';
-  h+="<details style=\"margin-top:16px\"><summary style=\"font-size:12px;font-weight:700;color:var(--tx3);cursor:pointer;padding:8px 0;text-transform:uppercase;letter-spacing:.06em\">All products — tracker table</summary>";
-  h+="<div style=\"overflow-x:auto;margin-top:8px\"><table class=\"rack-table\"><thead><tr><th>Product</th><th>Shelf</th><th style=\"text-align:right\">Stock</th><th>Level</th></tr></thead><tbody>";
-  [...ps].sort((a,b)=>a.qty-b.qty).forEach(p=>{
-    let qc=p.qty===0?"var(--rd)":p.qty<=p.threshold?"var(--am)":"var(--gn)";
-    let pct=p.threshold>0?Math.min(Math.round(p.qty/Math.max(p.qty,p.threshold*2)*100),100):50;
-    let shelf=shelfOf(p.id)||"mid";
-    let sn={upper:"Upper",mid:"Middle",lower:"Lower"}[shelf]||shelf;
-    h+="<tr onclick=\"openProd("+p.id+")\">"
-      +"<td><div class=\"rt-name\">"+p.name+"</div><div class=\"rt-sku\">"+p.sku+(p.barcode?" · "+p.barcode:"")+"</div></td>"
-      +"<td style=\"font-size:11px;color:var(--tx3)\">"+sn+"</td>"
-      +"<td class=\"rt-qty\" style=\"color:"+qc+"\">"+p.qty+"</td>"
-      +"<td class=\"rt-bar-wrap\"><div class=\"rt-bar-bg\"><div class=\"rt-bar-fill\" style=\"width:"+pct+"%;background:"+qc+"\"></div></div></td>"
-      +"</tr>";
-  });
-  h+="</tbody></table></div></details>";
-  el.innerHTML=h;
+
+  // Summary
+  let total = ps.length;
+  let lowCount = ps.filter(p => p.qty>0 && p.qty<=p.threshold).length;
+  let outCount = ps.filter(p => p.qty===0).length;
+  let okCount  = total - lowCount - outCount;
+
+  let h = '';
+
+  // 1. Big 3D rack illustration (interactive — click a shelf to filter)
+  h += rack3dHTML(curRack, {big:true, interactive:true, activeShelf:_curShelfFilter});
+
+  // 1b. Per-shelf product names strip
+  h += rack3dNamesHTML(curRack);
+
+  // 2. Shelf-pick tiles
+  h += '<div class="shelf-pick">';
+  for (let sh of SHELVES){
+    let cnt = prodsInShelf(curRack, sh.code).length;
+    if (sh.code === 'M'){
+      cnt += ps.filter(p => !shelfOf(p.id)).length;
+    }
+    let isOn = _curShelfFilter === sh.code ? ' on' : '';
+    h += '<button class="shelf-tile'+isOn+'" onclick="filterShelf(\''+sh.code+'\')">'
+      +    '<div class="ti"><span class="ic">'+sh.icon+'</span>'+sh.name+'</div>'
+      +    '<div class="nm">'+cnt+'</div>'
+      +    '<div class="mt">'+(cnt===1?'product':'products')+'</div>'
+      +  '</button>';
+  }
+  h += '</div>';
+
+  // 3. Summary cards
+  h += '<div class="rack-summary">'
+    + '<div class="rs-card"><div class="rs-card-n" style="color:var(--gn)">'+okCount+'</div><div class="rs-card-l">In stock</div></div>'
+    + '<div class="rs-card"><div class="rs-card-n" style="color:var(--am)">'+lowCount+'</div><div class="rs-card-l">Low stock</div></div>'
+    + '<div class="rs-card"><div class="rs-card-n" style="color:var(--rd)">'+outCount+'</div><div class="rs-card-l">Out</div></div>'
+    + '</div>';
+
+  // 4. Filter label
+  if (_curShelfFilter){
+    h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Showing</span><span class="shelf-badge '+_curShelfFilter+'">'+shelfName(_curShelfFilter)+' shelf</span><button onclick="filterShelf(null)" style="margin-left:auto;background:none;border:none;color:var(--pu);font-size:12px;font-weight:600;cursor:pointer">Show all</button></div>';
+  }
+
+  // 5. Table — grouped by shelf if no filter, by category if filtered
+  h += '<div style="overflow-x:auto"><table class="rack-table">'
+    + '<thead><tr><th>Product</th><th style="text-align:right">Stock</th><th>Shelf</th><th>Status</th></tr></thead><tbody>';
+
+  if (!_curShelfFilter){
+    // Group by shelf
+    for (let sh of SHELVES){
+      let shelfPs = prodsInShelf(curRack, sh.code);
+      if (sh.code === 'M'){
+        let legacy = ps.filter(p => !shelfOf(p.id));
+        shelfPs = shelfPs.concat(legacy);
+      }
+      if (!shelfPs.length) continue;
+      h += '<tr class="cat-hdr-row"><td colspan="4"><span class="shelf-badge '+sh.code+'" style="margin-right:8px">'+sh.icon+' '+sh.name+'</span>'+shelfPs.length+' product'+(shelfPs.length===1?'':'s')+'</td></tr>';
+      shelfPs.sort((a,b)=>a.qty-b.qty).forEach(p => { h += rowFor(p); });
+    }
+  } else {
+    // Filtered — group by category within the selected shelf
+    let byCat = {};
+    shown.forEach(p => { (byCat[p.cat] = byCat[p.cat] || []).push(p); });
+    categories.forEach(c => {
+      if (!byCat[c.id]) return;
+      let catPs = byCat[c.id];
+      h += '<tr class="cat-hdr-row"><td colspan="4">'+c.name+' ('+catPs.length+')</td></tr>';
+      catPs.sort((a,b)=>a.qty-b.qty).forEach(p => { h += rowFor(p); });
+    });
+  }
+
+  function rowFor(p){
+    let qc = p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
+    let pct = p.threshold>0?Math.round((p.qty/Math.max(p.qty,p.threshold*2))*100):0; pct=Math.min(pct,100);
+    let statusTxt = p.qty===0?'Out of stock':p.qty<=p.threshold?'Reorder soon':'OK';
+    let statusCls = p.qty===0?'rs-out':p.qty<=p.threshold?'rs-low':'rs-ok';
+    let sh = shelfOf(p.id);
+    let shBadge = sh
+      ? '<span class="shelf-badge '+sh+'">'+(SHELVES.find(s=>s.code===sh)||{}).icon+' '+sh+'</span>'
+      : '<span class="shelf-badge none">—</span>';
+    return '<tr onclick="openProd('+p.id+')">'
+      + '<td><div class="rt-name">'+p.name+'</div><div class="rt-sku">'+p.sku+(p.barcode?' · '+p.barcode:'')+'</div></td>'
+      + '<td class="rt-qty" style="color:'+qc+'">'+p.qty+'</td>'
+      + '<td>'+shBadge+'</td>'
+      + '<td><span class="rt-status '+statusCls+'">'+statusTxt+'</span></td>'
+      + '</tr>';
+  }
+
+  h += '</tbody></table></div>';
+  el.innerHTML = h;
 }
 function prodCard(p){
   let loc=rackOf(p.id);
@@ -648,7 +1452,7 @@ function prodCard(p){
   return '<div class="prod-card" onclick="openProd('+p.id+')">'
     +'<div class="prod-thumb">'+ph+'</div>'
     +'<div class="prod-info"><div class="prod-name">'+p.name+'</div>'
-    +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+(loc.rack||loc).slice(1)+'</span>':'<span class="loc-tag none">No rack</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
+    +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+loc.slice(1)+'</span>':'<span class="loc-tag none">No rack</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
     +'<div class="prod-qty"><div class="prod-qty-n" style="color:'+qc+'">'+p.qty+'</div><div class="prod-qty-l">in stock</div></div>'
     +'</div>';
 }
@@ -674,87 +1478,64 @@ function txRow(t){
 function openProd(pid){
   let p=gP(pid); if(!p)return;
   _stockProd=p;
-  let loc=rackOf(p.id); // {rack, shelf} or null
-  let rackN=loc?loc.rack.slice(1):'—';
-  let shelfN=loc?({upper:'Upper shelf',mid:'Middle shelf',lower:'Lower shelf'}[loc.shelf||'mid']||loc.shelf):'—';
+  let loc=rackOf(p.id);
+  // Find last stock movement for this product
   let lastTx=txLog.filter(t=>t.pid===p.id&&(t.type==='in'||t.type==='out')).sort((a,b)=>new Date(b.at)-new Date(a.at))[0];
   let lastMover=lastTx?lastTx.user:'—';
   let lastMove=lastTx?fmtDate(lastTx.at):'Never';
   let lastMoveType=lastTx?(lastTx.type==='in'?'⬇ Stocked in':'⬆ Stocked out'):'';
-  let pct=p.threshold>0?Math.min(Math.round((p.qty/Math.max(p.qty,p.threshold*2))*100),100):0;
+  // Stock bar
+  let pct=p.threshold>0?Math.round((p.qty/Math.max(p.qty,p.threshold*2))*100):0;
+  pct=Math.min(pct,100);
+  let barColor=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
   let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
   document.getElementById('m-title').textContent=p.name;
   document.getElementById('m-sub').textContent=cN(p.cat)+' › '+sN(p.cat,p.sub);
   document.getElementById('m-body').innerHTML=
-    // Photo banner — shows product image
-    (p.photo
-      ?'<div style="height:140px;border-radius:12px;overflow:hidden;margin-bottom:14px;background:var(--sur2);cursor:zoom-in" onclick="showPhotoFullscreen(\''+p.id+'\')" title="Tap to zoom">'
-        +'<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:contain;background:#fff" onerror="this.parentNode.style.display=\'none\'">'
-        +'<div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.4);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px">🔍 Zoom</div>'
-      +'</div>'
-      :'<div style="height:100px;border-radius:12px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:14px">📦</div>'
-    )
-    // Location — rack + shelf
-    +'<div style="background:var(--bl2);border:1.5px solid rgba(59,130,246,.3);border-radius:12px;padding:12px;margin-bottom:12px;display:flex;gap:12px;align-items:center">'
-      +'<div style="font-size:32px">📍</div>'
-      +'<div><div style="font-size:17px;font-weight:900;color:var(--bl3)">Rack '+rackN+'</div>'
-      +'<div style="font-size:12px;color:var(--bl);margin-top:2px">'+shelfN+'</div></div>'
-    +'</div>'
-    // Stats grid
+    // Photo banner
+    (p.photo?'<div style="height:120px;border-radius:12px;overflow:hidden;margin-bottom:14px"><img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.display=\'none\'"></div>':'')
+    // Location
+    +'<div class="loc-big" style="margin-bottom:12px"><div class="loc-big-l">📍 Location</div><div class="loc-big-v">'+(loc?'Rack '+loc.slice(1):'—')+'</div><div class="loc-big-n">'+(loc?'Stored on Rack '+loc.slice(1):'Not assigned — use Setup')+'</div></div>'
+    // Info grid
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'
-      +'<div style="background:var(--sur2);border-radius:11px;padding:12px;text-align:center">'
+      +'<div style="background:var(--sur2);border-radius:11px;padding:12px">'
+        +'<div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">In stock</div>'
         +'<div style="font-size:28px;font-weight:900;color:'+qc+'">'+p.qty+'</div>'
-        +'<div style="font-size:10px;color:var(--tx3)">in stock (min '+p.threshold+')</div>'
+        +'<div style="font-size:10px;color:var(--tx3)">min: '+p.threshold+'</div>'
       +'</div>'
       +'<div style="background:var(--sur2);border-radius:11px;padding:12px">'
         +'<div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">SKU</div>'
-        +'<div style="font-size:12px;font-weight:700;font-family:monospace">'+p.sku+'</div>'
-        +'<div style="font-size:10px;color:var(--tx3);margin-top:3px">'+cN(p.cat)+'</div>'
+        +'<div style="font-size:13px;font-weight:700;font-family:monospace;color:var(--tx)">'+p.sku+'</div>'
+        +'<div style="font-size:10px;color:var(--tx3);margin-top:4px">'+cN(p.cat)+'</div>'
       +'</div>'
     +'</div>'
-    +'<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-bottom:4px"><span>Stock level</span><span>'+pct+'%</span></div><div style="height:10px;background:var(--sur3);border-radius:5px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+qc+';border-radius:5px;transition:width .4s"></div></div></div>'
-    +(p.barcode
-      ?'<div style="background:var(--sur2);border-radius:11px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px"><div><div style="font-size:9px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Barcode</div><div style="font-size:15px;font-weight:700;font-family:monospace;color:var(--gn)">'+p.barcode+'</div></div><span style="font-size:20px;margin-left:auto">✓</span></div>'
-      :'<div style="background:var(--rd2);border-radius:11px;padding:10px 12px;margin-bottom:8px;font-size:12px;color:var(--rd)">⚠ No barcode — use Register app</div>'
-    )
+    // Stock bar
+    +'<div style="margin-bottom:12px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-bottom:4px"><span>Stock level</span><span>'+Math.round(pct)+'%</span></div>'
+      +'<div style="height:10px;background:var(--sur3);border-radius:5px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:5px;transition:width .4s"></div></div>'
+    +'</div>'
+    // Barcode
+    +(p.barcode?'<div style="background:var(--sur2);border-radius:11px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Barcode</div><div style="font-size:15px;font-weight:700;font-family:monospace;color:var(--gn)">'+p.barcode+'</div></div><span style="font-size:22px">✓</span></div>':'<div style="background:var(--rd2);border-radius:11px;padding:10px 12px;margin-bottom:8px;font-size:12px;color:var(--rd)">⚠ No barcode — use Register app to scan one</div>')
+    // Last movement
     +'<div style="background:var(--sur2);border-radius:11px;padding:12px;margin-bottom:8px">'
       +'<div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Last movement</div>'
-      +'<div style="font-size:13px;font-weight:600;color:var(--tx)">'+(lastMoveType?lastMoveType+' · ':'<span style="color:var(--tx3)">Never moved</span>')+'<span style="color:var(--tx2)">'+lastMove+'</span></div>'
+      +'<div style="font-size:13px;font-weight:600;color:var(--tx)">'+(lastMoveType?lastMoveType+' · ':'')+'<span style="color:var(--tx2)">'+lastMove+'</span></div>'
       +'<div style="font-size:11px;color:var(--tx3);margin-top:3px">by '+lastMover+'</div>'
     +'</div>'
-    +'<div style="background:var(--bl2);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--tx2);line-height:1.5">💡 Stock in/out in the <b>Main app</b> — it shows Rack '+rackN+' · '+shelfN+' while scanning.</div>';
+    // Last updated
+    +'<div style="font-size:11px;color:var(--tx3);text-align:center">Last stock update: '+(p.lastUpdated||'—')+'</div>'
+    +'<div style="background:var(--bl2);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--tx2);line-height:1.5;margin-top:10px">💡 Stock in / out → use the <b>Main app</b>. It shows "Rack '+( loc?loc.slice(1):'—')+'" while scanning.</div>';
   document.getElementById('m-foot').innerHTML=
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%">'
-    +'<button class="act-btn ab-sec" onclick="closeModal()" style="justify-content:center">✕ Close</button>'
+    '<button class="act-btn ab-sec" onclick="closeModal()" style="flex:1">Close</button>'
     +(loc
-      ?'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')" style="justify-content:center">📍 Move rack</button>'
-      :'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')" style="justify-content:center">📍 Assign rack</button>')
-    +(loc
-      ?'<button onclick="removeFromRack('+p.id+')" style="padding:11px 8px;border-radius:var(--r);border:1.5px solid var(--rd);background:var(--rd2);color:var(--rd);font-size:13px;font-weight:600;cursor:pointer;justify-content:center">🗑 Remove from rack</button>'
-      :'')
-    +'</div>';
+      ?'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Change rack</button>'
+      :'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Assign rack</button>');
   document.getElementById('modal').classList.add('show');
 }
-
-function removeFromRack(pid){
-  if(!confirm('Remove this product from its rack?'))return;
-  delete rackMap[pid];
-  _pendingLoc[pid]=null;
-  saveLocal(); updateSyncBtn(); closeModal();
-  toast('Product removed from rack','ok');
-  refreshCurrent();
+function reassignFromModal(pid){
+  closeModal();
+  openLocPicker(pid);
 }
-
-function showPhotoFullscreen(pid){
-  let p=gP(parseInt(pid)); if(!p||!p.photo)return;
-  let lb=document.createElement('div');
-  lb.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out';
-  lb.innerHTML='<img src="'+p.photo+'" style="max-width:92vw;max-height:90vh;border-radius:12px;object-fit:contain">'
-    +'<div style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;font-size:13px;font-weight:600;padding:8px 20px;border-radius:20px;white-space:nowrap;max-width:85vw;overflow:hidden;text-overflow:ellipsis">'+p.name+'</div>';
-  lb.onclick=()=>lb.remove();
-  document.body.appendChild(lb);
-}
-function reassignFromModal(pid){ closeModal(); openLocPicker(pid); }
 function closeModal(){document.getElementById('modal').classList.remove('show');}
 
 // rack.html no longer changes stock — that's done in the Main app.
@@ -773,7 +1554,7 @@ function renderStockRecent(){
     return '<div class="prod-card" onclick="openProd('+p.id+')">'
       +'<div class="prod-thumb">'+ph+'</div>'
       +'<div class="prod-info"><div class="prod-name">'+p.name+'</div>'
-      +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+(loc.rack||loc).slice(1)+'</span>':'<span class="loc-tag none">No rack</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
+      +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+loc.slice(1)+'</span>':'<span class="loc-tag none">No rack</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
       +'<div class="prod-qty"><div class="prod-qty-n">'+p.qty+'</div><div class="prod-qty-l">in stock</div></div>'
       +'</div>';
   }).join('');
@@ -802,55 +1583,68 @@ function renderSetupList(q){
     return '<div class="prod-card" onclick="openLocPicker('+p.id+')">'
       +'<div class="prod-thumb">'+ph+'</div>'
       +'<div class="prod-info"><div class="prod-name">'+p.name+'</div>'
-      +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+(loc.rack||loc).slice(1)+'</span>':'<span class="loc-tag none">Tap to place</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
+      +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+loc.slice(1)+'</span>':'<span class="loc-tag none">Tap to place</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
       +'<div style="font-size:18px;color:var(--tx3)">›</div></div>';
   }).join('')+(list.length>80?'<div class="empty-s" style="text-align:center;padding:14px">Showing 80 of '+list.length+' — search to narrow</div>':'');
 }
-let _locPickProd=null, _locPickRack=null, _locPickShelf='mid';
-
+let _locPickProd=null,_locPickRack=null,_locPickShelf=null;
 function openLocPicker(pid){
   let p=gP(pid); if(!p)return;
   _locPickProd=p;
-  let cur=rackOf(pid);
-  _locPickRack=cur?cur.rack:null;
-  _locPickShelf=cur?cur.shelf:'mid';
+  _locPickRack=rackOf(pid)||null;
+  _locPickShelf=shelfOf(pid)||null;
   document.getElementById('m-title').textContent=p.name;
-  document.getElementById('m-sub').textContent='Assign rack & shelf position';
+  document.getElementById('m-sub').textContent='Pick rack & shelf · barcode unchanged';
   renderLocPickerBody();
   document.getElementById('m-foot').innerHTML=
-    (cur?'<button class="act-btn ab-sec" onclick="clearLoc()">Clear</button>':'')
+    (rackOf(pid)?'<button class="act-btn ab-sec" onclick="clearLoc()">Clear</button>':'')
     +'<button class="act-btn ab-loc" onclick="saveLoc()">📍 Save location</button>';
   document.getElementById('modal').classList.add('show');
 }
-const SHELF_NAMES={upper:'⬆ Upper',mid:'➡ Middle',lower:'⬇ Lower'};
 function renderLocPickerBody(){
-  let h='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">';
-  for(let [k,label] of Object.entries(SHELF_NAMES)){
-    let sel=_locPickShelf===k;
-    h+='<button onclick="pickShelf(\''+k+'\')" style="padding:11px 4px;border-radius:10px;border:2px solid '+(sel?'var(--pu)':'var(--bdr)')+';background:'+(sel?'var(--pu2)':'var(--sur2)')+';color:'+(sel?'var(--pu)':'var(--tx2)')+';font-size:13px;font-weight:'+(sel?'700':'500')+';cursor:pointer">'+label+'</button>';
+  let locTxt = _locPickRack
+    ? 'Rack '+_locPickRack.slice(1) + (_locPickShelf ? ' · '+shelfName(_locPickShelf) : '')
+    : '—';
+  let locSub = _locPickRack
+    ? (_locPickShelf
+        ? 'On '+shelfName(_locPickShelf).toLowerCase()+' shelf of Rack '+_locPickRack.slice(1)
+        : 'Now pick a shelf level below')
+    : 'Tap a rack below';
+  let h = '<div class="loc-big"><div class="loc-big-l">📍 Selected location</div><div class="loc-big-v">'+locTxt+'</div><div class="loc-big-n">'+locSub+'</div></div>';
+  h += '<div class="loc-lbl">Choose rack</div><div class="loc-grid">';
+  for (let r of rackList())
+    h += '<div class="loc-opt'+(_locPickRack===r?' on':'')+'" onclick="pickRack(\''+r+'\')">'+r+'</div>';
+  h += '</div>';
+  h += '<div class="loc-lbl">Choose shelf level</div><div class="shelf-pick-modal">';
+  for (let sh of SHELVES){
+    let on = _locPickShelf === sh.code ? ' on' : '';
+    h += '<button class="shelf-mo'+on+'" onclick="pickShelf(\''+sh.code+'\')">'
+      +    '<span class="ic">'+sh.icon+'</span>'
+      +    '<span>'+sh.name+'</span>'
+      +    '<span class="lb">'+sh.code+'</span>'
+      +  '</button>';
   }
-  h+='</div>';
-  h+='<div class="loc-lbl">Choose rack</div><div class="loc-grid">';
-  for(let r of rackList()) h+='<div class="loc-opt'+(_locPickRack===r?' on':'')+'" onclick="pickRack(\''+r+'\')">'+r+'</div>';
-  h+='</div>';
-  if(_locPickRack){
-    let sn={upper:'Upper shelf',mid:'Middle shelf',lower:'Lower shelf'}[_locPickShelf]||_locPickShelf;
-    h+='<div style="margin-top:12px;background:var(--pu2);border-radius:10px;padding:12px;text-align:center;font-size:14px;font-weight:700;color:var(--pu)">📍 Rack '+_locPickRack.slice(1)+' · '+sn+'</div>';
+  h += '</div>';
+  if (_locPickRack){
+    h += '<div class="loc-lbl">Live preview</div>';
+    h += rack3dHTML(_locPickRack, {activeShelf:_locPickShelf});
   }
   document.getElementById('m-body').innerHTML=h;
 }
 function pickRack(r){_locPickRack=r;renderLocPickerBody();}
 function pickShelf(s){_locPickShelf=s;renderLocPickerBody();}
 function saveLoc(){
-  let loc={rack:_locPickRack, shelf:_locPickShelf||'mid'};
+  if(!_locPickRack){toast('Pick a rack','err');return;}
+  let loc=_locPickRack + (_locPickShelf ? '-' + _locPickShelf : '');
   rackMap[_locPickProd.id]=loc;
   _pendingLoc[_locPickProd.id]=loc;
-  let tx={id:'tx'+Date.now()+Math.random().toString(36).slice(2,6),type:'set',pid:_locPickProd.id,prod:_locPickProd.name,qty:0,rack:loc.rack,at:nowISO(),user:'Rack'};
+  let tx={id:'tx'+Date.now()+Math.random().toString(36).slice(2,6),type:'set',pid:_locPickProd.id,prod:_locPickProd.name,qty:0,rack:_locPickRack,at:nowISO(),user:'Rack'};
   txLog.unshift(tx); _pendingTx.push(tx);
   saveLocal(); updateSyncBtn(); closeModal();
-  let shelfName={upper:'Upper shelf',mid:'Middle shelf',lower:'Lower shelf'}[loc.shelf]||loc.shelf;
-  toast('📍 '+_locPickProd.name.split(' ').slice(0,3).join(' ')+' → Rack '+loc.rack.slice(1)+' · '+shelfName,'ok');
-  flash('set'); renderSetup();
+  let shTxt = _locPickShelf ? ' · '+shelfName(_locPickShelf) : '';
+  toast('📍 '+_locPickProd.name.split(' ').slice(0,3).join(' ')+' → Rack '+_locPickRack.slice(1)+shTxt,'ok');
+  flash('set');
+  renderSetup();
 }
 function clearLoc(){
   delete rackMap[_locPickProd.id];
@@ -1258,7 +2052,7 @@ async function downloadProductLabels(){
     doc.text(bc,cx,y+13+bh+5,{align:'center'});
     let loc=rackOf(p.id);
     doc.setFontSize(8);doc.setFont(undefined,'bold');
-    if(loc){doc.setTextColor(59,130,246);doc.text('RACK '+(loc.rack||loc).slice(1),cx,y+lh-3,{align:'center'});}
+    if(loc){doc.setTextColor(59,130,246);doc.text('RACK '+loc.slice(1),cx,y+lh-3,{align:'center'});}
     else{doc.setTextColor(150);doc.text(sN(p.cat,p.sub),cx,y+lh-3,{align:'center'});}
     col++;
     if(col>=cols){col=0;x=m;y+=lh+gap;}else{x+=lw+gap;}
@@ -1286,22 +2080,14 @@ async function syncAll(){
           let {error}=await sbClient.from('rack_assignments').delete().eq('product_id',parseInt(pid));
           if(error)throw error;
         }else{
-          let locVal=_pendingLoc[pid]; // {rack, shelf} or null
-          let rk=locVal?(locVal.rack||locVal):null; // handle legacy string
-          let shelf=locVal?(locVal.shelf||'mid'):'mid';
-          let {error}=await sbClient.from('rack_assignments').upsert({product_id:parseInt(pid),rack:rk,shelf:shelf,updated_at:nowISO()});
+          let {error}=await sbClient.from('rack_assignments').upsert({product_id:parseInt(pid),rack:rk,updated_at:nowISO()});
           if(error)throw error;
         }
         delete _pendingLoc[pid];
       }catch(e){
         tableErr=true;
-        let errStr=String(e&&e.message||e);
-        if(errStr.match(/shelf|column.*not.*exist/i)){
-          toast("In Supabase SQL Editor run: ALTER TABLE rack_assignments ADD COLUMN IF NOT EXISTS shelf text default 'mid';","err");
-          b.disabled=false;updateSyncBtn();return;
-        }
-        if(errStr.match(/relation|does not exist|schema cache/i)){
-          toast('⚠ Run the SQL setup in QR tab','err');
+        if(String(e&&e.message||e).match(/relation|does not exist|schema cache/i)){
+          toast('⚠ Run the SQL setup first (see QR tab)','err');
           b.disabled=false;updateSyncBtn();return;
         }
       }
@@ -1332,9 +2118,8 @@ async function syncAll(){
         _pendingTx=_pendingTx.filter(x=>x.id!==tx.id);
       }catch(e){
         tableErr=true;
-        let errStr2=String(e&&e.message||e);
-        if(errStr2.match(/relation|does not exist|schema cache/i)){
-          toast('⚠ Run the SQL setup in QR tab','err');
+        if(String(e&&e.message||e).match(/relation|does not exist|schema cache/i)){
+          toast('⚠ Run the SQL setup first (see QR tab)','err');
           b.disabled=false;updateSyncBtn();return;
         }
       }
@@ -1354,58 +2139,24 @@ async function dbPull(){
   try{
     if(!window.supabase)await loadLib('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js');
     sbClient=window.supabase.createClient(SB_URL,SB_KEY);
-    // products (barcodes + qty only — photos handled separately below)
-    let {data}=await sbClient.from('products').select('id,name,sku,cat,sub,qty,threshold,vendor,barcode,last_updated');
+    // products (barcodes + qty)
+    let {data}=await sbClient.from('products').select('id,name,sku,cat,sub,qty,threshold,vendor,barcode,last_updated,photo');
     if(data&&data.length>=10){
       let valid=data.filter(r=>r.id&&r.name&&categories.some(c=>c.id===r.cat));
       if(valid.length>=10){
         valid.forEach(r=>{
           let p=gP(r.id);
-          if(p){p.name=r.name;p.sku=r.sku||p.sku;p.cat=r.cat;p.sub=r.sub;p.threshold=r.threshold||p.threshold;p.vendor=r.vendor||p.vendor;p.barcode=r.barcode||p.barcode;if(!_pendingProdQty[r.id])p.qty=r.qty!=null?r.qty:p.qty;}
+          if(p){p.name=r.name;p.sku=r.sku||p.sku;p.cat=r.cat;p.sub=r.sub;p.threshold=r.threshold||p.threshold;p.vendor=r.vendor||p.vendor;p.photo=r.photo||p.photo;p.barcode=r.barcode||p.barcode;if(!_pendingProdQty[r.id])p.qty=r.qty!=null?r.qty:p.qty;}
         });
       }
     }
-    // Fetch photos separately — only products that have a photo in DB
-    // Done in small batches to avoid response size limits
-    try{
-      let localPhotos={};
-      try{localPhotos=JSON.parse(localStorage.getItem(PHOTOS_KEY)||'{}');}catch(e){}
-      // First check which products have photos in DB using a lightweight query
-      let {data:photoPids}=await sbClient.from('products').select('id').not('photo','is',null);
-      if(photoPids&&photoPids.length){
-        // Fetch up to 10 photos at a time
-        let pids=photoPids.map(r=>r.id);
-        for(let i=0;i<pids.length;i+=10){
-          let batch=pids.slice(i,i+10);
-          try{
-            let {data:photoRows}=await sbClient.from('products')
-              .select('id,photo')
-              .in('id',batch);
-            if(photoRows){
-              photoRows.forEach(r=>{
-                if(r.photo&&r.photo.length>100){
-                  let p=gP(r.id);
-                  if(p){p.photo=r.photo;}
-                  // Cache in localStorage
-                  localPhotos[r.id]=r.photo;
-                }
-              });
-            }
-          }catch(e){}
-        }
-        // Save all fetched photos to localStorage
-        try{localStorage.setItem(PHOTOS_KEY,JSON.stringify(localPhotos));}catch(e){}
-      }
-    }catch(e){}
-    // Always re-apply localStorage photos last (in case DB had nothing)
-    mergeLocalProducts();
     // rack assignments from dedicated table
     try{
-      let {data:ra,error:rae}=await sbClient.from('rack_assignments').select('product_id,rack,shelf');
+      let {data:ra,error:rae}=await sbClient.from('rack_assignments').select('product_id,rack');
       if(!rae && ra){
         ra.forEach(row=>{
           if(!(String(row.product_id) in _pendingLoc) && !(row.product_id in _pendingLoc))
-            rackMap[row.product_id]={rack:row.rack, shelf:row.shelf||'mid'};
+            rackMap[row.product_id]=row.rack;
         });
       }
     }catch(e){}
@@ -1424,8 +2175,8 @@ async function dbPull(){
     }catch(e){}
     _dbOk=true;
     saveLocal();
-    mergeLocalProducts(); // re-apply local photos AFTER db overwrites — local is always source of truth
-    // Also pull photos from settings backup channel (cross-device sync)
+    mergeLocalProducts();
+    // Pull photos from settings backup channel (cross-device sync)
     try{
       let {data:photoRows}=await sbClient.from('settings').select('key,value').like('key','photo_%');
       if(photoRows&&photoRows.length){
@@ -1433,14 +2184,9 @@ async function dbPull(){
         let changed=false;
         photoRows.forEach(row=>{
           let pid=parseInt(row.key.replace('photo_',''));
-          if(pid&&row.value&&row.value.length>100&&row.value!==lp[pid]){
-            lp[pid]=row.value;
-            let p=gP(pid);if(p)p.photo=row.value;
-            changed=true;
-          }
+          if(pid&&row.value&&row.value.length>100&&row.value!==lp[pid]){lp[pid]=row.value;let p=gP(pid);if(p)p.photo=row.value;changed=true;}
         });
-        if(changed){try{localStorage.setItem(PHOTOS_KEY,JSON.stringify(lp));}catch(e){}
-        }
+        if(changed){try{localStorage.setItem(PHOTOS_KEY,JSON.stringify(lp));}catch(e){}}
       }
     }catch(e){}
     refreshCurrent();
@@ -1456,22 +2202,162 @@ function refreshCurrent(){
   if(document.getElementById('pg-stock').classList.contains('show'))renderStockRecent();
 }
 
+
+// ── PHOTO + BARCODE LOCAL MERGE ──
+const PHOTOS_KEY = 'citystar_photos_v1';
+function mergeLocalProducts(){
+  // Barcodes
+  try{
+    let raw=localStorage.getItem(GLOBAL_PRODS_KEY);
+    if(raw){let m=JSON.parse(raw);for(let pid in m){let p=products.find(x=>x.id==parseInt(pid));if(p&&m[pid])p.barcode=m[pid];}}
+  }catch(e){}
+  // Photos — most important: always apply from local cache
+  try{
+    let photos=JSON.parse(localStorage.getItem(PHOTOS_KEY)||'{}');
+    for(let pid in photos){
+      let p=products.find(x=>x.id==parseInt(pid));
+      if(p&&photos[pid])p.photo=photos[pid]; // always override — local is authoritative
+    }
+  }catch(e){}
+}
+mergeLocalProducts();
+
+
+// ── 3-SHELF RACK SYSTEM (from working version) ──
+// rackOf returns {rack:"R2", shelf:"mid"} or null. Handles legacy string format.
+function rackOf(pid){
+  let v=rackMap[pid]; if(!v)return null;
+  if(typeof v==='string')return {rack:v,shelf:'mid'}; // backward compat
+  return v;
+}
+function rackNum(pid){ let r=rackOf(pid); return r?r.rack:null; }
+function shelfOf(pid){ let r=rackOf(pid); return r?(r.shelf||'mid'):null; }
+function rackList(){let a=[];for(let i=1;i<=RACK_COUNT;i++)a.push('R'+i);return a;}
+function prodsInRack(rk){ return products.filter(p=>{ let r=rackOf(p.id); return r&&r.rack===rk; }); }
+function prodsOnShelf(rk,shelf){ return products.filter(p=>{ let r=rackOf(p.id); return r&&r.rack===rk&&(r.shelf||'mid')===shelf; }); }
+
+
+function renderRackProducts(){
+  let ps=prodsInRack(curRack);
+  let el=document.getElementById('rd-products');
+  if(!ps.length){
+    el.innerHTML='<div class="empty"><div class="empty-ic">📭</div><div class="empty-t">No products in this rack yet</div><div class="empty-s">Use Setup → assign products to this rack</div></div>';
+    return;
+  }
+  let total=ps.length, outCount=ps.filter(p=>p.qty===0).length, lowCount=ps.filter(p=>p.qty>0&&p.qty<=p.threshold).length, okCount=total-lowCount-outCount;
+  let h='<div class="rack-summary" style="margin-bottom:14px">'
+    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--gn)">'+okCount+'</div><div class="rs-card-l">OK</div></div>'
+    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--am)">'+lowCount+'</div><div class="rs-card-l">Low</div></div>'
+    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--rd)">'+outCount+'</div><div class="rs-card-l">Out</div></div>'
+    +'</div>';
+  const SHELVES=[
+    {id:'upper',label:'Upper Shelf',icon:'⬆'},
+    {id:'mid',  label:'Middle Shelf',icon:'➡'},
+    {id:'lower', label:'Lower Shelf', icon:'⬇'}
+  ];
+  h+='<div class="visual-rack">';
+  for(let shelf of SHELVES){
+    let sProds=prodsOnShelf(curRack,shelf.id);
+    h+='<div class="shelf-section">'
+      +'<div class="shelf-label"><span class="shelf-label-icon">'+shelf.icon+'</span> '+shelf.label+'<span class="shelf-count">'+sProds.length+' product'+(sProds.length!==1?'s':'')+'</span></div>'
+      +'<div class="shelf-plank" style="position:relative">';
+    if(!sProds.length){
+      h+='<div class="shelf-empty">📭 Empty — assign in Setup</div>';
+    }else{
+      sProds.forEach(p=>{
+        let qc  = p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
+        let pct = p.threshold>0?Math.min(Math.round(p.qty/Math.max(p.qty,p.threshold*2)*100),100):50;
+        let sdCls = p.qty===0?'rd':p.qty<=p.threshold?'am':'gn';
+        let imgHtml = p.photo
+          ? '<img src="'+p.photo+'" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
+            +'<div class="slot-emoji" style="display:none;align-items:center;justify-content:center;height:100%;font-size:40px">📦</div>'
+          : '<div class="slot-emoji" style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">📦</div>';
+        h+='<div class="prod-slot" onclick="openProd('+p.id+')">'
+          +'<div class="slot-img">'+imgHtml+'</div>'
+          +'<div class="slot-status-dot '+sdCls+'"></div>'
+          +'<div class="slot-info">'
+            +'<div class="slot-name">'+p.name+'</div>'
+            +(p.barcode?'<div class="slot-bc">'+p.barcode+'</div>':'<div class="slot-bc" style="color:var(--am3)">No barcode</div>')
+          +'</div>'
+          +'<div class="slot-footer">'
+            +'<div class="slot-qty" style="color:'+qc+'">'+p.qty+'</div>'
+            +'<div class="slot-bar"><div class="slot-bar-fill" style="width:'+pct+'%;background:'+qc+'"></div></div>'
+          +'</div>'
+          +'</div>';
+      });
+    }
+    h+='</div></div>';
+  }
+  h+='</div>';
+  h+="<details style=\"margin-top:16px\"><summary style=\"font-size:12px;font-weight:700;color:var(--tx3);cursor:pointer;padding:8px 0;text-transform:uppercase;letter-spacing:.06em\">All products — tracker table</summary>";
+  h+="<div style=\"overflow-x:auto;margin-top:8px\"><table class=\"rack-table\"><thead><tr><th>Product</th><th>Shelf</th><th style=\"text-align:right\">Stock</th><th>Level</th></tr></thead><tbody>";
+  [...ps].sort((a,b)=>a.qty-b.qty).forEach(p=>{
+    let qc=p.qty===0?"var(--rd)":p.qty<=p.threshold?"var(--am)":"var(--gn)";
+    let pct=p.threshold>0?Math.min(Math.round(p.qty/Math.max(p.qty,p.threshold*2)*100),100):50;
+    let shelf=shelfOf(p.id)||"mid";
+    let sn={upper:"Upper",mid:"Middle",lower:"Lower"}[shelf]||shelf;
+    h+="<tr onclick=\"openProd("+p.id+")\">"
+      +"<td><div class=\"rt-name\">"+p.name+"</div><div class=\"rt-sku\">"+p.sku+(p.barcode?" · "+p.barcode:"")+"</div></td>"
+      +"<td style=\"font-size:11px;color:var(--tx3)\">"+sn+"</td>"
+      +"<td class=\"rt-qty\" style=\"color:"+qc+"\">"+p.qty+"</td>"
+      +"<td class=\"rt-bar-wrap\"><div class=\"rt-bar-bg\"><div class=\"rt-bar-fill\" style=\"width:"+pct+"%;background:"+qc+"\"></div></div></td>"
+      +"</tr>";
+  });
+  h+="</tbody></table></div></details>";
+  el.innerHTML=h;
+}
+
+function openLocPicker(pid){
+  let p=gP(pid); if(!p)return;
+  _locPickProd=p;
+  let cur=rackOf(pid);
+  _locPickRack=cur?cur.rack:null;
+  _locPickShelf=cur?cur.shelf:'mid';
+  document.getElementById('m-title').textContent=p.name;
+  document.getElementById('m-sub').textContent='Assign rack & shelf position';
+  renderLocPickerBody();
+  document.getElementById('m-foot').innerHTML=
+    (cur?'<button class="act-btn ab-sec" onclick="clearLoc()">Clear</button>':'')
+    +'<button class="act-btn ab-loc" onclick="saveLoc()">📍 Save location</button>';
+  document.getElementById('modal').classList.add('show');
+}
+const SHELF_NAMES={upper:'⬆ Upper',mid:'➡ Middle',lower:'⬇ Lower'};
+function renderLocPickerBody(){
+  let h='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">';
+  for(let [k,label] of Object.entries(SHELF_NAMES)){
+    let sel=_locPickShelf===k;
+    h+='<button onclick="pickShelf(\''+k+'\')" style="padding:11px 4px;border-radius:10px;border:2px solid '+(sel?'var(--pu)':'var(--bdr)')+';background:'+(sel?'var(--pu2)':'var(--sur2)')+';color:'+(sel?'var(--pu)':'var(--tx2)')+';font-size:13px;font-weight:'+(sel?'700':'500')+';cursor:pointer">'+label+'</button>';
+  }
+  h+='</div>';
+  h+='<div class="loc-lbl">Choose rack</div><div class="loc-grid">';
+  for(let r of rackList()) h+='<div class="loc-opt'+(_locPickRack===r?' on':'')+'" onclick="pickRack(\''+r+'\')">'+r+'</div>';
+  h+='</div>';
+  if(_locPickRack){
+    let sn={upper:'Upper shelf',mid:'Middle shelf',lower:'Lower shelf'}[_locPickShelf]||_locPickShelf;
+    h+='<div style="margin-top:12px;background:var(--pu2);border-radius:10px;padding:12px;text-align:center;font-size:14px;font-weight:700;color:var(--pu)">📍 Rack '+_locPickRack.slice(1)+' · '+sn+'</div>';
+  }
+  document.getElementById('m-body').innerHTML=h;
+}
+function pickRack(r){_locPickRack=r;renderLocPickerBody();}
+function pickShelf(s){_locPickShelf=s;renderLocPickerBody();}
+function saveLoc(){
+  let loc={rack:_locPickRack, shelf:_locPickShelf||'mid'};
+  rackMap[_locPickProd.id]=loc;
+  _pendingLoc[_locPickProd.id]=loc;
+  let tx={id:'tx'+Date.now()+Math.random().toString(36).slice(2,6),type:'set',pid:_locPickProd.id,prod:_locPickProd.name,qty:0,rack:loc.rack,at:nowISO(),user:'Rack'};
+  txLog.unshift(tx); _pendingTx.push(tx);
+  saveLocal(); updateSyncBtn(); closeModal();
+  let shelfName={upper:'Upper shelf',mid:'Middle shelf',lower:'Lower shelf'}[loc.shelf]||loc.shelf;
+  toast('📍 '+_locPickProd.name.split(' ').slice(0,3).join(' ')+' → Rack '+loc.rack.slice(1)+' · '+shelfName,'ok');
+  flash('set'); renderSetup();
+}
+
 // ── BOOT ──
 loadLocal();
 stTab('in');
 nav('racks');
 updateSyncBtn();
 dbPull();
-
-// When user returns to this tab, re-apply photos and refresh (handles lazy loading)
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    mergeLocalProducts();
-    refreshCurrent();
-  }
-});
-// Also refresh photos 2 seconds after page load (photos may arrive from localStorage after initial render)
-setTimeout(() => { mergeLocalProducts(); refreshCurrent(); }, 2000);
 </script>
 </body>
 </html>

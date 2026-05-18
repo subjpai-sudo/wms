@@ -138,6 +138,70 @@ input{user-select:auto}
 .t-ok{background:#0d2210;color:var(--gn);border:1px solid rgba(34,197,94,.3)}
 .t-err{background:var(--rd2);color:var(--rd);border:1px solid rgba(239,68,68,.3)}
 .t-syn{background:var(--pu2);color:var(--pu);border:1px solid rgba(91,71,251,.3)}
+
+/* Modern SaaS redesign layer */
+:root{
+  --pu:#2563EB;--pu2:#EAF2FF;--pu3:#1D4ED8;
+  --bg:#F4F7FB;--sur:#FFFFFF;--sur2:#F8FAFC;--sur3:#E7EEF7;
+  --bdr:#DDE6F2;--bdr2:#B9C8DC;
+  --tx:#101828;--tx2:#526173;--tx3:#8A99AD;
+  --gn:#10B981;--gn2:#EAFBF5;--gn3:#047857;
+  --am:#F59E0B;--am2:#FFF7E8;--am3:#B45309;
+  --rd:#EF4444;--rd2:#FFF0F0;--rd3:#B91C1C;
+  --bl:#06B6D4;--bl2:#E7FAFE;--bl3:#0E7490;
+  --r:8px;--rl:8px;--rx:10px;
+  --sh-sm:0 1px 2px rgba(16,24,40,.05),0 1px 1px rgba(16,24,40,.03);
+  --sh-md:0 14px 34px rgba(16,24,40,.1);
+}
+body{background:linear-gradient(180deg,#F8FBFF 0%,#F0F5FA 62%,#EDF4F8 100%);color:var(--tx)}
+html,body{max-width:100%;overflow-x:hidden}
+#topbar{height:60px;background:rgba(255,255,255,.9);backdrop-filter:blur(18px);border-bottom:1px solid rgba(221,230,242,.9);padding:0 16px;box-shadow:0 10px 32px rgba(16,24,40,.06)}
+.logo{font-size:15px;color:#0B1220}
+.logo-ic{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#2563EB,#06B6D4);box-shadow:0 10px 22px rgba(37,99,235,.24)}
+.logo small{color:#7B8A9E}
+.logo{min-width:0}.logo>div:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#prog-chip{border-radius:8px;background:#EAFBF5;color:#047857;border-color:#B8EFD9}
+#progbar{background:linear-gradient(90deg,#2563EB,#06B6D4,#10B981)}
+#crumb{background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-bottom-color:#DDE6F2}
+.crumb-cat{color:#1D4ED8}.crumb-sub{color:#0E7490}
+#cam-area{height:40vh;border-bottom:1px solid #DDE6F2}
+#cam-gate{background:linear-gradient(180deg,#F8FBFF,#EDF4F8)}
+#cam-gate-btn{border-radius:8px;background:linear-gradient(135deg,#2563EB,#06B6D4);box-shadow:0 14px 28px rgba(37,99,235,.25)}
+.sw-box.reading::before,.sw-box.reading::after,.sw-box.reading .sw-tr,.sw-box.reading .sw-bl{border-color:#22D3EE}
+.sw-line{background:linear-gradient(90deg,transparent,#22D3EE 30%,#fff 50%,#22D3EE 70%,transparent);box-shadow:0 0 18px #22D3EE}
+#current-card{background:linear-gradient(180deg,#F8FBFF 0%,#F0F5FA 100%)}
+.cur-main{padding:22px}
+.cur-cat-tag,.cur-bc-status,.cs-cat-prog{border-radius:8px;font-weight:850}
+.cur-cat-tag{background:#EAF2FF;color:#1D4ED8;border:1px solid #BFD7FF}
+.cur-name{font-size:23px;color:#0B1220}
+.cur-name{max-width:100%;overflow-wrap:anywhere}
+.cur-actions,#man-bar{background:rgba(255,255,255,.94);backdrop-filter:blur(18px);border-top-color:#DDE6F2;box-shadow:0 -12px 28px rgba(16,24,40,.06)}
+.big-btn,.man-inp,.man-save,.cs-cat-hdr,.cs-sub,#labels-modal button,#labels-modal select{border-radius:8px}
+.bb-manual{background:#E7FAFE;color:#0E7490;border-color:#B6EDF6}
+.bb-skip,.bb-prev{background:#F8FAFC;color:#526173;border-color:#DDE6F2}
+.bb-rescan{background:#F59E0B;color:#3D2500}
+.bb-clear{background:#FFF0F0;color:#B91C1C}
+.man-save{background:#10B981;color:#062F22}
+#cat-sheet,#labels-modal{background:rgba(244,247,251,.96);backdrop-filter:blur(18px)}
+.cs-hdr{border-bottom-color:#DDE6F2}
+.cs-cat-hdr{background:#fff;border-color:#DDE6F2;box-shadow:0 8px 20px rgba(16,24,40,.05)}
+.cs-sub.active{background:#EAF2FF;border-color:#BFD7FF}
+#done-screen{background:linear-gradient(180deg,#F8FBFF,#EDF4F8)}
+#done-screen button{border-radius:8px;background:linear-gradient(135deg,#2563EB,#06B6D4)}
+#toast{border-radius:8px}
+@media(max-width:768px){
+  #topbar{gap:8px}
+  #topbar .logo{font-size:14px}
+  #prog-chip{padding:5px 9px}
+  #topbar button[title="Shelf labels PDF"]{display:none}
+  #sync-hint{font-size:10px!important}
+  #cam-area{height:40vh;min-height:190px}
+  .cur-name{font-size:20px;line-height:1.25}
+  .cur-main{padding:18px 16px}
+  .act-row{min-width:0}
+  .big-btn{min-width:0;padding:15px 10px;font-size:14px}
+  .bb-prev{flex-basis:64px}
+}
 </style>
 </head>
 <body>
