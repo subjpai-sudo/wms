@@ -3209,34 +3209,21 @@ function bulkConfirmSkip() {
   if (_bulkConfirmResolve) { _bulkConfirmResolve('skip'); _bulkConfirmResolve = null; }
 }
 
-// Fetch image URL via /api/openai-image (server-side OpenAI / Google CSE)
+// Fetch image via /api/openai-image — server returns base64 data URL directly
+// No CORS issues, no proxy needed — image is ready to save immediately
 async function fetchProductImage(productName) {
   let res = await fetchTimeout('/api/openai-image', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ productName }),
-  }, 25000);
+  }, 30000);
   if (!res.ok) {
     let err = {}; try { err = await res.json(); } catch(e) {}
     throw new Error(err.error || 'API error ' + res.status);
   }
   let data = await res.json();
-  if (!data.imageUrl) throw new Error('No image returned');
-  return data;
-}
-
-// Convert image URL → base64 via CORS proxy
-async function imageUrlToBase64(url) {
-  let proxyUrl = '/api/image-proxy?url=' + encodeURIComponent(url);
-  let res = await fetchTimeout(proxyUrl, {}, 15000);
-  if (!res.ok) throw new Error('Proxy fetch failed: ' + res.status);
-  let blob = await res.blob();
-  return new Promise((resolve, reject) => {
-    let reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+  if (!data.dataUrl) throw new Error(data.error || 'No image returned');
+  return data; // {dataUrl, source, title, generated?}
 }
 
 // Show image in confirmation panel and wait for user's choice
@@ -3298,30 +3285,18 @@ async function startBulkImages() {
       log.textContent += p.name.slice(0, 32) + ': searching…\n';
       log.scrollTop = log.scrollHeight;
 
-      // Step 1: get image URL from OpenAI/Google
+      // Step 1: fetch image from OpenAI/Google — returns base64 data URL directly
       let data = await fetchProductImage(p.name);
-      let imgUrl = data.imageUrl;
+      let photo = data.dataUrl; // already base64, ready to save and display
       let source = data.source || 'ai';
-      log.textContent += '  Found URL (' + source + '), loading…\n';
+      let generated = data.generated ? ' (AI generated)' : '';
+      log.textContent += '  Found via ' + source + generated + '\n';
       log.scrollTop = log.scrollHeight;
 
-      // Step 2: ALWAYS convert to base64 through proxy before showing preview
-      // This guarantees the image displays in the confirm panel AND is ready to save
-      let photo = null;
-      try {
-        photo = await imageUrlToBase64(imgUrl);
-        log.textContent += '  Image loaded ✓\n';
-      } catch(e) {
-        // Proxy failed — try loading the URL directly as last resort
-        photo = imgUrl;
-        log.textContent += '  Loaded as URL (proxy failed)\n';
-      }
-      log.scrollTop = log.scrollHeight;
-
-      // Step 3: confirm or auto-save
+      // Step 2: confirm or auto-save
       let action = 'save';
       if (mode === 'confirm') {
-        action = await _showConfirmPanel(p, photo, source);
+        action = await _showConfirmPanel(p, photo, source + generated);
         if (!_bulkRunning) break;
       }
 
@@ -3331,7 +3306,6 @@ async function startBulkImages() {
         sbPushProduct(p);
         log.textContent += '  ✓ Saved!\n';
         success++;
-        // Refresh products page live
         if (document.getElementById('page-products').classList.contains('on')) renderProds();
       } else {
         log.textContent += '  — Skipped\n';
