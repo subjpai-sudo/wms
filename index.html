@@ -907,10 +907,10 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
 
       <div class="d2-qa-mini">
         <div class="d2-qa-mini-c" onclick="nav('orders');setOType('low')">
-          <div class="d2-qa-mini-ic"><svg width="16" height="16"><use href="#ic-wa"/></svg></div>
+          <div class="d2-qa-mini-ic"><svg width="16" height="16"><use href="#ic-send"/></svg></div>
           <div class="d2-qa-mini-tx">
             <b><span id="d2-mini-low">0</span> items below threshold</b>
-            <span>Send restock alert via WhatsApp</span>
+            <span>Send restock SMS to supplier</span>
           </div>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
@@ -974,6 +974,18 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
     <span id="hl-ok">0</span><span id="hl-low">0</span><span id="hl-out">0</span><span id="h-pct">0%</span>
     <canvas id="mv-chart"></canvas><canvas id="h-donut" width="100" height="100"></canvas><canvas id="dest-donut" width="140" height="140"></canvas>
     <div id="cat-bars"></div><div id="top-movers"></div><div id="shop-tracker"></div>
+
+  <!-- AI INSIGHTS CARD -->
+  <div class="card mb10" id="ai-insight-card" style="background:linear-gradient(135deg,#0F172A 0%,#1e293b 100%);border:none;border-radius:var(--rl);overflow:hidden">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🤖</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#fff">AI Warehouse Insights</div><div style="font-size:11px;color:rgba(255,255,255,.5)" id="ai-insight-time">Tap to generate</div></div>
+      <button onclick="refreshAiInsight()" id="ai-insight-btn" style="background:rgba(91,71,251,.7);border:none;border-radius:var(--r);padding:7px 14px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s">✦ Refresh</button>
+    </div>
+    <div id="ai-insight-body" style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.8;min-height:48px">
+      <span style="color:rgba(255,255,255,.35)">Press Refresh to get an AI summary of what's happening in the warehouse right now…</span>
+    </div>
+  </div>
     <span id="dest-shop-pct">0%</span><span id="dest-del-pct">0%</span>
     <div id="dest-shop-bar"></div><div id="dest-del-bar"></div>
     <span id="shop-total-badge"></span><span id="del-total-badge"></span><span id="dest-total-label"></span>
@@ -1345,13 +1357,19 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
 
 <!-- ORDER REQUEST -->
 <div class="page" id="page-orders">
-  <div class="fx gap8 mb4"><div class="pt" style="flex:1">Order request</div><button class="btn btn-sm" onclick="toggleWA()"><svg width="13" height="13"><use href="#ic-settings"/></svg> WA <span id="wa-dot" style="width:7px;height:7px;border-radius:50%;background:var(--tx3);display:inline-block;margin-left:2px;vertical-align:middle"></span></button></div>
-  <div class="ps">Send restock or new order alert to owner via WhatsApp</div>
-  <div id="wa-panel" style="display:none;margin-bottom:14px">
-    <div class="card" style="border:1.5px solid var(--wa)">
-      <div class="fx gap10 mb10"><div style="width:32px;height:32px;border-radius:var(--r);background:#e7fce7;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" style="color:var(--wa)"><use href="#ic-wa"/></svg></div><div style="flex:1"><div style="font-size:13px;font-weight:600">WhatsApp setup</div><div style="font-size:11px;color:var(--tx2)">Relay server — no API fees</div></div><div id="wa-status-badge" class="badge bgr">Not connected</div></div>
-      <div class="g2 mb10"><div><label style="font-size:11px;color:var(--tx2);display:block;margin-bottom:3px">Server URL</label><input type="text" id="wa-server" placeholder="http://localhost:3456" value="http://localhost:3456"/></div><div><label style="font-size:11px;color:var(--tx2);display:block;margin-bottom:3px">Owner's number</label><input type="text" id="wa-phone" placeholder="959123456789" inputmode="numeric"/></div></div>
-      <div class="fx gap8"><button class="btn btn-sm" onclick="testWA()" id="wa-test-btn"><svg width="12" height="12"><use href="#ic-link"/></svg> Test</button><button class="btn btn-sm btn-pu" onclick="saveWA()">Save</button><div id="wa-conn-msg" style="font-size:12px;color:var(--tx3)"></div></div>
+  <div class="pt">Order requests</div>
+  <div class="ps">Send restock or new product alerts via SMS to your team</div>
+  <!-- SMS recipient -->
+  <div class="card mb10">
+    <div class="fx gap10 mb8">
+      <div style="width:32px;height:32px;border-radius:var(--r);background:var(--gn2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">📱</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">Send SMS to</div><div style="font-size:11px;color:var(--tx2)">via Twilio — team member must have a phone number in Settings</div></div>
+    </div>
+    <select id="order-recipient" style="font-size:13px;width:100%"></select>
+    <select id="order-recipient-new" style="font-size:13px;width:100%;display:none;margin-top:6px"></select>
+  </div>
+  </div>
+      
     </div>
   </div>
   <div class="g2 mb12">
@@ -1370,11 +1388,11 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
     <div class="card mb10">
       <div class="sec">Send alert to</div>
       <select id="order-recipient" style="margin-bottom:8px;font-size:13px">
-        <option value="wa">WhatsApp only</option>
+        
       </select>
       <div style="font-size:11px;color:var(--tx3)">Select a team member with a phone number to also send SMS</div>
     </div>
-    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn btn-wa" id="send-low-btn" onclick="sendOrder('low')"><svg width="13" height="13"><use href="#ic-wa"/></svg> Send alert</button></div>
+    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn" id="send-low-btn" onclick="sendOrder('low')" style="background:var(--gn);color:#fff;border-color:var(--gn)">📱 Send SMS</button></div>
   </div>
   <div id="of-new" style="display:none">
     <div class="card mb10"><div class="sec">New items to order</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th>Category</th><th class="hm">Brand</th><th>Qty</th><th></th></tr></thead><tbody id="no-tbl"></tbody></table></div><button class="btn btn-sm mt8" onclick="addNORow()"><svg width="12" height="12"><use href="#ic-plus"/></svg> Add item</button></div>
@@ -1382,15 +1400,21 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
     <div class="card mb10">
       <div class="sec">Send alert to</div>
       <select id="order-recipient-new" style="margin-bottom:8px;font-size:13px">
-        <option value="wa">WhatsApp only</option>
+        
       </select>
       <div style="font-size:11px;color:var(--tx3)">Select a team member with a phone number to also send SMS</div>
     </div>
-    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn btn-wa" id="send-new-btn" onclick="sendOrder('new')"><svg width="13" height="13"><use href="#ic-wa"/></svg> Send alert</button></div>
+    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn" id="send-new-btn" onclick="sendOrder('new')" style="background:var(--gn);color:#fff;border-color:var(--gn)">📱 Send SMS</button></div>
   </div>
   <div id="send-result" style="display:none;margin-top:10px"></div>
   <div class="card mt20"><div class="sec">Request history</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Request</th><th class="hm">Type</th><th class="hm">Items</th><th>Sent</th><th>Alert</th><th>Status</th></tr></thead><tbody id="oh-tbl"></tbody></table></div></div>
-  <div id="wa-preview" style="display:none;margin-top:14px"><div class="sec mb8">Message preview</div><div class="wa-bubble"><div class="wa-msg" id="wa-msg-body"></div><div style="font-size:10px;color:var(--tx3);text-align:right;margin-top:4px" id="wa-msg-time"></div></div></div>
+  <div id="sms-preview" style="display:none;margin-top:14px">
+    <div class="sec mb8">📱 SMS preview</div>
+    <div style="background:var(--sur2);border-radius:var(--rl);padding:14px 16px;border:1px solid var(--bdr)">
+      <div style="font-size:12px;color:var(--tx);white-space:pre-line;line-height:1.8;font-family:monospace" id="sms-msg-body"></div>
+      <div style="font-size:10px;color:var(--tx3);text-align:right;margin-top:8px" id="sms-msg-time"></div>
+    </div>
+  </div>
 </div>
 
 
@@ -1887,9 +1911,11 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
       <div style="font-size:16px;font-weight:700;flex:1">🖼 Auto-fetch product images</div>
       <button class="btn btn-sm" onclick="closeModal('m-bulk-img')"><svg width="14" height="14"><use href="#ic-x"/></svg></button>
     </div>
-    <div style="font-size:13px;color:var(--tx2);margin-bottom:10px">Uses OpenAI to find the best product photo for each item. You confirm or skip each one before saving.</div>
-    <div style="background:var(--bl2);border-radius:var(--r);padding:10px 12px;font-size:12px;color:var(--bl3);margin-bottom:12px">
-      <b>Setup:</b> Add <code style="background:rgba(0,0,0,.07);padding:1px 5px;border-radius:3px">OPENAI_API_KEY</code> to Vercel env vars. Optionally add <code style="background:rgba(0,0,0,.07);padding:1px 5px;border-radius:3px">GOOGLE_CSE_KEY</code> + <code style="background:rgba(0,0,0,.07);padding:1px 5px;border-radius:3px">GOOGLE_CSE_CX</code> for Google Custom Search (100 free/day).
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:10px">Uses SerpAPI Google Images to find and save product photos. Confirm or skip each one before saving.</div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px;font-weight:500">SerpAPI key</label>
+      <input type="text" id="serp-key" placeholder="Paste your SerpAPI key here" autocomplete="off"/>
+      <div style="font-size:11px;color:var(--tx3);margin-top:4px">Free key at <strong>serpapi.com</strong> — 100 searches/month free. Key is saved locally.</div>
     </div>
     <div class="fx gap8 mb12">
       <div style="flex:1">
@@ -4019,6 +4045,9 @@ let _bulkRunning = false;
 let _bulkConfirmResolve = null; // promise resolver for confirm/skip
 
 function openBulkImages() {
+  let saved = localStorage.getItem('serp_key');
+  let inp = document.getElementById('serp-key');
+  if (inp && saved) inp.value = saved;
   document.getElementById('bulk-img-progress').style.display = 'none';
   document.getElementById('bulk-confirm-panel').style.display = 'none';
   document.getElementById('bulk-prog-log').textContent = '';
@@ -4039,33 +4068,32 @@ function bulkConfirmSkip() {
   if (_bulkConfirmResolve) { _bulkConfirmResolve('skip'); _bulkConfirmResolve = null; }
 }
 
-// Fetch image URL via /api/openai-image (server-side OpenAI / Google CSE)
-async function fetchProductImage(productName) {
-  let res = await fetchTimeout('/api/openai-image', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ productName }),
-  }, 25000);
-  if (!res.ok) {
-    let err = {}; try { err = await res.json(); } catch(e) {}
-    throw new Error(err.error || 'API error ' + res.status);
-  }
+// ── SerpAPI image search ─────────────────────────────────────────
+// Search via /api/search-image, proxy each URL via /api/image-proxy → base64
+async function fetchProductImage(productName, serpKey) {
+  let q = encodeURIComponent(productName + ' myanmar food product package');
+  let res = await fetchTimeout('/api/search-image?q=' + q + '&key=' + encodeURIComponent(serpKey), {}, 15000);
+  if (!res.ok) { let e={}; try{e=await res.json();}catch(x){} throw new Error(e.error||'SerpAPI '+res.status); }
   let data = await res.json();
-  if (!data.imageUrl) throw new Error('No image returned');
-  return data;
+  let imgs = (data.images||[]).filter(i=>i.url);
+  if (!imgs.length) throw new Error('No images found');
+  // Try up to 4 URLs — proxy each to base64 (bypasses CORS)
+  for (let img of imgs.slice(0,4)) {
+    try { return { b64: await _imgToBase64(img.url) }; } catch(e) { continue; }
+  }
+  throw new Error('All image URLs failed');
 }
 
-// Convert image URL → base64 via CORS proxy
-async function imageUrlToBase64(url) {
-  let proxyUrl = '/api/image-proxy?url=' + encodeURIComponent(url);
-  let res = await fetchTimeout(proxyUrl, {}, 15000);
-  if (!res.ok) throw new Error('Proxy fetch failed: ' + res.status);
+async function _imgToBase64(imgUrl) {
+  let res = await fetchTimeout('/api/image-proxy?url=' + encodeURIComponent(imgUrl), {}, 12000);
+  if (!res.ok) throw new Error('Proxy ' + res.status);
   let blob = await res.blob();
+  if (!blob.type.startsWith('image/')) throw new Error('Not an image');
   return new Promise((resolve, reject) => {
-    let reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
+    let r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error('FileReader failed'));
+    r.readAsDataURL(blob);
   });
 }
 
@@ -4095,11 +4123,14 @@ function _showConfirmPanel(p, b64, source) {
 }
 
 async function startBulkImages() {
+  let key = document.getElementById('serp-key')?.value.trim();
+  if (!key) { toast('Enter your SerpAPI key first', 'rd'); return; }
+  localStorage.setItem('serp_key', key);
+
   let scope = document.getElementById('bulk-img-scope').value;
   let mode  = document.getElementById('bulk-img-mode').value;
-
-  let targets = scope === 'all' ? products : products.filter(p => !p.photo);
-  if (!targets.length) { toast('No products need images', 'rd'); return; }
+  let targets = scope === 'all' ? [...products] : products.filter(p => !p.photo);
+  if (!targets.length) { toast('All products already have photos', 'ok'); return; }
 
   _bulkRunning = true;
   document.getElementById('bulk-img-progress').style.display = 'block';
@@ -4109,77 +4140,56 @@ async function startBulkImages() {
   document.getElementById('bulk-cancel-btn').onclick = () => {
     _bulkRunning = false;
     if (_bulkConfirmResolve) { _bulkConfirmResolve('skip'); _bulkConfirmResolve = null; }
+    document.getElementById('bulk-confirm-panel').style.display = 'none';
   };
 
   let log = document.getElementById('bulk-prog-log');
   let bar = document.getElementById('bulk-prog-bar');
   let lbl = document.getElementById('bulk-prog-label');
   let cnt = document.getElementById('bulk-prog-count');
-  let done = 0, success = 0, failed = 0;
+  let done = 0, saved = 0, skipped = 0;
 
   for (let p of targets) {
     if (!_bulkRunning) { log.textContent += '\nStopped.\n'; break; }
-
-    lbl.textContent = p.name.slice(0, 40) + '…';
+    lbl.textContent = p.name.slice(0, 36) + (p.name.length > 36 ? '…' : '');
     cnt.textContent = done + ' / ' + targets.length;
     bar.style.width = Math.round(done / targets.length * 100) + '%';
+    log.textContent += p.name.slice(0, 28) + '… searching\n';
+    log.scrollTop = log.scrollHeight;
 
     try {
-      log.textContent += p.name.slice(0, 32) + ': searching…\n';
+      let { b64 } = await fetchProductImage(p.name, key);
+      log.textContent += '  ✓ found\n';
       log.scrollTop = log.scrollHeight;
 
-      // Step 1: get image URL from OpenAI/Google
-      let data = await fetchProductImage(p.name);
-      let imgUrl = data.imageUrl;
-      let source = data.source || 'ai';
-      log.textContent += '  Found URL (' + source + '), loading…\n';
-      log.scrollTop = log.scrollHeight;
-
-      // Step 2: ALWAYS convert to base64 through proxy before showing preview
-      // This guarantees the image displays in the confirm panel AND is ready to save
-      let photo = null;
-      try {
-        photo = await imageUrlToBase64(imgUrl);
-        log.textContent += '  Image loaded ✓\n';
-      } catch(e) {
-        // Proxy failed — try loading the URL directly as last resort
-        photo = imgUrl;
-        log.textContent += '  Loaded as URL (proxy failed)\n';
-      }
-      log.scrollTop = log.scrollHeight;
-
-      // Step 3: confirm or auto-save
       let action = 'save';
       if (mode === 'confirm') {
-        action = await _showConfirmPanel(p, photo, source);
+        action = await _showConfirmPanel(p, b64, 'SerpAPI');
         if (!_bulkRunning) break;
+        document.getElementById('bulk-confirm-panel').style.display = 'none';
       }
 
       if (action === 'save') {
-        p.photo = photo;
-        _savePhotoLocal(p.id, photo);
-        sbPushProduct(p);
-        log.textContent += '  ✓ Saved!\n';
-        success++;
-        // Refresh products page live
+        p.photo = b64;
+        _savePhotoLocal(p.id, b64);
+        sbPushPhoto(p.id, b64);
+        log.textContent += '  ✓ saved globally\n';
+        saved++;
         if (document.getElementById('page-products').classList.contains('on')) renderProds();
       } else {
-        log.textContent += '  — Skipped\n';
-        failed++;
+        log.textContent += '  — skipped\n'; skipped++;
       }
     } catch(e) {
       log.textContent += '  ✗ ' + e.message + '\n';
-      failed++;
     }
-
     log.scrollTop = log.scrollHeight;
     done++;
-    if (_bulkRunning) await new Promise(r => setTimeout(r, 400));
+    if (_bulkRunning) await new Promise(r => setTimeout(r, 1100)); // SerpAPI rate limit
   }
 
   document.getElementById('bulk-confirm-panel').style.display = 'none';
   bar.style.width = '100%';
-  lbl.textContent = 'Done! ✓ ' + success + ' saved, ✕ ' + failed + ' skipped/failed';
+  lbl.textContent = '✓ ' + saved + ' saved, ' + skipped + ' skipped';
   cnt.textContent = done + ' / ' + targets.length;
   document.getElementById('bulk-start-btn').disabled = false;
   document.getElementById('bulk-start-btn').textContent = '🖼 Run again';
@@ -4187,7 +4197,108 @@ async function startBulkImages() {
   document.getElementById('bulk-cancel-btn').onclick = () => closeModal('m-bulk-img');
   _bulkRunning = false;
   if (document.getElementById('page-products').classList.contains('on')) renderProds();
-  toast('✓ ' + success + ' product images updated');
+  if (saved > 0) toast('✓ ' + saved + ' product photos saved');
+}
+
+
+// ── AI Dashboard Insights ─────────────────────────────────────────
+async function refreshAiInsight(){
+  let btn=document.getElementById('ai-insight-btn');
+  let body=document.getElementById('ai-insight-body');
+  let timeEl=document.getElementById('ai-insight-time');
+  if(!btn||!body)return;
+  btn.disabled=true; btn.textContent='Thinking…';
+  body.innerHTML='<span style="color:rgba(255,255,255,.4)">Analyzing warehouse data…</span>';
+
+  // Build warehouse context for OpenAI
+  let lowProds=products.filter(p=>p.qty>0&&p.qty<=p.threshold);
+  let outProds=products.filter(p=>p.qty===0);
+  let okProds=products.filter(p=>p.qty>p.threshold);
+  let totalBoxes=products.reduce((s,p)=>s+p.qty,0);
+  let recentActs=activity.slice(0,20);
+  let todayIn=recentActs.filter(a=>a.type==='in'&&(a.time||'').includes('Today')).reduce((s,a)=>s+(a.qty||0),0);
+  let todayOut=recentActs.filter(a=>a.type==='out'&&(a.time||'').includes('Today')).reduce((s,a)=>s+(a.qty||0),0);
+  let shopOrders=(mmData&&mmData.orders||[]).slice(0,10);
+  let mmStock=Object.entries((mmData&&mmData.stock)||{}).map(([pid,qty])=>{let p=gP(parseInt(pid));return p?p.name.split(' ').slice(0,3).join(' ')+': '+qty+'bx':'';}).filter(Boolean).slice(0,8).join(', ');
+
+  // Richer context for the insight
+  let catBreakdown=categories.map(c=>{
+    let ps=products.filter(p=>p.cat===c.id);
+    let boxes=ps.reduce((s,p)=>s+p.qty,0);
+    let low=ps.filter(p=>p.qty>0&&p.qty<=p.threshold).length;
+    let out=ps.filter(p=>p.qty===0).length;
+    return c.name+': '+boxes+'bx'+(out?' ⚠'+out+' out':'')+(low?' ↓'+low+' low':'');
+  }).join(' | ');
+  let topOut=outProds.slice(0,8).map(p=>p.name.split(' ').slice(0,4).join(' ')).join(', ');
+  let topLow=lowProds.slice(0,8).map(p=>p.name.split(' ').slice(0,3).join(' ')+'('+p.qty+'/'+p.threshold+')').join(', ');
+  let recentMoves=recentActs.slice(0,12).map(a=>(a.type==='in'?'IN':'OUT')+' '+a.prod.split(' ').slice(0,3).join(' ')+(a.qty?' x'+a.qty:'')+(a.destName?' →'+a.destName:'')+(a.user?' by '+a.user:'')).join('; ');
+  let shopSummary=(mmData&&mmData.orders||[]).slice(0,8).map(o=>o.shop+' ('+o.items.length+' items'+(o.total?' ¥'+o.total:'')+')').join(', ')||'none yet';
+  let mmStockSummary=Object.entries((mmData&&mmData.stock)||{}).map(([pid,qty])=>{let p=gP(parseInt(pid));return p&&qty>0?p.name.split(' ').slice(0,3).join(' ')+':'+qty+'bx':''}).filter(Boolean).slice(0,8).join(', ')||'empty';
+  let prompt=`You are a smart warehouse assistant for CityStar Myanmar grocery warehouse in Japan.
+Analyze this real-time data and provide 4-6 specific, actionable insights.
+Focus on: urgent restocks, unusual patterns, MM Mart opportunities, and efficiency tips.
+
+=== STATUS ===
+Time: ${nowT()}
+Total: ${products.length} SKUs | ${totalBoxes} total boxes
+Today: +${todayIn} received, -${todayOut} dispatched
+Health: ${okProds.length} OK | ${lowProds.length} low | ${outProds.length} out of stock
+
+=== BY CATEGORY ===
+${catBreakdown}
+
+=== OUT OF STOCK (urgent) ===
+${topOut||'None — great!'}
+
+=== LOW STOCK (reorder soon) ===
+${topLow||'None'}
+
+=== RECENT MOVEMENTS ===
+${recentMoves||'No recent activity'}
+
+=== MM MART ===
+Stock: ${mmStockSummary}
+Recent shop orders: ${shopSummary}
+
+Format: bullet points starting with •
+Each bullet: one clear insight or action. Be specific with product names and numbers.
+Flag urgency with ⚠ for critical items. Use ✓ for positives.`;
+
+  try{
+    let res=await fetchTimeout('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:400,
+        messages:[{role:'user',content:prompt}]
+      })
+    },20000);
+    if(!res.ok){
+      let e=await res.json().catch(()=>({}));
+      throw new Error(e.error?.message||'API '+res.status);
+    }
+    let data=await res.json();
+    let text=(data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('');
+    // Render nicely — convert bullets to styled list
+    let lines=text.split('\n').filter(l=>l.trim());
+    body.innerHTML=lines.map(l=>{
+      if(l.trim().startsWith('•')||l.trim().startsWith('-')||l.trim().startsWith('*')){
+        let content=l.replace(/^[•\-\*]\s*/,'');
+        return '<div style="display:flex;gap:8px;margin-bottom:8px">'
+          +'<span style="color:#5B47FB;flex-shrink:0;margin-top:1px">•</span>'
+          +'<span style="color:rgba(255,255,255,.85)">'+content+'</span></div>';
+      }
+      if(l.trim()) return '<div style="color:rgba(255,255,255,.6);font-size:11px;margin-bottom:6px">'+l+'</div>';
+      return '';
+    }).join('');
+    if(timeEl) timeEl.textContent='Updated '+nowT();
+    localStorage.setItem('last_insight_time', Date.now().toString());
+  }catch(e){
+    body.innerHTML='<span style="color:rgba(255,100,100,.8)">Could not load insight: '+e.message+'</span>';
+    if(timeEl) timeEl.textContent='Failed';
+  }
+  btn.disabled=false; btn.textContent='✦ Refresh';
 }
 
 
@@ -4355,15 +4466,15 @@ function addNORow(){noRowsList.push({id:Date.now()});_renderNO();}
 function delNOR(id){noRowsList=noRowsList.filter(r=>r.id!==id);_renderNO();}
 function populateOrderRecipients() {
   let teamWithPhone = appUsers.filter(u => u.phone);
-  let opts = '<option value="wa">WhatsApp only</option>'
-    + teamWithPhone.map(u => '<option value="sms:' + u.id + '">SMS + WA → ' + u.name + ' (' + u.phone + ')</option>').join('');
+  let opts = '<option value="">— Select recipient —</option>'
+    + teamWithPhone.map(u => '<option value="sms:' + u.id + '">📱 ' + u.name + ' (' + u.phone + ')</option>').join('');
   ['order-recipient','order-recipient-new'].forEach(id => {
     let el = document.getElementById(id); if (el) el.innerHTML = opts;
   });
 }
 
 async function sendOrder(type){
-  let items=[],msgText='';
+  let items=[], msgText='';
   if(type==='low'){
     document.querySelectorAll('.rs-row[data-selected="1"]').forEach(row=>{
       let pid=parseInt(row.id.replace('rsrow-',''));
@@ -4371,566 +4482,67 @@ async function sendOrder(type){
       if(qi&&qi.value){let p=gP(pid);items.push({name:p.name,qty:parseInt(qi.value),cat:cN(p.cat),vendor:p.vendor||''});}
     });
     if(!items.length){toast('Select at least one item','rd');return;}
-    msgText='🏪 CITYSTAR WAREHOUSE\nRESTOCK REQUEST\n\n'+items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+(it.vendor?' | '+it.vendor:'')+'\n   Order qty: '+it.qty+' boxes').join('\n\n');
+    msgText='\uD83C\uDFEA CITYSTAR WAREHOUSE\nRESTOCK REQUEST\n\n';
+    msgText+=items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+(it.vendor?' | '+it.vendor:'')+'\n   Qty: '+it.qty+' boxes').join('\n\n');
     let note=document.getElementById('rs-note').value;if(note)msgText+='\n\nNote: '+note;
   }else{
-    noRowsList.forEach(r=>{let name=document.getElementById('nor-n-'+r.id)?.value.trim(),cat=document.getElementById('nor-c-'+r.id)?.value,qty=document.getElementById('nor-q-'+r.id)?.value;if(name&&qty)items.push({name,cat:cN(cat)||cat,qty:parseInt(qty)});});
+    noRowsList.forEach(r=>{
+      let name=document.getElementById('nor-n-'+r.id)?.value.trim();
+      let cat=document.getElementById('nor-c-'+r.id)?.value;
+      let qty=document.getElementById('nor-q-'+r.id)?.value;
+      if(name&&qty)items.push({name,cat:cN(cat)||cat,qty:parseInt(qty)});
+    });
     if(!items.length){toast('Add at least one item','rd');return;}
-    msgText='🏪 CITYSTAR WAREHOUSE\nNEW ORDER REQUEST\n\n'+items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+'\n   Qty: '+it.qty+' boxes').join('\n\n');
+    msgText='\uD83C\uDFEA CITYSTAR WAREHOUSE\nNEW ORDER REQUEST\n\n';
+    msgText+=items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+'\n   Qty: '+it.qty+' boxes').join('\n\n');
     let note=document.getElementById('no-note').value;if(note)msgText+='\n\nNote: '+note;
   }
   msgText+='\n\nSent by: '+(currentUser||'Admin')+'\n'+nowT();
 
-  document.getElementById('wa-msg-body').textContent=msgText;
-  document.getElementById('wa-msg-time').textContent=nowT();
-  document.getElementById('wa-preview').style.display='block';
+  let prevEl=document.getElementById('sms-msg-body');if(prevEl)prevEl.textContent=msgText;
+  let timeEl=document.getElementById('sms-msg-time');if(timeEl)timeEl.textContent=nowT();
+  let prevWrap=document.getElementById('sms-preview');if(prevWrap)prevWrap.style.display='block';
 
-  let recipientEl = document.getElementById(type==='low'?'order-recipient':'order-recipient-new');
-  let recipientVal = recipientEl ? recipientEl.value : 'wa';
+  let recipientEl=document.getElementById('order-recipient');
+  let recipientVal=recipientEl?recipientEl.value:'';
+  if(!recipientVal){toast('Select a recipient first','rd');return;}
 
-  let he={id:Date.now(),desc:(type==='low'?'Restock':'New order')+': '+items.length+' item(s)',type,items:items.length,time:nowT(),status:'sending',waOk:null,smsSent:false};
+  let he={id:Date.now(),desc:(type==='low'?'Restock':'New order')+': '+items.length+' item(s)',type,items:items.length,time:nowT(),status:'sending',smsSent:false};
   orderHistory.unshift(he);renderOH();
 
   let sb=document.getElementById('send-'+type+'-btn');sb.disabled=true;sb.textContent='Sending…';
 
-  // Try WhatsApp (optional — don't block on failure)
-  if(waConfig.phone && waConfig.server && waConfig.server !== 'http://localhost:3456'){
-    try{
-      let res=await fetchTimeout(waConfig.server+'/api/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:waConfig.phone,text:msgText})},8000);
-      let d=await res.json();he.waOk=d.success===true;
-      if(he.waOk)toast('WhatsApp sent');
-      updateWaDot(he.waOk);
-    }catch(e){he.waOk=false;}
+  if(recipientVal.startsWith('sms:')){
+    let uid=recipientVal.replace('sms:','');
+    let u=appUsers.find(u=>u.id===uid);
+    if(u&&u.phone){
+      try{
+        let res=await fetchTimeout('/api/send-login',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({to:u.phone,userId:'order-alert',userName:u.name,token:'',message:msgText})
+        },15000);
+        let d=await res.json();
+        he.smsSent=d.success===true;
+        if(he.smsSent)toast('\u2713 SMS sent to '+u.name+' ('+u.phone+')','ok');
+        else toast('SMS failed: '+(d.error||'unknown'),'rd');
+      }catch(e){toast('SMS error: '+e.message,'rd');}
+    }else{toast('User has no phone number','rd');}
   }
 
-  // Send SMS to selected team member
-  if(recipientVal && recipientVal.startsWith('sms:')) {
-    let uid = recipientVal.replace('sms:','');
-    let u = appUsers.find(u => u.id === uid);
-    if (u && u.phone) {
-      try {
-        let smsRes = await fetchTimeout('/api/send-login', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({to: u.phone, userId: 'order-alert', userName: u.name, token: '', message: msgText})
-        }, 15000);
-        let smsData = await smsRes.json();
-        he.smsSent = smsData.success === true;
-        if(he.smsSent) toast('✓ SMS sent to ' + u.name);
-        else toast('SMS to ' + u.name + ' failed: ' + (smsData.error||'unknown'), 'rd');
-      } catch(e) { toast('SMS error: ' + e.message, 'rd'); }
-    }
-  }
-
-  // Mark as sent regardless of WA status
-  he.status = 'pending';
+  he.status='pending';
   sbPushOrder(he);
-  sb.disabled=false;sb.innerHTML='<svg width="13" height="13"><use href="#ic-wa"/></svg> Send alert';
+  sb.disabled=false;sb.textContent='\uD83D\uDCF1 Send SMS';
   renderOH();setOType(null);
 }
-function renderOH(){
-  let sm={
-    approved:'<span class="badge bg">✓ Approved</span>',
-    pending:'<span class="badge bp">⏳ Pending</span>',
-    send_failed:'<span class="badge br">Sent</span>',  // still sent — just WA not configured
-    sending:'<span class="badge bb">Sending…</span>',
-    sms_sent:'<span class="badge bg">✓ SMS sent</span>',
-  };
-  let tm={low:'<span class="badge ba">Restock</span>',new:'<span class="badge bb">New order</span>'};
-  document.getElementById('oh-tbl').innerHTML=orderHistory.map(o=>{
-    let sentStatus = o.smsSent
-      ? '<span style="color:var(--gn3);font-size:12px">📱 SMS ✓</span>'
-      : '<span style="color:var(--tx3);font-size:12px">WA only</span>';
-    return '<tr>'
-      +'<td style="font-size:12px;font-weight:500">'+o.desc+'</td>'
-      +'<td class="hm">'+(tm[o.type]||o.type)+'</td>'
-      +'<td class="hm" style="text-align:center">'+o.items+'</td>'
-      +'<td style="font-size:11px;color:var(--tx2)">'+o.time+'</td>'
-      +'<td>'+sentStatus+'</td>'
-      +'<td>'+(sm[o.status]||'<span class="badge bp">Sent</span>')+'</td>'
-      +'</tr>';
-  }).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--tx3);padding:16px">No requests yet</td></tr>';
-}
 
-// ── Container Tracking ────────────────────────────────────────────
-let containers = []; // [{id, name, date, supplier, notes, status:'pending'|'delivered', items:[{catId,subId,prodId,prodName,qty,receivedQty}], deliveredDate, deliveredBy}]
-let _contEditId = null;
-let _contItems = []; // current modal items
-let _deliverContId = null;
-
-function nav_containers() {
-  renderContainers();
-  // Hide add button for operators
-  let btn = document.getElementById('btn-add-container');
-  if (btn) btn.style.display = (currentRole === 'operator') ? 'none' : '';
-}
-
-function swContTab(btn, id) {
-  document.querySelectorAll('#cont-tabs .tb').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  document.getElementById('ctab-pending').style.display   = id === 'ctab-pending'   ? 'block' : 'none';
-  document.getElementById('ctab-delivered').style.display = id === 'ctab-delivered' ? 'block' : 'none';
-}
-
-function renderContainers() {
-  let pending   = containers.filter(c => c.status === 'pending');
-  let delivered = containers.filter(c => c.status === 'delivered');
-
-  document.getElementById('ct-pending-cnt').textContent   = pending.length;
-  document.getElementById('ct-delivered-cnt').textContent = delivered.length;
-
-  // ── Pending list ──
-  let pendEl = document.getElementById('cont-pending-list');
-  let pendEmpty = document.getElementById('cont-pending-empty');
-  if (!pending.length) {
-    pendEl.innerHTML = ''; pendEmpty.style.display = 'block';
-  } else {
-    pendEmpty.style.display = 'none';
-    pendEl.innerHTML = pending.map(c => contCard(c)).join('');
-  }
-
-  // ── Delivered list ──
-  let delEl = document.getElementById('cont-delivered-list');
-  let delEmpty = document.getElementById('cont-delivered-empty');
-  if (!delivered.length) {
-    delEl.innerHTML = ''; delEmpty.style.display = 'block';
-  } else {
-    delEmpty.style.display = 'none';
-    delEl.innerHTML = delivered.map(c => contCard(c)).join('');
-  }
-}
-
-function contCard(c) {
-  let totalQty = c.items.reduce((s,it) => s + (it.qty||0), 0);
-  let totalProds = c.items.length;
-  let isDelivered = c.status === 'delivered';
-  let dateLabel = isDelivered
-    ? 'Arrived: ' + (c.deliveredDate || c.date)
-    : 'Expected: ' + (c.date || 'TBD');
-  let dateDiff = '';
-  if (!isDelivered && c.date) {
-    let diff = Math.round((new Date(c.date) - new Date()) / 86400000);
-    dateDiff = diff < 0
-      ? '<span class="badge br" style="font-size:10px">Overdue ' + Math.abs(diff) + 'd</span>'
-      : diff === 0
-      ? '<span class="badge ba" style="font-size:10px">Today</span>'
-      : '<span class="badge bb" style="font-size:10px">In ' + diff + 'd</span>';
-  }
-
-  // Items grouped by category
-  let grouped = {};
-  c.items.forEach(it => {
-    let catName = cN(it.catId) || it.catId || 'General';
-    if (!grouped[catName]) grouped[catName] = [];
-    grouped[catName].push(it);
-  });
-  let itemsHtml = Object.entries(grouped).map(([catName, items]) =>
-    '<div style="margin-bottom:8px">'
-    + '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">' + catName + '</div>'
-    + items.map(it => {
-        let qty = isDelivered ? (it.receivedQty || it.qty) : it.qty;
-        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--sur2);border-radius:6px;margin-bottom:3px;font-size:12px">'
-          + '<span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + it.prodName + '</span>'
-          + '<span style="font-weight:700;color:' + (isDelivered?'var(--gn)':'var(--tx)') + ';margin-left:8px;flex-shrink:0">' + qty + ' boxes</span>'
-          + '</div>';
-      }).join('')
-    + '</div>'
-  ).join('');
-
-  let canEdit = currentRole === 'owner' || currentRole === 'admin';
-  let actionBtns = '';
-  if (!isDelivered && canEdit) {
-    actionBtns = '<div style="display:flex;gap:8px;margin-top:10px">'
-      + '<button class="btn btn-sm" onclick="editContainer(\'' + c.id + '\')" style="flex:1;justify-content:center"><svg width="13" height="13"><use href="#ic-edit"/></svg> Edit</button>'
-      + '<button class="btn btn-gn" onclick="openDeliver(\'' + c.id + '\')" style="flex:1;justify-content:center;font-weight:600"><svg width="13" height="13"><use href="#ic-chk"/></svg> Mark delivered</button>'
-      + '<button class="btn btn-sm btn-rd" onclick="deleteContainer(\'' + c.id + '\')" style="padding:6px 9px"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>'
-      + '</div>';
-  } else if (isDelivered) {
-    actionBtns = '<div style="font-size:11px;color:var(--gn3);margin-top:8px">✓ Delivered by ' + (c.deliveredBy || 'Unknown') + ' · Stock added to inventory</div>';
-  }
-
-  return '<div class="card mb10" style="' + (isDelivered ? 'border-color:var(--gn2)' : '') + '">'
-    + '<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">'
-      + '<div style="width:40px;height:40px;border-radius:10px;background:' + (isDelivered?'var(--gn2)':'var(--bl2)') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
-        + '<svg width="20" height="20" style="color:' + (isDelivered?'var(--gn3)':'var(--bl3)') + '"><use href="#ic-pkg"/></svg>'
-      + '</div>'
-      + '<div style="flex:1;min-width:0">'
-        + '<div style="font-size:14px;font-weight:700">' + c.name + '</div>'
-        + '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap">'
-          + '<span style="font-size:11px;color:var(--tx3)">' + dateLabel + '</span>'
-          + dateDiff
-          + (c.supplier ? '<span style="font-size:11px;color:var(--tx3)">· ' + c.supplier + '</span>' : '')
-        + '</div>'
-      + '</div>'
-      + '<div style="text-align:right;flex-shrink:0">'
-        + '<div style="font-size:16px;font-weight:800">' + totalQty + '</div>'
-        + '<div style="font-size:10px;color:var(--tx3)">boxes</div>'
-        + '<div style="font-size:10px;color:var(--tx3)">' + totalProds + ' products</div>'
-      + '</div>'
-    + '</div>'
-    + (c.notes ? '<div style="font-size:12px;color:var(--tx2);margin-bottom:8px;padding:6px 8px;background:var(--sur2);border-radius:6px">' + c.notes + '</div>' : '')
-    + itemsHtml
-    + actionBtns
-    + '</div>';
-}
-
-// ── Add container item row ────────────────────────────────────────
-function addContItem(item) {
-  let rowId = 'ci-' + Date.now() + Math.random().toString(36).slice(2,5);
-  let row = {id: rowId, catId:'', subId:'', prodId:'', prodName:'', qty:0};
-  if (item) { Object.assign(row, item); }
-  _contItems.push(row);
-  renderContItems();
-}
-
-function renderContItems() {
-  let el = document.getElementById('cont-items-list');
-  el.innerHTML = _contItems.map((row, idx) => {
-    let catSel = '<select onchange="contItemCatChange(\'' + row.id + '\',this.value)" style="flex:1;min-width:0;font-size:12px">'
-      + '<option value="">Category…</option>'
-      + categories.map(c => '<option value="' + c.id + '"' + (row.catId===c.id?' selected':'') + '>' + c.name + '</option>').join('')
-      + '</select>';
-
-    // Sub (brand) dropdown
-    let cat = gC(row.catId);
-    let subSel = '<select onchange="contItemSubChange(\'' + row.id + '\',this.value)" style="flex:1;min-width:0;font-size:12px"' + (!cat?' disabled':'') + '>'
-      + '<option value="">Brand…</option>'
-      + (cat ? cat.subs.map(s => '<option value="' + s.id + '"' + (row.subId===s.id?' selected':'') + '>' + s.name + '</option>').join('') : '')
-      + '</select>';
-
-    // Product dropdown
-    let subProds = products.filter(p => p.cat === row.catId && p.sub === row.subId);
-    let prodSel = '<select onchange="contItemProdChange(\'' + row.id + '\',this.value)" style="flex:1;min-width:0;font-size:12px"' + (!row.subId?' disabled':'') + '>'
-      + '<option value="">Product…</option>'
-      + subProds.map(p => '<option value="' + p.id + '"' + (row.prodId===p.id?' selected':'') + '>' + p.name + '</option>').join('')
-      + '</select>';
-
-    return '<div style="border:1px solid var(--bdr);border-radius:var(--r);padding:8px;background:var(--sur2);margin-bottom:4px">'
-      + '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;flex-wrap:wrap">'
-        + '<div style="flex:1;min-width:120px">' + catSel + '</div>'
-        + '<div style="flex:1;min-width:120px">' + subSel + '</div>'
-      + '</div>'
-      + '<div style="display:flex;gap:6px;align-items:center">'
-        + '<div style="flex:1;min-width:0">' + prodSel + '</div>'
-        + '<input type="number" value="' + (row.qty||'') + '" placeholder="Qty" min="1" onchange="contItemQtyChange(\'' + row.id + '\',this.value)" style="width:68px;font-size:13px;font-weight:600;text-align:center;flex-shrink:0;padding:7px 4px"/>'
-        + '<button onclick="removeContItem(\'' + row.id + '\')" style="background:var(--rd2);color:var(--rd3);border:none;border-radius:var(--r);width:34px;height:34px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="13" height="13"><use href="#ic-trash"/></svg></button>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-function contItemCatChange(rowId, catId) {
-  let row = _contItems.find(r => r.id === rowId); if (!row) return;
-  row.catId = catId; row.subId = ''; row.prodId = ''; row.prodName = '';
-  renderContItems();
-}
-function contItemSubChange(rowId, subId) {
-  let row = _contItems.find(r => r.id === rowId); if (!row) return;
-  row.subId = subId; row.prodId = ''; row.prodName = '';
-  renderContItems();
-}
-function contItemProdChange(rowId, prodId) {
-  let row = _contItems.find(r => r.id === rowId); if (!row) return;
-  let p = gP(parseInt(prodId));
-  row.prodId = parseInt(prodId); row.prodName = p ? p.name : '';
-  renderContItems();
-}
-function contItemQtyChange(rowId, val) {
-  let row = _contItems.find(r => r.id === rowId); if (!row) return;
-  row.qty = parseInt(val) || 0;
-}
-function removeContItem(rowId) {
-  _contItems = _contItems.filter(r => r.id !== rowId);
-  renderContItems();
-}
-
-// ── Open add container ────────────────────────────────────────────
-function openAddContainer() {
-  _contEditId = null; _contItems = [];
-  document.getElementById('cont-modal-title').textContent = 'New container';
-  document.getElementById('cont-name').value = '';
-  document.getElementById('cont-date').value = '';
-  document.getElementById('cont-supplier').value = '';
-  document.getElementById('cont-notes').value = '';
-  renderContItems();
-  openModal('m-addcont');
-}
-
-function editContainer(id) {
-  let c = containers.find(c => c.id === id); if (!c) return;
-  _contEditId = id;
-  _contItems = c.items.map(it => ({...it, id: 'ci-' + Date.now() + Math.random().toString(36).slice(2,5)}));
-  document.getElementById('cont-modal-title').textContent = 'Edit container';
-  document.getElementById('cont-name').value = c.name;
-  document.getElementById('cont-date').value = c.date || '';
-  document.getElementById('cont-supplier').value = c.supplier || '';
-  document.getElementById('cont-notes').value = c.notes || '';
-  renderContItems();
-  openModal('m-addcont');
-}
-
-function saveContainer() {
-  let name = document.getElementById('cont-name').value.trim();
-  let date = document.getElementById('cont-date').value;
-  if (!name) { toast('Enter a container name', 'rd'); return; }
-  if (!_contItems.length) { toast('Add at least one product', 'rd'); return; }
-  let invalid = _contItems.find(it => !it.prodId || !it.qty || it.qty < 1);
-  if (invalid) { toast('Fill in all product lines completely', 'rd'); return; }
-
-  let items = _contItems.map(it => ({
-    catId: it.catId, subId: it.subId,
-    prodId: it.prodId, prodName: it.prodName,
-    qty: it.qty
-  }));
-
-  if (_contEditId) {
-    let c = containers.find(c => c.id === _contEditId);
-    if (c) { c.name = name; c.date = date; c.supplier = document.getElementById('cont-supplier').value.trim(); c.notes = document.getElementById('cont-notes').value.trim(); c.items = items; }
-  } else {
-    containers.unshift({
-      id: 'cont-' + Date.now(),
-      name, date,
-      supplier: document.getElementById('cont-supplier').value.trim(),
-      notes: document.getElementById('cont-notes').value.trim(),
-      status: 'pending', items,
-      createdBy: currentUser
-    });
-  }
-  closeModal('m-addcont');
-  renderContainers();
-  sbPushContainers();
-  toast(_contEditId ? 'Container updated' : 'Container "' + name + '" added');
-}
-
-function deleteContainer(id) {
-  let c = containers.find(c => c.id === id);
-  if (!c || !confirm('Delete "' + c.name + '"?')) return;
-  containers = containers.filter(c => c.id !== id);
-  renderContainers(); sbPushContainers(); toast('Deleted');
-}
-
-// ── Deliver ───────────────────────────────────────────────────────
-function openDeliver(id) {
-  _deliverContId = id;
-  let c = containers.find(c => c.id === id); if (!c) return;
-  document.getElementById('del-cont-name').textContent = c.name + ' — ' + c.items.length + ' products · ' + c.items.reduce((s,it)=>s+it.qty,0) + ' boxes';
-  document.getElementById('del-date').value = new Date().toISOString().slice(0,10);
-
-  // Build editable qty list
-  let grouped = {};
-  c.items.forEach(it => {
-    let catName = cN(it.catId) || 'General';
-    if (!grouped[catName]) grouped[catName] = [];
-    grouped[catName].push(it);
-  });
-
-  document.getElementById('del-items-list').innerHTML = Object.entries(grouped).map(([catName, items]) =>
-    '<div style="margin-bottom:10px">'
-    + '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;margin-bottom:5px">' + catName + '</div>'
-    + items.map(it =>
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
-        + '<div style="flex:1;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + it.prodName + '</div>'
-        + '<div style="font-size:11px;color:var(--tx3);flex-shrink:0">Ordered: ' + it.qty + '</div>'
-        + '<input type="number" value="' + it.qty + '" min="0" data-prodid="' + it.prodId + '" class="del-qty-inp" style="width:72px;font-size:13px;font-weight:700;text-align:center;padding:5px"/>'
-        + '</div>'
-      ).join('')
-    + '</div>'
-  ).join('');
-  openModal('m-deliver');
-}
-
-function confirmDeliver() {
-  let c = containers.find(c => c.id === _deliverContId); if (!c) return;
-  let delivDate = document.getElementById('del-date').value || new Date().toISOString().slice(0,10);
-  let added = [];
-
-  // Read actual quantities from inputs
-  document.querySelectorAll('.del-qty-inp').forEach(inp => {
-    let prodId = parseInt(inp.dataset.prodid);
-    let receivedQty = parseInt(inp.value) || 0;
-    if (receivedQty > 0) {
-      let p = gP(prodId);
-      if (p) {
-        p.qty += receivedQty;
-        p.lastUpdated = delivDate;
-        added.push({prod: p.name, qty: receivedQty, prodId});
-        sbPushProduct(p);
-        let act = {type:'in', prod:p.name, qty:receivedQty, time:nowT(), user:currentUser, dest:null, destName:'Container: '+c.name};
-        activity.unshift(act);
-        sbPushActivity(act);
-      }
-      // Store received qty on the item
-      let item = c.items.find(it => it.prodId === prodId);
-      if (item) item.receivedQty = receivedQty;
-    }
-  });
-
-  c.status = 'delivered';
-  c.deliveredDate = delivDate;
-  c.deliveredBy = currentUser;
-
-  closeModal('m-deliver');
-  renderContainers();
-  refreshDash();
-  sbPushContainers();
-  toast('✓ Delivered! ' + added.length + ' products · stock updated');
-}
-
-async function sbPushContainers() {
-  if (!sbClient) return;
-  try {
-    await sbClient.from('settings').upsert({key:'containers', value: JSON.stringify(containers)});
-  } catch(e) { console.error('sbPushContainers:', e); }
-}
-async function sbPullContainers() {
-  if (!sbClient) return;
-  try {
-    let {data, error} = await sbClient.from('settings').select('value').eq('key','containers').single();
-    if (!error && data && data.value) {
-      let parsed = JSON.parse(data.value);
-      if (Array.isArray(parsed)) containers = parsed;
-    }
-  } catch(e) {}
-}
-
-// ── Supabase ──────────────────────────────────────────────────────
-const SB_URL = 'https://ilyaqubsrpjrfgekwonw.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseWFxdWJzcnBqcmZnZWt3b253Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NTczNzMsImV4cCI6MjA5NDMzMzM3M30.EMp_EDJwzfbYgNEOeiXdjiB-GFjAEsAkRgTWb5ixF5M';
-let sbClient = null, sbConnected = false;
-
-async function sbInit() {
-  if (!sbClient) {
-    // Not yet connected — set up Supabase now
-    if (!window.supabase) {
-      await new Promise((res,rej)=>{let s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
-    }
-    sbClient = window.supabase.createClient(SB_URL, SB_KEY);
-    sbConnected = true;
-    updateSbStatus(true);
-    await sbPullUsers();
-  }
-  // Check if user arrived via SMS login link
-  if (!checkUrlToken()) {
-    // Normal flow — show PIN screen
-  }
-  await sbPullContainers();
-  await sbPull();
-  sbSubscribe();
-  await sbPullPhotos();
-  setInterval(sbPullPhotos, 30000);
-}
-
-async function sbPull() {
-  if (!sbClient) return;
-  try {
-    let {data:prods,error:pe}=await sbClient.from('products').select('*');
-    if (!pe && prods && prods.length >= 10) {
-      let valid=prods.filter(r=>r.id&&r.name&&categories.some(c=>c.id===r.cat));
-      if (valid.length >= 10) {
-        let localPhotos={};
-        try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
-        products=valid.map(r=>({
-          id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,
-          threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,
-          lastUpdated:r.last_updated,
-          // Use DB photo first, then local cache — always take the one that exists
-          photo:r.photo||localPhotos[r.id]||undefined
-        }));
-        // Write any DB photos back into local cache so they survive future DB failures
-        // This makes the local cache the authoritative persistent store
-        let cacheUpdated=false;
-        valid.forEach(r=>{
-          if(r.photo && r.photo!==localPhotos[r.id]){
-            localPhotos[r.id]=r.photo;
-            cacheUpdated=true;
-          }
-        });
-        if(cacheUpdated){
-          try{ localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos)); }catch(e){}
-        }
-        refreshDash();
-        if(document.getElementById('page-products').classList.contains('on'))renderProds();
-      }
-    }
-    let {data:acts,error:ae}=await sbClient.from('activity').select('*').order('created_at',{ascending:false}).limit(100);
-    if(!ae&&acts&&acts.length){activity=acts.map(r=>({type:r.type,prod:r.prod,qty:r.qty,time:r.time,user:r.user,dest:r.dest,destName:r.dest_name}));renderActFeed();renderDestTracker();renderShopTracker();}
-    let {data:orders,error:oe}=await sbClient.from('order_history').select('*').order('created_at',{ascending:false}).limit(50);
-    if(!oe&&orders&&orders.length){orderHistory=orders.map(r=>({id:r.id,desc:r.description,type:r.type,items:r.items,time:r.time,waOk:r.wa_ok,status:r.status}));}
-    // Rack locations (from rack.html's rack_assignments table)
-    try{
-      let {data:ra,error:rae}=await sbClient.from('rack_assignments').select('product_id,rack');
-      if(!rae&&ra){window.rackMap={};ra.forEach(row=>{window.rackMap[row.product_id]=row.rack;});}
-    }catch(e){/* table may not exist yet — locations just won't show */}
-    let {data:cats,error:ce}=await sbClient.from('categories').select('*');
-    if(!ce&&cats&&cats.length>=5){categories=cats.map(r=>({id:r.id,name:r.name,subs:r.subs||[]}));}
-    let {data:setts,error:se}=await sbClient.from('settings').select('*');
-    if(!se&&setts){setts.forEach(row=>{if(row.key==='wa_server')waConfig.server=row.value;if(row.key==='wa_phone')waConfig.phone=row.value;});}
-  }catch(e){console.error('sbPull:',e);}
-}
-
-function sbSubscribe(){
-  if(!sbClient)return;
-  sbClient.channel('products-rt').on('postgres_changes',{event:'*',schema:'public',table:'products'},payload=>{
-    let r=payload.new||payload.old;
-    if(payload.eventType==='DELETE'){products=products.filter(p=>p.id!==r.id);}
-    else{
-      if(!r.cat||!categories.some(c=>c.id===r.cat))return;
-      let localPhotos={};
-      try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
-      let photo=r.photo||localPhotos[r.id]||undefined;
-      // If DB sent a photo, cache it locally
-      if(r.photo && r.photo!==localPhotos[r.id]){
-        localPhotos[r.id]=r.photo;
-        try{ localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos)); }catch(e){}
-      }
-      let mapped={id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,lastUpdated:r.last_updated,photo};
-      let idx=products.findIndex(p=>p.id===r.id);
-      if(idx>=0)products[idx]=mapped;else products.push(mapped);
-    }
-    refreshDash();
-    if(document.getElementById('page-products').classList.contains('on'))renderProds();
-  }).subscribe();
-
-  sbClient.channel('activity-rt').on('postgres_changes',{event:'INSERT',schema:'public',table:'activity'},payload=>{
-    let r=payload.new;
-    activity.unshift({type:r.type,prod:r.prod,qty:r.qty,time:r.time,user:r.user,dest:r.dest,destName:r.dest_name});
-    renderActFeed();renderDestTracker();renderShopTracker();refreshDash();
-  }).subscribe();
-
-  sbClient.channel('orders-rt').on('postgres_changes',{event:'INSERT',schema:'public',table:'order_history'},payload=>{
-    let r=payload.new;orderHistory.unshift({id:r.id,desc:r.description,type:r.type,items:r.items,time:r.time,waOk:r.wa_ok,status:r.status});
-    if(document.getElementById('page-orders').classList.contains('on'))renderOH();
-  }).subscribe();
-
-  sbClient.channel('cats-rt').on('postgres_changes',{event:'*',schema:'public',table:'categories'},async()=>{
-    let {data}=await sbClient.from('categories').select('*');
-    if(data)categories=data.map(r=>({id:r.id,name:r.name,subs:r.subs||[]}));
-    if(document.getElementById('page-cats').classList.contains('on'))renderCatTree();
-  }).subscribe();
-
-  sbClient.channel('settings-rt').on('postgres_changes',{event:'*',schema:'public',table:'settings'},async payload=>{
-    let r=payload.new;
-    if(r&&r.key==='app_users'){try{let parsed=JSON.parse(r.value);if(Array.isArray(parsed)&&parsed.length){appUsers=parsed;renderPinUserList();}}catch(e){}}
-  }).subscribe();
-}
-
-async function sbPushProduct(p){
-  if(!sbClient)return;
-  try{
-    await sbClient.from('products').upsert({id:p.id,name:p.name,sku:p.sku,cat:p.cat,sub:p.sub,qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',barcode:p.barcode||null,last_updated:p.lastUpdated||null,/* photo omitted — use sbPushPhoto() */});
-  }catch(e){throw e;} // re-throw so callers can catch
-}
-async function sbPushActivity(a){
-  if(!sbClient)return;
-  try{await sbClient.from('activity').insert({type:a.type,prod:a.prod,qty:a.qty,time:a.time,user:a.user||null,dest:a.dest||null,dest_name:a.destName||null});}catch(e){}
-}
 async function sbPushOrder(o){
   if(!sbClient)return;
   try{await sbClient.from('order_history').insert({description:o.desc,type:o.type,items:o.items,time:o.time,wa_ok:o.waOk||false,status:o.status||'pending'});}catch(e){}
 }
 async function sbPushSettings(){
   if(!sbClient)return;
-  try{await sbClient.from('settings').upsert([{key:'wa_server',value:waConfig.server},{key:'wa_phone',value:waConfig.phone}]);}catch(e){}
+  
 }
 async function sbPullUsers(){
   if(!sbClient)return;
@@ -5932,6 +5544,12 @@ window.addEventListener('resize',()=>{
     d2RenderFeed();
     d2RenderShops();
     d2RenderLow();
+    // Auto-generate AI insight when dashboard opens (if not already fresh)
+    let lastInsight = localStorage.getItem('last_insight_time');
+    let now = Date.now();
+    if (!lastInsight || now - parseInt(lastInsight) > 5 * 60 * 1000) {
+      setTimeout(refreshAiInsight, 1200); // slight delay so page renders first
+    }
   };
 
   // Hook segment buttons
