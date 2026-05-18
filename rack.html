@@ -222,6 +222,31 @@ input{user-select:auto}
 .rs-card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:12px;text-align:center}
 .rs-card-n{font-size:22px;font-weight:900;line-height:1}
 .rs-card-l{font-size:10px;color:var(--tx3);margin-top:3px;font-weight:600;text-transform:uppercase}
+/* ── VISUAL 3-SHELF RACK ── */
+.visual-rack{display:flex;flex-direction:column;gap:0;border:2px solid var(--bdr2);border-radius:16px;overflow:hidden;background:var(--sur);box-shadow:var(--sh-sm)}
+.shelf-section{border-bottom:3px solid #8B6914}
+.shelf-section:last-child{border-bottom:none}
+.shelf-label{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#4A3A1A;color:#F5E6C0;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em}
+.shelf-count{font-size:10px;font-weight:600;opacity:.75}
+.shelf-plank{min-height:90px;padding:10px;background:linear-gradient(180deg,#FAFAFA 0%,#F1F3F7 100%);display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;border-bottom:4px solid #C8A96E;position:relative}
+.shelf-plank::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(180deg,rgba(0,0,0,.08),transparent)}
+.shelf-empty{width:100%;text-align:center;padding:16px;font-size:12px;color:var(--tx3);font-style:italic}
+
+/* Product slot card */
+.prod-slot{width:84px;flex-shrink:0;background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:6px;cursor:pointer;position:relative;transition:transform .1s,box-shadow .1s;-webkit-tap-highlight-color:transparent}
+.prod-slot:active{transform:scale(.95);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.slot-img{width:100%;height:68px;border-radius:8px;overflow:hidden;background:var(--sur2);margin-bottom:5px;display:flex;align-items:center;justify-content:center}
+.slot-img img{width:100%;height:100%;object-fit:cover}
+.slot-status-dot{position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;border:1.5px solid #fff}
+.slot-status-dot.gn{background:var(--gn)}
+.slot-status-dot.am{background:var(--am)}
+.slot-status-dot.rd{background:var(--rd)}
+.slot-name{font-size:9px;font-weight:600;color:var(--tx);line-height:1.3;margin-bottom:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:22px}
+.slot-bc{font-size:8px;color:var(--tx3);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px}
+.slot-qty{font-size:13px;font-weight:900;text-align:center;line-height:1;margin-bottom:3px}
+.slot-bar{height:4px;background:var(--sur3);border-radius:2px;overflow:hidden}
+.slot-bar-fill{height:100%;border-radius:2px;transition:width .3s}
+
 </style>
 </head>
 <body>
@@ -405,23 +430,28 @@ let products=[{"id": 2, "name": "FRIED MYEIK SHRIMP PASTE 160g", "sku": "DRY_-00
 // ── GLOBAL PRODUCT SYNC ──────────────────────────────────────────
 // Merges barcode/photo data saved by register.html into this page's products.
 // This is the shared key used by all CityStar apps on the same device.
-const GLOBAL_PRODS_KEY = 'citystar_barcodes_v1'; // matches register.html
+const GLOBAL_PRODS_KEY = 'citystar_barcodes_v1';
+const PHOTOS_KEY = 'citystar_photos_v1';
 function mergeLocalProducts(){
+  // Barcodes
   try{
     let raw=localStorage.getItem(GLOBAL_PRODS_KEY);
-    if(!raw)return;
-    let barcodeMap=JSON.parse(raw); // {pid: barcode}
-    for(let pid in barcodeMap){
+    if(raw){let m=JSON.parse(raw);for(let pid in m){let p=products.find(x=>x.id==parseInt(pid));if(p&&m[pid])p.barcode=m[pid];}}
+  }catch(e){}
+  // Photos — most important: always apply from local cache
+  try{
+    let photos=JSON.parse(localStorage.getItem(PHOTOS_KEY)||'{}');
+    for(let pid in photos){
       let p=products.find(x=>x.id==parseInt(pid));
-      if(p && barcodeMap[pid]) p.barcode=barcodeMap[pid];
+      if(p&&photos[pid])p.photo=photos[pid]; // always override — local is authoritative
     }
   }catch(e){}
 }
-mergeLocalProducts(); // run immediately so barcodes are ready
+mergeLocalProducts();
 
 // ── STATE ──
 let sbClient=null, _dbOk=false;
-let rackMap={};       // {productId: "R5"}  (rack number only)
+let rackMap={};       // {productId: {rack:"R2", shelf:"mid"}} — shelf optional, default "mid"
 let txLog=[];         // local transaction log
 let _pendingTx=[];    // tx rows not yet pushed to rack_transactions
 let _pendingLoc={};   // {pid: rack|null} not yet pushed to rack_assignments
@@ -443,9 +473,17 @@ const nowISO=()=>new Date().toISOString();
 const nowT=()=>{let d=new Date();return [d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');};
 const fmtDate=iso=>{try{let d=new Date(iso);return d.toLocaleDateString()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}catch(e){return iso;}};
 function findByBc(raw){let d=bcD(raw);if(d.length<4)return null;return products.find(p=>p.barcode&&bcD(p.barcode)===d)||products.find(p=>{if(!p.barcode)return false;let s=bcD(p.barcode);if(s.length<4)return false;return d.startsWith(s)||s.startsWith(d);})||null;}
-function rackOf(pid){return rackMap[pid]||null;}
+// rackOf returns {rack:"R2", shelf:"mid"} or null. Handles legacy string format.
+function rackOf(pid){
+  let v=rackMap[pid]; if(!v)return null;
+  if(typeof v==='string')return {rack:v,shelf:'mid'}; // backward compat
+  return v;
+}
+function rackNum(pid){ let r=rackOf(pid); return r?r.rack:null; }
+function shelfOf(pid){ let r=rackOf(pid); return r?(r.shelf||'mid'):null; }
 function rackList(){let a=[];for(let i=1;i<=RACK_COUNT;i++)a.push('R'+i);return a;}
-function prodsInRack(rk){return products.filter(p=>rackOf(p.id)===rk);}
+function prodsInRack(rk){ return products.filter(p=>{ let r=rackOf(p.id); return r&&r.rack===rk; }); }
+function prodsOnShelf(rk,shelf){ return products.filter(p=>{ let r=rackOf(p.id); return r&&r.rack===rk&&(r.shelf||'mid')===shelf; }); }
 
 // ── LOCAL STORAGE ──
 function loadLocal(){
@@ -530,50 +568,56 @@ function renderRackProducts(){
     el.innerHTML='<div class="empty"><div class="empty-ic">📭</div><div class="empty-t">No products in this rack yet</div><div class="empty-s">Use Setup → assign products to this rack</div></div>';
     return;
   }
-  // Summary cards
-  let total=ps.length;
-  let lowCount=ps.filter(p=>p.qty>0&&p.qty<=p.threshold).length;
-  let outCount=ps.filter(p=>p.qty===0).length;
-  let okCount=total-lowCount-outCount;
-  let h='<div class="rack-summary">'
-    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--gn)">'+okCount+'</div><div class="rs-card-l">In stock</div></div>'
-    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--am)">'+lowCount+'</div><div class="rs-card-l">Low stock</div></div>'
+  let total=ps.length, outCount=ps.filter(p=>p.qty===0).length, lowCount=ps.filter(p=>p.qty>0&&p.qty<=p.threshold).length, okCount=total-lowCount-outCount;
+  let h='<div class="rack-summary" style="margin-bottom:14px">'
+    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--gn)">'+okCount+'</div><div class="rs-card-l">OK</div></div>'
+    +'<div class="rs-card"><div class="rs-card-n" style="color:var(--am)">'+lowCount+'</div><div class="rs-card-l">Low</div></div>'
     +'<div class="rs-card"><div class="rs-card-n" style="color:var(--rd)">'+outCount+'</div><div class="rs-card-l">Out</div></div>'
     +'</div>';
-  // Table
-  h+='<div style="overflow-x:auto"><table class="rack-table">'
-    +'<thead><tr>'
-    +'<th>Product</th>'
-    +'<th style="text-align:right">Stock</th>'
-    +'<th>Level</th>'
-    +'<th>Status</th>'
-    +'</tr></thead><tbody>';
-  // Group by category
-  let byCat={};
-  ps.forEach(p=>{(byCat[p.cat]=byCat[p.cat]||[]).push(p);});
-  categories.forEach(c=>{
-    if(!byCat[c.id])return;
-    let catPs=byCat[c.id];
-    h+='<tr class="cat-hdr-row"><td colspan="4">'+c.name+' ('+catPs.length+')</td></tr>';
-    catPs.sort((a,b)=>a.qty-b.qty).forEach(p=>{
-      let pct=p.threshold>0?Math.round((p.qty/Math.max(p.qty,p.threshold*2))*100):0;
-      pct=Math.min(pct,100);
-      let barColor=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
-      let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
-      let statusTxt=p.qty===0?'Out of stock':p.qty<=p.threshold?'Reorder soon':'OK';
-      let statusCls=p.qty===0?'rs-out':p.qty<=p.threshold?'rs-low':'rs-ok';
-      h+='<tr onclick="openProd('+p.id+')">'
-        +'<td><div class="rt-name">'+p.name+'</div><div class="rt-sku">'+p.sku+(p.barcode?' · '+p.barcode:'')+'</div></td>'
-        +'<td class="rt-qty" style="color:'+qc+'">'+p.qty+'</td>'
-        +'<td class="rt-bar-wrap">'
-          +'<div class="rt-pct">'+p.qty+'/'+p.threshold+'</div>'
-          +'<div class="rt-bar-bg"><div class="rt-bar-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>'
-        +'</td>'
-        +'<td><span class="rt-status '+statusCls+'">'+statusTxt+'</span></td>'
-        +'</tr>';
-    });
+  const SHELVES=[{id:"upper",label:"⬆ Upper shelf"},{id:"mid",label:"➡ Middle shelf"},{id:"lower",label:"⬇ Lower shelf"}];
+  h+="<div class=\"visual-rack\">";
+  for(let shelf of SHELVES){
+    let sProds=prodsOnShelf(curRack,shelf.id);
+    h+="<div class=\"shelf-section\"><div class=\"shelf-label\">"+shelf.label+"<span class=\"shelf-count\">"+sProds.length+" items</span></div><div class=\"shelf-plank\">";
+    if(!sProds.length){ h+="<div class=\"shelf-empty\">Empty shelf</div>"; }
+    else{
+      sProds.forEach(p=>{
+        let qc=p.qty===0?"var(--rd)":p.qty<=p.threshold?"var(--am)":"var(--gn)";
+        let pct=p.threshold>0?Math.min(Math.round(p.qty/Math.max(p.qty,p.threshold*2)*100),100):50;
+        let sdCls=p.qty===0?"rd":p.qty<=p.threshold?"am":"gn";
+        h+="<div class=\"prod-slot\" onclick=\"openProd("+p.id+")\">"
+          +"<div class=\"slot-img\">"
+            +(p.photo
+              ?"<img src=\""+p.photo+"\" alt=\"\" onerror=\"this.parentNode.innerHTML=\'📦\'\">"
+              :"<div style=\"display:flex;align-items:center;justify-content:center;height:100%;font-size:28px;color:var(--tx3)\">📦</div>"
+            )
+          +"</div>"
+          +"<div class=\"slot-status-dot "+sdCls+"\"></div>"
+          +"<div class=\"slot-name\">"+p.name.slice(0,22)+"</div>"
+          +(p.barcode?"<div class=\"slot-bc\">"+p.barcode+"</div>":"")
+          +"<div class=\"slot-qty\" style=\"color:"+qc+"\">"+p.qty+"</div>"
+          +"<div class=\"slot-bar\"><div class=\"slot-bar-fill\" style=\"width:"+pct+"%;background:"+qc+"\"></div></div>"
+          +"</div>";
+      });
+    }
+    h+="</div></div>";
+  }
+  h+="</div>";
+  h+="<details style=\"margin-top:16px\"><summary style=\"font-size:12px;font-weight:700;color:var(--tx3);cursor:pointer;padding:8px 0;text-transform:uppercase;letter-spacing:.06em\">All products — tracker table</summary>";
+  h+="<div style=\"overflow-x:auto;margin-top:8px\"><table class=\"rack-table\"><thead><tr><th>Product</th><th>Shelf</th><th style=\"text-align:right\">Stock</th><th>Level</th></tr></thead><tbody>";
+  [...ps].sort((a,b)=>a.qty-b.qty).forEach(p=>{
+    let qc=p.qty===0?"var(--rd)":p.qty<=p.threshold?"var(--am)":"var(--gn)";
+    let pct=p.threshold>0?Math.min(Math.round(p.qty/Math.max(p.qty,p.threshold*2)*100),100):50;
+    let shelf=shelfOf(p.id)||"mid";
+    let sn={upper:"Upper",mid:"Middle",lower:"Lower"}[shelf]||shelf;
+    h+="<tr onclick=\"openProd("+p.id+")\">"
+      +"<td><div class=\"rt-name\">"+p.name+"</div><div class=\"rt-sku\">"+p.sku+(p.barcode?" · "+p.barcode:"")+"</div></td>"
+      +"<td style=\"font-size:11px;color:var(--tx3)\">"+sn+"</td>"
+      +"<td class=\"rt-qty\" style=\"color:"+qc+"\">"+p.qty+"</td>"
+      +"<td class=\"rt-bar-wrap\"><div class=\"rt-bar-bg\"><div class=\"rt-bar-fill\" style=\"width:"+pct+"%;background:"+qc+"\"></div></div></td>"
+      +"</tr>";
   });
-  h+='</tbody></table></div>';
+  h+="</tbody></table></div></details>";
   el.innerHTML=h;
 }
 function prodCard(p){
@@ -583,7 +627,7 @@ function prodCard(p){
   return '<div class="prod-card" onclick="openProd('+p.id+')">'
     +'<div class="prod-thumb">'+ph+'</div>'
     +'<div class="prod-info"><div class="prod-name">'+p.name+'</div>'
-    +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+loc.slice(1)+'</span>':'<span class="loc-tag none">No rack</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
+    +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+(loc.rack||loc).slice(1)+'</span>':'<span class="loc-tag none">No rack</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
     +'<div class="prod-qty"><div class="prod-qty-n" style="color:'+qc+'">'+p.qty+'</div><div class="prod-qty-l">in stock</div></div>'
     +'</div>';
 }
@@ -609,64 +653,73 @@ function txRow(t){
 function openProd(pid){
   let p=gP(pid); if(!p)return;
   _stockProd=p;
-  let loc=rackOf(p.id);
-  // Find last stock movement for this product
+  let loc=rackOf(p.id); // {rack, shelf} or null
+  let rackN=loc?loc.rack.slice(1):'—';
+  let shelfN=loc?({upper:'Upper shelf',mid:'Middle shelf',lower:'Lower shelf'}[loc.shelf||'mid']||loc.shelf):'—';
   let lastTx=txLog.filter(t=>t.pid===p.id&&(t.type==='in'||t.type==='out')).sort((a,b)=>new Date(b.at)-new Date(a.at))[0];
   let lastMover=lastTx?lastTx.user:'—';
   let lastMove=lastTx?fmtDate(lastTx.at):'Never';
   let lastMoveType=lastTx?(lastTx.type==='in'?'⬇ Stocked in':'⬆ Stocked out'):'';
-  // Stock bar
-  let pct=p.threshold>0?Math.round((p.qty/Math.max(p.qty,p.threshold*2))*100):0;
-  pct=Math.min(pct,100);
-  let barColor=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
+  let pct=p.threshold>0?Math.min(Math.round((p.qty/Math.max(p.qty,p.threshold*2))*100),100):0;
   let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
   document.getElementById('m-title').textContent=p.name;
   document.getElementById('m-sub').textContent=cN(p.cat)+' › '+sN(p.cat,p.sub);
   document.getElementById('m-body').innerHTML=
-    // Photo banner
-    (p.photo?'<div style="height:120px;border-radius:12px;overflow:hidden;margin-bottom:14px"><img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.display=\'none\'"></div>':'')
-    // Location
-    +'<div class="loc-big" style="margin-bottom:12px"><div class="loc-big-l">📍 Location</div><div class="loc-big-v">'+(loc?'Rack '+loc.slice(1):'—')+'</div><div class="loc-big-n">'+(loc?'Stored on Rack '+loc.slice(1):'Not assigned — use Setup')+'</div></div>'
-    // Info grid
+    // Photo banner — shows product image
+    (p.photo
+      ?'<div style="height:140px;border-radius:12px;overflow:hidden;margin-bottom:14px;background:var(--sur2);cursor:zoom-in" onclick="showPhotoFullscreen(\''+p.id+'\')" title="Tap to zoom">'
+        +'<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:contain;background:#fff" onerror="this.parentNode.style.display=\'none\'">'
+        +'<div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.4);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px">🔍 Zoom</div>'
+      +'</div>'
+      :'<div style="height:100px;border-radius:12px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:14px">📦</div>'
+    )
+    // Location — rack + shelf
+    +'<div style="background:var(--bl2);border:1.5px solid rgba(59,130,246,.3);border-radius:12px;padding:12px;margin-bottom:12px;display:flex;gap:12px;align-items:center">'
+      +'<div style="font-size:32px">📍</div>'
+      +'<div><div style="font-size:17px;font-weight:900;color:var(--bl3)">Rack '+rackN+'</div>'
+      +'<div style="font-size:12px;color:var(--bl);margin-top:2px">'+shelfN+'</div></div>'
+    +'</div>'
+    // Stats grid
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'
-      +'<div style="background:var(--sur2);border-radius:11px;padding:12px">'
-        +'<div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">In stock</div>'
+      +'<div style="background:var(--sur2);border-radius:11px;padding:12px;text-align:center">'
         +'<div style="font-size:28px;font-weight:900;color:'+qc+'">'+p.qty+'</div>'
-        +'<div style="font-size:10px;color:var(--tx3)">min: '+p.threshold+'</div>'
+        +'<div style="font-size:10px;color:var(--tx3)">in stock (min '+p.threshold+')</div>'
       +'</div>'
       +'<div style="background:var(--sur2);border-radius:11px;padding:12px">'
         +'<div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">SKU</div>'
-        +'<div style="font-size:13px;font-weight:700;font-family:monospace;color:var(--tx)">'+p.sku+'</div>'
-        +'<div style="font-size:10px;color:var(--tx3);margin-top:4px">'+cN(p.cat)+'</div>'
+        +'<div style="font-size:12px;font-weight:700;font-family:monospace">'+p.sku+'</div>'
+        +'<div style="font-size:10px;color:var(--tx3);margin-top:3px">'+cN(p.cat)+'</div>'
       +'</div>'
     +'</div>'
-    // Stock bar
-    +'<div style="margin-bottom:12px">'
-      +'<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-bottom:4px"><span>Stock level</span><span>'+Math.round(pct)+'%</span></div>'
-      +'<div style="height:10px;background:var(--sur3);border-radius:5px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:5px;transition:width .4s"></div></div>'
-    +'</div>'
-    // Barcode
-    +(p.barcode?'<div style="background:var(--sur2);border-radius:11px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Barcode</div><div style="font-size:15px;font-weight:700;font-family:monospace;color:var(--gn)">'+p.barcode+'</div></div><span style="font-size:22px">✓</span></div>':'<div style="background:var(--rd2);border-radius:11px;padding:10px 12px;margin-bottom:8px;font-size:12px;color:var(--rd)">⚠ No barcode — use Register app to scan one</div>')
-    // Last movement
+    +'<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-bottom:4px"><span>Stock level</span><span>'+pct+'%</span></div><div style="height:10px;background:var(--sur3);border-radius:5px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+qc+';border-radius:5px;transition:width .4s"></div></div></div>'
+    +(p.barcode
+      ?'<div style="background:var(--sur2);border-radius:11px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px"><div><div style="font-size:9px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Barcode</div><div style="font-size:15px;font-weight:700;font-family:monospace;color:var(--gn)">'+p.barcode+'</div></div><span style="font-size:20px;margin-left:auto">✓</span></div>'
+      :'<div style="background:var(--rd2);border-radius:11px;padding:10px 12px;margin-bottom:8px;font-size:12px;color:var(--rd)">⚠ No barcode — use Register app</div>'
+    )
     +'<div style="background:var(--sur2);border-radius:11px;padding:12px;margin-bottom:8px">'
       +'<div style="font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Last movement</div>'
-      +'<div style="font-size:13px;font-weight:600;color:var(--tx)">'+(lastMoveType?lastMoveType+' · ':'')+'<span style="color:var(--tx2)">'+lastMove+'</span></div>'
+      +'<div style="font-size:13px;font-weight:600;color:var(--tx)">'+(lastMoveType?lastMoveType+' · ':'<span style="color:var(--tx3)">Never moved</span>')+'<span style="color:var(--tx2)">'+lastMove+'</span></div>'
       +'<div style="font-size:11px;color:var(--tx3);margin-top:3px">by '+lastMover+'</div>'
     +'</div>'
-    // Last updated
-    +'<div style="font-size:11px;color:var(--tx3);text-align:center">Last stock update: '+(p.lastUpdated||'—')+'</div>'
-    +'<div style="background:var(--bl2);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--tx2);line-height:1.5;margin-top:10px">💡 Stock in / out → use the <b>Main app</b>. It shows "Rack '+( loc?loc.slice(1):'—')+'" while scanning.</div>';
+    +'<div style="background:var(--bl2);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--tx2);line-height:1.5">💡 Stock in/out in the <b>Main app</b> — it shows Rack '+rackN+' · '+shelfN+' while scanning.</div>';
   document.getElementById('m-foot').innerHTML=
     '<button class="act-btn ab-sec" onclick="closeModal()" style="flex:1">Close</button>'
     +(loc
-      ?'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Change rack</button>'
-      :'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Assign rack</button>');
+      ?'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Change</button>'
+      :'<button class="act-btn ab-loc" onclick="reassignFromModal('+p.id+')">📍 Assign</button>');
   document.getElementById('modal').classList.add('show');
 }
-function reassignFromModal(pid){
-  closeModal();
-  openLocPicker(pid);
+
+function showPhotoFullscreen(pid){
+  let p=gP(parseInt(pid)); if(!p||!p.photo)return;
+  let lb=document.createElement('div');
+  lb.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out';
+  lb.innerHTML='<img src="'+p.photo+'" style="max-width:92vw;max-height:90vh;border-radius:12px;object-fit:contain">'
+    +'<div style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;font-size:13px;font-weight:600;padding:8px 20px;border-radius:20px;white-space:nowrap;max-width:85vw;overflow:hidden;text-overflow:ellipsis">'+p.name+'</div>';
+  lb.onclick=()=>lb.remove();
+  document.body.appendChild(lb);
 }
+function reassignFromModal(pid){ closeModal(); openLocPicker(pid); }
 function closeModal(){document.getElementById('modal').classList.remove('show');}
 
 // rack.html no longer changes stock — that's done in the Main app.
@@ -685,7 +738,7 @@ function renderStockRecent(){
     return '<div class="prod-card" onclick="openProd('+p.id+')">'
       +'<div class="prod-thumb">'+ph+'</div>'
       +'<div class="prod-info"><div class="prod-name">'+p.name+'</div>'
-      +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+loc.slice(1)+'</span>':'<span class="loc-tag none">No rack</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
+      +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+(loc.rack||loc).slice(1)+'</span>':'<span class="loc-tag none">No rack</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
       +'<div class="prod-qty"><div class="prod-qty-n">'+p.qty+'</div><div class="prod-qty-l">in stock</div></div>'
       +'</div>';
   }).join('');
@@ -714,43 +767,55 @@ function renderSetupList(q){
     return '<div class="prod-card" onclick="openLocPicker('+p.id+')">'
       +'<div class="prod-thumb">'+ph+'</div>'
       +'<div class="prod-info"><div class="prod-name">'+p.name+'</div>'
-      +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+loc.slice(1)+'</span>':'<span class="loc-tag none">Tap to place</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
+      +'<div class="prod-meta">'+(loc?'<span class="loc-tag">Rack '+(loc.rack||loc).slice(1)+'</span>':'<span class="loc-tag none">Tap to place</span>')+'<span>'+sN(p.cat,p.sub)+'</span></div></div>'
       +'<div style="font-size:18px;color:var(--tx3)">›</div></div>';
   }).join('')+(list.length>80?'<div class="empty-s" style="text-align:center;padding:14px">Showing 80 of '+list.length+' — search to narrow</div>':'');
 }
-let _locPickProd=null,_locPickRack=null;
+let _locPickProd=null, _locPickRack=null, _locPickShelf='mid';
+
 function openLocPicker(pid){
   let p=gP(pid); if(!p)return;
   _locPickProd=p;
   let cur=rackOf(pid);
-  _locPickRack=cur||null;
+  _locPickRack=cur?cur.rack:null;
+  _locPickShelf=cur?cur.shelf:'mid';
   document.getElementById('m-title').textContent=p.name;
-  document.getElementById('m-sub').textContent='Tap a rack to place this product · barcode unchanged';
+  document.getElementById('m-sub').textContent='Assign rack & shelf position';
   renderLocPickerBody();
   document.getElementById('m-foot').innerHTML=
     (cur?'<button class="act-btn ab-sec" onclick="clearLoc()">Clear</button>':'')
     +'<button class="act-btn ab-loc" onclick="saveLoc()">📍 Save location</button>';
   document.getElementById('modal').classList.add('show');
 }
+const SHELF_NAMES={upper:'⬆ Upper',mid:'➡ Middle',lower:'⬇ Lower'};
 function renderLocPickerBody(){
-  let h='<div class="loc-big"><div class="loc-big-l">📍 Selected rack</div><div class="loc-big-v">'+(_locPickRack?'Rack '+_locPickRack.slice(1):'—')+'</div><div class="loc-big-n">'+(_locPickRack?'Tap Save to confirm':'Tap a rack below')+'</div></div>';
-  h+='<div class="loc-lbl">Choose rack</div><div class="loc-grid">';
-  for(let r of rackList())h+='<div class="loc-opt'+(_locPickRack===r?' on':'')+'" onclick="pickRack(\''+r+'\')">'+r+'</div>';
+  let h='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">';
+  for(let [k,label] of Object.entries(SHELF_NAMES)){
+    let sel=_locPickShelf===k;
+    h+='<button onclick="pickShelf(\''+k+'\')" style="padding:11px 4px;border-radius:10px;border:2px solid '+(sel?'var(--pu)':'var(--bdr)')+';background:'+(sel?'var(--pu2)':'var(--sur2)')+';color:'+(sel?'var(--pu)':'var(--tx2)')+';font-size:13px;font-weight:'+(sel?'700':'500')+';cursor:pointer">'+label+'</button>';
+  }
   h+='</div>';
+  h+='<div class="loc-lbl">Choose rack</div><div class="loc-grid">';
+  for(let r of rackList()) h+='<div class="loc-opt'+(_locPickRack===r?' on':'')+'" onclick="pickRack(\''+r+'\')">'+r+'</div>';
+  h+='</div>';
+  if(_locPickRack){
+    let sn={upper:'Upper shelf',mid:'Middle shelf',lower:'Lower shelf'}[_locPickShelf]||_locPickShelf;
+    h+='<div style="margin-top:12px;background:var(--pu2);border-radius:10px;padding:12px;text-align:center;font-size:14px;font-weight:700;color:var(--pu)">📍 Rack '+_locPickRack.slice(1)+' · '+sn+'</div>';
+  }
   document.getElementById('m-body').innerHTML=h;
 }
 function pickRack(r){_locPickRack=r;renderLocPickerBody();}
+function pickShelf(s){_locPickShelf=s;renderLocPickerBody();}
 function saveLoc(){
-  if(!_locPickRack){toast('Pick a rack','err');return;}
-  let loc=_locPickRack;
+  let loc={rack:_locPickRack, shelf:_locPickShelf||'mid'};
   rackMap[_locPickProd.id]=loc;
   _pendingLoc[_locPickProd.id]=loc;
-  let tx={id:'tx'+Date.now()+Math.random().toString(36).slice(2,6),type:'set',pid:_locPickProd.id,prod:_locPickProd.name,qty:0,rack:loc,at:nowISO(),user:'Rack'};
+  let tx={id:'tx'+Date.now()+Math.random().toString(36).slice(2,6),type:'set',pid:_locPickProd.id,prod:_locPickProd.name,qty:0,rack:loc.rack,at:nowISO(),user:'Rack'};
   txLog.unshift(tx); _pendingTx.push(tx);
   saveLocal(); updateSyncBtn(); closeModal();
-  toast('📍 '+_locPickProd.name.split(' ').slice(0,3).join(' ')+' → Rack '+loc.slice(1),'ok');
-  flash('set');
-  renderSetup();
+  let shelfName={upper:'Upper shelf',mid:'Middle shelf',lower:'Lower shelf'}[loc.shelf]||loc.shelf;
+  toast('📍 '+_locPickProd.name.split(' ').slice(0,3).join(' ')+' → Rack '+loc.rack.slice(1)+' · '+shelfName,'ok');
+  flash('set'); renderSetup();
 }
 function clearLoc(){
   delete rackMap[_locPickProd.id];
@@ -1158,7 +1223,7 @@ async function downloadProductLabels(){
     doc.text(bc,cx,y+13+bh+5,{align:'center'});
     let loc=rackOf(p.id);
     doc.setFontSize(8);doc.setFont(undefined,'bold');
-    if(loc){doc.setTextColor(59,130,246);doc.text('RACK '+loc.slice(1),cx,y+lh-3,{align:'center'});}
+    if(loc){doc.setTextColor(59,130,246);doc.text('RACK '+(loc.rack||loc).slice(1),cx,y+lh-3,{align:'center'});}
     else{doc.setTextColor(150);doc.text(sN(p.cat,p.sub),cx,y+lh-3,{align:'center'});}
     col++;
     if(col>=cols){col=0;x=m;y+=lh+gap;}else{x+=lw+gap;}
@@ -1186,7 +1251,10 @@ async function syncAll(){
           let {error}=await sbClient.from('rack_assignments').delete().eq('product_id',parseInt(pid));
           if(error)throw error;
         }else{
-          let {error}=await sbClient.from('rack_assignments').upsert({product_id:parseInt(pid),rack:rk,updated_at:nowISO()});
+          let locVal=_pendingLoc[pid]; // {rack, shelf} or null
+          let rk=locVal?(locVal.rack||locVal):null; // handle legacy string
+          let shelf=locVal?(locVal.shelf||'mid'):'mid';
+          let {error}=await sbClient.from('rack_assignments').upsert({product_id:parseInt(pid),rack:rk,shelf:shelf,updated_at:nowISO()});
           if(error)throw error;
         }
         delete _pendingLoc[pid];
@@ -1258,11 +1326,11 @@ async function dbPull(){
     }
     // rack assignments from dedicated table
     try{
-      let {data:ra,error:rae}=await sbClient.from('rack_assignments').select('product_id,rack');
+      let {data:ra,error:rae}=await sbClient.from('rack_assignments').select('product_id,rack,shelf');
       if(!rae && ra){
         ra.forEach(row=>{
           if(!(String(row.product_id) in _pendingLoc) && !(row.product_id in _pendingLoc))
-            rackMap[row.product_id]=row.rack;
+            rackMap[row.product_id]={rack:row.rack, shelf:row.shelf||'mid'};
         });
       }
     }catch(e){}
