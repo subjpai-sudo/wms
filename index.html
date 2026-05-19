@@ -754,7 +754,7 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
         <button data-p="14">14d</button>
         <button data-p="30">30d</button>
       </div>
-      <button class="btn btn-pu btn-sm" onclick="nav('orders');setOType('low')"><svg width="13" height="13"><use href="#ic-send"/></svg> Reorder</button>
+      
     </div>
   </header>
 
@@ -905,15 +905,7 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
 
       </div>
 
-      <div class="d2-qa-mini">
-        <div class="d2-qa-mini-c" onclick="nav('orders');setOType('low')">
-          <div class="d2-qa-mini-ic"><svg width="16" height="16"><use href="#ic-send"/></svg></div>
-          <div class="d2-qa-mini-tx">
-            <b><span id="d2-mini-low">0</span> items below threshold</b>
-            <span>Send restock SMS to supplier</span>
-          </div>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
+      
       </div>
     </div>
 
@@ -952,7 +944,7 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
       <button class="tb" onclick="swTab(this,'tab-act')">Activity log</button>
     </div>
     <div class="tbp on" id="tab-low">
-      <div class="fx mb10"><span style="font-size:12px;color:var(--tx2);flex:1" id="ls-count"></span><button class="btn btn-sm btn-am" onclick="nav('orders');setOType('low')"><svg width="11" height="11"><use href="#ic-send"/></svg> Reorder</button></div>
+      <div class="mb6"><span style="font-size:12px;color:var(--tx2)" id="ls-count"></span></div>
       <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th class="hm">Brand</th><th>Qty</th><th>Threshold</th><th class="hm">Short</th><th>Status</th></tr></thead><tbody id="ls-tbl"></tbody></table></div>
     </div>
     <div class="tbp" id="tab-prods">
@@ -1313,6 +1305,16 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
         <span class="m-stat-pill"><i class="dot" style="background:var(--gn)"></i><b id="prod-stat-boxes">0</b> boxes</span>
         <span class="m-stat-pill"><i class="dot" style="background:var(--am)"></i><b id="prod-stat-low">0</b> low</span>
         <span class="m-stat-pill"><i class="dot" style="background:var(--rd)"></i><b id="prod-stat-out">0</b> out</span>
+        <span class="m-stat-pill" style="background:var(--pu2);border-radius:20px;padding:3px 10px;display:flex;align-items:center;gap:6px">
+          <i class="dot" style="background:var(--pu)"></i>
+          <span style="color:var(--pu3);font-size:11px;font-weight:600">Threshold:</span>
+          <input type="number" id="global-threshold" value="20" min="1" max="999" inputmode="numeric"
+            style="width:44px;font-size:12px;font-weight:700;color:var(--pu3);border:none;background:transparent;padding:0;text-align:center"
+            onchange="applyGlobalThreshold(this.value)" title="Apply this threshold to all products"/>
+          <span style="color:var(--pu3);font-size:11px">boxes</span>
+          <button onclick="applyGlobalThreshold(document.getElementById('global-threshold').value)"
+            style="background:var(--pu);color:#fff;border:none;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;cursor:pointer">Apply all</button>
+        </span>
       </div>
     </div>
     <div class="m-hdr-r">
@@ -1357,68 +1359,60 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
 
 <!-- ORDER REQUEST -->
 <div class="page" id="page-orders">
-  <div class="pt">Order requests</div>
-  <div class="ps">Send restock or new product alerts via SMS to your team</div>
-  <!-- SMS recipient -->
+  <div class="pt">SMS Orders</div>
+  <div class="ps">Send restock or new-order SMS to supplier via Twilio</div>
+
+  <!-- Recipient selector -->
   <div class="card mb10">
-    <div class="fx gap10 mb8">
-      <div style="width:32px;height:32px;border-radius:var(--r);background:var(--gn2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">📱</div>
-      <div style="flex:1"><div style="font-size:13px;font-weight:600">Send SMS to</div><div style="font-size:11px;color:var(--tx2)">via Twilio — team member must have a phone number in Settings</div></div>
-    </div>
+    <div class="sec" style="margin-bottom:8px">Send to</div>
     <select id="order-recipient" style="font-size:13px;width:100%"></select>
-    <select id="order-recipient-new" style="font-size:13px;width:100%;display:none;margin-top:6px"></select>
   </div>
-  </div>
-      
+
+  <!-- Restock from low stock list -->
+  <div class="card mb10" id="ot-low-card">
+    <div class="fx gap10 mb12">
+      <div style="width:36px;height:36px;border-radius:var(--r);background:var(--am2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" style="color:var(--am3)"><use href="#ic-warn"/></svg></div>
+      <div><div style="font-size:14px;font-weight:700">Restock request</div><div style="font-size:11px;color:var(--tx2)">Products below threshold</div></div>
+    </div>
+    <div id="rs-tbl-wrap" style="overflow-x:auto;margin-bottom:10px">
+      <table class="tbl" id="rs-tbl" style="width:100%">
+        <thead><tr><th>Product</th><th>Stock</th><th>Min</th><th>Order qty</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="mb10"><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px">Note to supplier (optional)</label><textarea id="rs-note" rows="2" placeholder="Add context or special instructions…" style="resize:none"></textarea></div>
+    <div class="fx gap8" style="justify-content:flex-end">
+      <button class="btn btn-am" id="send-low-btn" onclick="sendOrder('low')">📱 Send restock SMS</button>
     </div>
   </div>
-  <div class="g2 mb12">
-    <div class="card" id="ot-low" onclick="setOType('low')" style="cursor:pointer;border:1.5px solid var(--bdr)"><div class="fx gap10"><div style="width:32px;height:32px;border-radius:var(--r);background:var(--am2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" style="color:var(--am3)"><use href="#ic-warn"/></svg></div><div><div style="font-size:13px;font-weight:600">Restock</div><div style="font-size:11px;color:var(--tx2)">From low stock list</div></div></div></div>
-    <div class="card" id="ot-new" onclick="setOType('new')" style="cursor:pointer;border:1.5px solid var(--bdr)"><div class="fx gap10"><div style="width:32px;height:32px;border-radius:var(--r);background:var(--bl2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" style="color:var(--bl3)"><use href="#ic-plus"/></svg></div><div><div style="font-size:13px;font-weight:600">New order</div><div style="font-size:11px;color:var(--tx2)">New products</div></div></div></div>
+
+  <!-- New product order -->
+  <div class="card mb10">
+    <div class="fx gap10 mb12">
+      <div style="width:36px;height:36px;border-radius:var(--r);background:var(--bl2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" style="color:var(--bl3)"><use href="#ic-plus"/></svg></div>
+      <div><div style="font-size:14px;font-weight:700">New product order</div><div style="font-size:11px;color:var(--tx2)">Order products not yet in system</div></div>
+    </div>
+    <div style="overflow-x:auto;margin-bottom:10px">
+      <table class="tbl" id="no-tbl" style="width:100%">
+        <thead><tr><th>Product name</th><th>Category</th><th class="hm">Brand</th><th>Qty</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <button class="btn btn-sm mb10" onclick="addNOR()"><svg width="13" height="13"><use href="#ic-plus"/></svg> Add row</button>
+    <div class="mb10"><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:4px">Note (optional)</label><textarea id="no-note" rows="2" placeholder="Special instructions…" style="resize:none"></textarea></div>
+    <div class="fx gap8" style="justify-content:flex-end">
+      <button class="btn btn-pu" id="send-new-btn" onclick="sendOrder('new')">📱 Send new order SMS</button>
+    </div>
   </div>
-  <div id="of-low" style="display:none">
-    <div class="card mb10">
-      <div class="fx mb10">
-        <div class="sec" style="margin-bottom:0;flex:1">Select items to reorder</div>
-        <div style="font-size:11px;color:var(--tx3)" id="rs-cnt">0 selected</div>
-      </div>
-      <div id="rs-items-wrap" style="border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;max-height:400px;overflow-y:auto;background:var(--sur)"></div>
-    </div>
-    <div class="card mb10"><div class="sec">Note to owner</div><textarea id="rs-note" rows="2" placeholder="Add context…" style="resize:none"></textarea></div>
-    <div class="card mb10">
-      <div class="sec">Send alert to</div>
-      <select id="order-recipient" style="margin-bottom:8px;font-size:13px">
-        
-      </select>
-      <div style="font-size:11px;color:var(--tx3)">Select a team member with a phone number to also send SMS</div>
-    </div>
-    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn" id="send-low-btn" onclick="sendOrder('low')" style="background:var(--gn);color:#fff;border-color:var(--gn)">📱 Send SMS</button></div>
-  </div>
-  <div id="of-new" style="display:none">
-    <div class="card mb10"><div class="sec">New items to order</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th>Category</th><th class="hm">Brand</th><th>Qty</th><th></th></tr></thead><tbody id="no-tbl"></tbody></table></div><button class="btn btn-sm mt8" onclick="addNORow()"><svg width="12" height="12"><use href="#ic-plus"/></svg> Add item</button></div>
-    <div class="card mb10"><div class="sec">Note</div><textarea id="no-note" rows="2" placeholder="Supplier info, urgency…" style="resize:none"></textarea></div>
-    <div class="card mb10">
-      <div class="sec">Send alert to</div>
-      <select id="order-recipient-new" style="margin-bottom:8px;font-size:13px">
-        
-      </select>
-      <div style="font-size:11px;color:var(--tx3)">Select a team member with a phone number to also send SMS</div>
-    </div>
-    <div class="fx gap8" style="justify-content:flex-end"><button class="btn" onclick="setOType(null)">Cancel</button><button class="btn" id="send-new-btn" onclick="sendOrder('new')" style="background:var(--gn);color:#fff;border-color:var(--gn)">📱 Send SMS</button></div>
-  </div>
-  <div id="send-result" style="display:none;margin-top:10px"></div>
-  <div class="card mt20"><div class="sec">Request history</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Request</th><th class="hm">Type</th><th class="hm">Items</th><th>Sent</th><th>Alert</th><th>Status</th></tr></thead><tbody id="oh-tbl"></tbody></table></div></div>
-  <div id="sms-preview" style="display:none;margin-top:14px">
-    <div class="sec mb8">📱 SMS preview</div>
-    <div style="background:var(--sur2);border-radius:var(--rl);padding:14px 16px;border:1px solid var(--bdr)">
-      <div style="font-size:12px;color:var(--tx);white-space:pre-line;line-height:1.8;font-family:monospace" id="sms-msg-body"></div>
-      <div style="font-size:10px;color:var(--tx3);text-align:right;margin-top:8px" id="sms-msg-time"></div>
-    </div>
+
+  <!-- History -->
+  <div class="card">
+    <div class="sec">Request history</div>
+    <div id="oh-list"><div style="padding:16px;text-align:center;color:var(--tx3);font-size:13px">No history yet</div></div>
   </div>
 </div>
 
 
-<!-- CONTAINER TRACKING -->
 <div class="page" id="page-containers">
   <div class="fx gap8 mb12">
     <div style="flex:1"><div class="pt">Containers</div><div class="ps" style="margin-bottom:0">Incoming shipment tracking</div></div>
@@ -1683,7 +1677,8 @@ input:focus,select:focus,textarea:focus{border-color:#06B6D4;box-shadow:0 0 0 4p
     <div style="display:flex;flex-direction:column;gap:10px">
       <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Product name</label><input type="text" id="np-name" placeholder="e.g. READY Beef Curry 425g"/></div>
       <div class="g2"><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Category</label><select id="np-cat" onchange="npSubcats()"><option value="">Select…</option></select></div><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Brand</label><select id="np-sub"><option value="">Select…</option></select></div></div>
-      <div class="g2"><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Initial qty</label><input type="number" id="np-qty" placeholder="0" min="0" inputmode="numeric"/></div><div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Threshold</label><input type="number" id="np-thr" placeholder="20" min="0" inputmode="numeric"/></div></div>
+      <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Qty (boxes)</label><input type="number" id="np-qty" placeholder="0" min="0" inputmode="numeric"/></div>
+      <input type="hidden" id="np-thr" value="20"/>
       <div><label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:3px">Barcode (optional)</label><input type="text" id="np-bc" placeholder="Full barcode number" inputmode="numeric"/></div>
     </div>
     <div class="g2 mt16"><button class="btn w100" onclick="closeModal('m-addprod')">Cancel</button><button class="btn btn-pu w100" onclick="saveProd()"><svg width="14" height="14"><use href="#ic-chk"/></svg> Save</button></div>
@@ -3999,6 +3994,21 @@ function openAddProd(){
   openModal('m-addprod');
 }
 function npSubcats(){let cid=document.getElementById('np-cat').value,c=gC(cid);document.getElementById('np-sub').innerHTML=c?c.subs.map(s=>'<option value="'+s.id+'">'+s.name+'</option>').join(''):'<option>Select category first…</option>';}
+function applyGlobalThreshold(val){
+  let thr = parseInt(val) || 20;
+  if(thr < 1 || thr > 9999) return;
+  // Store globally
+  localStorage.setItem('global_threshold', thr);
+  // Apply to ALL products
+  products.forEach(p => {
+    p.threshold = thr;
+    sbPushProduct(p);
+  });
+  toast('✓ Threshold set to '+thr+' boxes for all '+products.length+' products', 'ok');
+  renderProds();
+  refreshDash();
+}
+
 function saveProd(){
   let name=document.getElementById('np-name').value.trim(),cat=document.getElementById('np-cat').value,sub=document.getElementById('np-sub').value;
   if(!name||!cat||!sub){toast('Fill in all required fields','rd');return;}
@@ -4396,40 +4406,31 @@ async function testWA(){
 }
 function setOType(type){
   currentOType=type;
-  document.getElementById('ot-low').style.border=type==='low'?'2px solid var(--am)':'1.5px solid var(--bdr)';
-  document.getElementById('ot-new').style.border=type==='new'?'2px solid var(--bl)':'1.5px solid var(--bdr)';
-  document.getElementById('of-low').style.display=type==='low'?'block':'none';
-  document.getElementById('of-new').style.display=type==='new'?'block':'none';
-  document.getElementById('wa-preview').style.display='none';
-  let sr=document.getElementById('send-result');if(sr)sr.style.display='none';
-  if(type==='low'){renderRS();populateOrderRecipients();}
+  // New simplified page - both sections always visible, just scroll to the right one
+  if(type==='low'){
+    renderRS();populateOrderRecipients();
+    let el=document.getElementById('ot-low-card');
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  }
   if(type==='new'){renderNO();populateOrderRecipients();}
 }
 function renderRS(){
-  let all = products.slice().sort((a,b)=>{
-    let as=gS(a)==='ok'?2:gS(a)==='low'?1:0;
-    let bs=gS(b)==='ok'?2:gS(b)==='low'?1:0;
-    return as-bs||a.name.localeCompare(b.name);
-  });
-
-  let wrap = document.getElementById('rs-items-wrap');
-  if(!wrap) return;
-  wrap.innerHTML = all.map(p=>{
-    let qc=p.qty===0?'var(--rd)':p.qty<=p.threshold?'var(--am)':'var(--gn)';
-    return '<div class="rs-row" id="rsrow-'+p.id+'" onclick="toggleRSRow('+p.id+')" style="display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--bdr);cursor:pointer;background:var(--sur);-webkit-tap-highlight-color:transparent;user-select:none">'
-      +'<div class="rs-check" style="width:26px;height:26px;border-radius:7px;border:2px solid var(--bdr2);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--sur)"></div>'
-      +'<div style="flex:1;min-width:0">'
-        +'<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
-        +'<div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap">'
-          +'<span style="font-size:11px;color:var(--tx3)">'+cN(p.cat)+'</span>'
-          +sBadge(p)
-          +'<span style="font-size:11px;font-weight:700;color:'+qc+'">'+p.qty+' in stock</span>'
-        +'</div>'
-      +'</div>'
-      +'<input type="number" class="rs-qty" data-id="'+p.id+'" placeholder="qty" min="1" onclick="event.stopPropagation()" '
-        +'style="width:72px;padding:8px 6px;font-size:14px;font-weight:700;text-align:center;border:2px solid var(--pu);border-radius:var(--r);display:none;flex-shrink:0"/>'
-      +'</div>';
-  }).join('')||'<div style="padding:20px;text-align:center;color:var(--tx3)">No products</div>';
+  let tbl = document.querySelector('#rs-tbl tbody');
+  if(!tbl) return;
+  let lowProds = products.filter(p=>gS(p)!=='ok').sort((a,b)=>a.qty-b.qty);
+  if(!lowProds.length){
+    tbl.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--gn3);padding:16px">✓ All products well stocked</td></tr>';
+    return;
+  }
+  tbl.innerHTML=lowProds.map(p=>{
+    let qc=p.qty===0?'color:var(--rd);font-weight:800':'color:var(--am);font-weight:700';
+    return '<tr id="rsrow-'+p.id+'">'
+      +'<td style="font-size:13px">'+p.name+'</td>'
+      +'<td style="'+qc+'">'+p.qty+'</td>'
+      +'<td style="color:var(--tx3)">'+p.threshold+'</td>'
+      +'<td><input type="number" class="rs-qty" data-id="'+p.id+'" placeholder="e.g. 20" min="1" value="'+(p.threshold-p.qty>0?p.threshold-p.qty:10)+'" style="width:70px;padding:6px 8px;font-size:14px;font-weight:700;text-align:center;border:1.5px solid var(--pu);border-radius:var(--r)"/></td>'
+      +'</tr>';
+  }).join('');
   upRsCnt();
 }
 
@@ -4475,16 +4476,21 @@ function populateOrderRecipients() {
 
 async function sendOrder(type){
   let items=[], msgText='';
+  let recipientEl=document.getElementById('order-recipient');
+  let recipientVal=recipientEl?recipientEl.value:'';
+  if(!recipientVal){toast('Select a recipient first','rd');return;}
+
   if(type==='low'){
-    document.querySelectorAll('.rs-row[data-selected="1"]').forEach(row=>{
-      let pid=parseInt(row.id.replace('rsrow-',''));
-      let qi=row.querySelector('.rs-qty');
-      if(qi&&qi.value){let p=gP(pid);items.push({name:p.name,qty:parseInt(qi.value),cat:cN(p.cat),vendor:p.vendor||''});}
+    document.querySelectorAll('.rs-qty').forEach(inp=>{
+      let pid=parseInt(inp.dataset.id);
+      let qty=parseInt(inp.value);
+      if(pid&&qty>0){let p=gP(pid);if(p)items.push({name:p.name,qty,cat:cN(p.cat),vendor:p.vendor||''});}
     });
-    if(!items.length){toast('Select at least one item','rd');return;}
-    msgText='\uD83C\uDFEA CITYSTAR WAREHOUSE\nRESTOCK REQUEST\n\n';
-    msgText+=items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+(it.vendor?' | '+it.vendor:'')+'\n   Qty: '+it.qty+' boxes').join('\n\n');
-    let note=document.getElementById('rs-note').value;if(note)msgText+='\n\nNote: '+note;
+    if(!items.length){toast('No products with qty set','rd');return;}
+    msgText='🏪 CITYSTAR WAREHOUSE\nRESTOCK REQUEST\n\n'
+      +items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+(it.vendor?' | '+it.vendor:'')+'\n   Order qty: '+it.qty+' boxes').join('\n\n');
+    let note=document.getElementById('rs-note')?.value;
+    if(note)msgText+='\n\nNote: '+note;
   }else{
     noRowsList.forEach(r=>{
       let name=document.getElementById('nor-n-'+r.id)?.value.trim();
@@ -4493,558 +4499,49 @@ async function sendOrder(type){
       if(name&&qty)items.push({name,cat:cN(cat)||cat,qty:parseInt(qty)});
     });
     if(!items.length){toast('Add at least one item','rd');return;}
-    msgText='\uD83C\uDFEA CITYSTAR WAREHOUSE\nNEW ORDER REQUEST\n\n';
-    msgText+=items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+'\n   Qty: '+it.qty+' boxes').join('\n\n');
-    let note=document.getElementById('no-note').value;if(note)msgText+='\n\nNote: '+note;
+    msgText='🏪 CITYSTAR WAREHOUSE\nNEW ORDER REQUEST\n\n'
+      +items.map((it,i)=>(i+1)+'. '+it.name+'\n   Category: '+it.cat+'\n   Qty: '+it.qty+' boxes').join('\n\n');
+    let note=document.getElementById('no-note')?.value;
+    if(note)msgText+='\n\nNote: '+note;
   }
   msgText+='\n\nSent by: '+(currentUser||'Admin')+'\n'+nowT();
 
-  let prevEl=document.getElementById('sms-msg-body');if(prevEl)prevEl.textContent=msgText;
-  let timeEl=document.getElementById('sms-msg-time');if(timeEl)timeEl.textContent=nowT();
-  let prevWrap=document.getElementById('sms-preview');if(prevWrap)prevWrap.style.display='block';
-
-  let recipientEl=document.getElementById('order-recipient');
-  let recipientVal=recipientEl?recipientEl.value:'';
-  if(!recipientVal){toast('Select a recipient first','rd');return;}
-
   let he={id:Date.now(),desc:(type==='low'?'Restock':'New order')+': '+items.length+' item(s)',type,items:items.length,time:nowT(),status:'sending',smsSent:false};
-  orderHistory.unshift(he);renderOH();
+  orderHistory.unshift(he); renderOH();
 
-  let sb=document.getElementById('send-'+type+'-btn');sb.disabled=true;sb.textContent='Sending…';
+  let btn=document.getElementById('send-'+type+'-btn');
+  if(btn){btn.disabled=true;btn.textContent='Sending…';}
 
   if(recipientVal.startsWith('sms:')){
     let uid=recipientVal.replace('sms:','');
-    let u=appUsers.find(u=>u.id===uid);
+    let u=appUsers.find(x=>x.id===uid);
     if(u&&u.phone){
       try{
-        let res=await fetchTimeout('/api/send-login',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
+        let res=await fetchTimeout('/api/send-login',{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({to:u.phone,userId:'order-alert',userName:u.name,token:'',message:msgText})
         },15000);
         let d=await res.json();
         he.smsSent=d.success===true;
-        if(he.smsSent)toast('\u2713 SMS sent to '+u.name+' ('+u.phone+')','ok');
+        if(he.smsSent) toast('✓ SMS sent to '+u.name,'ok');
         else toast('SMS failed: '+(d.error||'unknown'),'rd');
       }catch(e){toast('SMS error: '+e.message,'rd');}
-    }else{toast('User has no phone number','rd');}
+    }else toast('No phone number for this user','rd');
   }
 
-  he.status='pending';
-  sbPushOrder(he);
-  sb.disabled=false;sb.textContent='\uD83D\uDCF1 Send SMS';
-  renderOH();setOType(null);
+  he.status='pending'; renderOH(); sbPushOrder(he);
+  if(btn){btn.disabled=false;btn.textContent='📱 Send '+(type==='low'?'restock':'new order')+' SMS';}
 }
 
-async function sbPushOrder(o){
-  if(!sbClient)return;
-  try{await sbClient.from('order_history').insert({description:o.desc,type:o.type,items:o.items,time:o.time,wa_ok:o.waOk||false,status:o.status||'pending'});}catch(e){}
-}
-async function sbPushSettings(){
-  if(!sbClient)return;
-  
-}
-async function sbPullUsers(){
-  if(!sbClient)return;
-  try{
-    let {data,error}=await sbClient.from('settings').select('value').eq('key','app_users').single();
-    if(!error&&data&&data.value){
-      let parsed=JSON.parse(data.value);
-      if(Array.isArray(parsed)&&parsed.length){
-        // Preserve mustChangePin:false from localStorage — don't let Supabase re-prompt
-        let localSaved = [];
-        try { let s=localStorage.getItem('wms_users_v1'); if(s) localSaved=JSON.parse(s); } catch(e){}
-        parsed.forEach(u => {
-          let local = localSaved.find(l => l.id === u.id);
-          // If local says mustChangePin is false, trust local (user already set PIN)
-          if (local && local.mustChangePin === false) u.mustChangePin = false;
-          // Also preserve the local PIN if it differs (user changed it locally)
-          if (local && local.pin && local.pin !== u.pin) u.pin = local.pin;
-        });
-        appUsers=parsed;
-        try{localStorage.setItem('wms_users_v1',JSON.stringify(appUsers));}catch(e){}
-        renderPinUserList();
-      }
-    }
-  }catch(e){}
-}
-
-async function sbPushUsers(){
-  // Always save to localStorage immediately
-  try{localStorage.setItem('wms_users_v1',JSON.stringify(appUsers));}catch(e){}
-  if(!sbClient)return;
-  try{await sbClient.from('settings').upsert({key:'app_users',value:JSON.stringify(appUsers)});}catch(e){}
-}
-async function sbPushAll(){
-  if(!sbClient){toast('Not connected to Supabase','rd');return;}
-  toast('Pushing all data…');
-  try{
-    await sbClient.from('products').upsert(products.map(p=>({id:p.id,name:p.name,sku:p.sku||'',cat:p.cat,sub:p.sub,qty:p.qty,threshold:p.threshold,vendor:p.vendor||'',barcode:p.barcode||null,last_updated:p.lastUpdated||null,photo:p.photo||null})));
-    await sbClient.from('categories').upsert(categories.map(c=>({id:c.id,name:c.name,subs:c.subs})));
-    await sbPushSettings();await sbPushUsers();await sbPushContainers();
-    toast('✓ All data pushed ('+products.length+' products)');
-  }catch(e){toast('Push failed: '+(e.message||String(e)),'rd');}
-}
-function sbInitFromForm(){sbInit();}
-function sbDisconnect(){if(sbClient){try{sbClient.removeAllChannels();}catch(e){} sbClient=null;}sbConnected=false;updateSbStatus(false);toast('Disconnected');}
-function updateSbStatus(ok){
-  let d=document.getElementById('sb-status-dot');if(d)d.style.background=ok?'var(--gn)':'var(--rd)';
-  let l=document.getElementById('sb-status-lbl');if(l)l.textContent=ok?'Connected':'Not connected';
-}
-
-// ── SMS Settings helpers ──────────────────────────────────────────
-function _smsLog(msg){
-  let el=document.getElementById('sms-log');
-  if(!el)return;
-  el.textContent+=(el.textContent?'\n':'')+new Date().toLocaleTimeString()+' '+msg;
-  el.scrollTop=el.scrollHeight;
-}
-async function testApiEndpoint(){
-  let res=document.getElementById('api-test-result');
-  if(res){res.style.display='block';res.textContent='Testing…';res.style.color='var(--tx2)';}
-  _smsLog('→ POST /api/send-login with _ping:true…');
-  try{
-    let r=await fetchTimeout('/api/send-login',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({_ping:true})
-    },10000);
-    let data={};
-    try{data=await r.json();}catch(e){}
-    if(r.status===400&&data.hint==='API is reachable'){
-      _smsLog('✓ API reachable (HTTP 400 with hint = expected)');
-      if(res){res.textContent='✓ API is reachable — Twilio env vars may need checking';res.style.color='var(--gn)';}
-    } else if(r.status===500&&data.missing){
-      _smsLog('⚠ API reachable but missing env vars: '+data.missing.join(', '));
-      if(res){res.textContent='⚠ API reachable — missing: '+data.missing.join(', ');res.style.color='var(--am)';}
-    } else if(r.ok||r.status<500){
-      _smsLog('✓ API responded: HTTP '+r.status);
-      if(res){res.textContent='✓ API reachable (HTTP '+r.status+')';res.style.color='var(--gn)';}
-    } else {
-      _smsLog('✗ HTTP '+r.status+' — '+(data.error||'no message'));
-      if(res){res.textContent='✗ HTTP '+r.status+': '+(data.error||'');res.style.color='var(--rd)';}
-    }
-  }catch(e){
-    let msg=e.message||String(e);
-    if(msg.includes('timed out')){
-      _smsLog('✗ Timeout — API not responding at /api/send-login');
-      if(res){res.textContent='✗ Timeout — check Vercel deployment';res.style.color='var(--rd)';}
-    }else if(msg.includes('Failed to fetch')||msg.includes('NetworkError')){
-      _smsLog('✗ Network error — not deployed to Vercel or wrong URL');
-      if(res){res.textContent='✗ Cannot reach API — deploy to Vercel first';res.style.color='var(--rd)';}
-    }else{
-      _smsLog('✗ Error: '+msg);
-      if(res){res.textContent='✗ '+msg;res.style.color='var(--rd)';}
-    }
-  }
-}
-async function sendTestSms(){
-  let numEl=document.getElementById('sms-test-number');
-  let resEl=document.getElementById('sms-test-result');
-  let num=(numEl?numEl.value.trim():'');
-  if(!num){
-    if(resEl){resEl.style.display='block';resEl.textContent='Enter a phone number first';resEl.style.color='var(--rd)';}
-    return;
-  }
-  if(resEl){resEl.style.display='block';resEl.textContent='Sending…';resEl.style.color='var(--tx2)';}
-  _smsLog('→ Sending test SMS to '+num+'…');
-  try{
-    let r=await fetchTimeout('/api/send-login',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({to:num,userName:'Test',token:'test123',userId:'test',message:'CityStar WMS test SMS ✓ If you received this, Twilio is working!'})
-    },15000);
-    let data={};try{data=await r.json();}catch(e){}
-    if(data.success){
-      _smsLog('✓ SMS sent! SID: '+(data.sid||'—'));
-      if(resEl){resEl.textContent='✓ SMS sent successfully!';resEl.style.color='var(--gn)';}
-    }else{
-      _smsLog('✗ SMS failed: '+(data.error||'unknown')+' (code: '+(data.code||'—')+')');
-      if(resEl){resEl.textContent='✗ '+(data.error||'Failed');resEl.style.color='var(--rd)';}
-    }
-  }catch(e){
-    _smsLog('✗ Error: '+e.message);
-    if(resEl){resEl.textContent='✗ '+e.message;resEl.style.color='var(--rd)';}
-  }
-}
-
-
-
-// ── Warehouse stock-out: delivery or MM MART ──────────────────
-let _warehouseDest = null; // 'delivery' or 'mmmart'
-function soSetWarehouseDest(dest){
-  _warehouseDest = dest;
-  let dBtn = document.getElementById('so-dest-delivery-btn');
-  let mBtn = document.getElementById('so-dest-mmmart-btn');
-  let nameRow = document.getElementById('so-wh-name-row');
-  let sel = dest === 'delivery';
-  if(dBtn) dBtn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid '+(sel?'var(--bl);background:var(--bl2)':'var(--bdr);background:var(--sur2)')+';cursor:pointer;transition:all .12s';
-  if(mBtn) mBtn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border-radius:var(--rl);border:2px solid '+(dest==='mmmart'?'var(--pu);background:var(--pu2)':'var(--bdr);background:var(--sur2)')+';cursor:pointer;transition:all .12s';
-  if(nameRow) nameRow.style.display = sel ? 'block' : 'none';
-  // Auto-select destination in the SO modal when products are chosen
-  if(dest==='mmmart'){
-    // Pre-select MM MART as destination in doSO
-    let destEl = document.getElementById('so-dest-del');
-    if(destEl) destEl.classList.remove('dest-sel');
-    let shopEl = document.getElementById('so-dest-shop');
-    if(shopEl) shopEl.classList.remove('dest-sel');
-  }
-}
-function soGetWarehouseDest(){
-  // Returns {dest, destName} based on warehouse destination choice
-  if(_warehouseDest==='mmmart') return {dest:'mmmart', destName:'MM MART'};
-  let name = (document.getElementById('so-wh-delivery-name')||{}).value||'';
-  return {dest:'delivery', destName: name||'Delivery'};
-}
-
-// Push ONLY the photo for one product — cross-device real-time sync
-async function sbPushPhoto(pid, photoData){
-  if(!sbClient||!photoData)return;
-  try{
-    // Primary: update the photo column in products table
-    // This triggers the products-rt real-time subscription on all other devices
-    const {error}=await sbClient.from('products').update({photo:photoData}).eq('id',pid);
-    if(error) console.warn('sbPushPhoto products update failed:',error.message);
-    // Secondary: also save in settings as 'photo_<pid>' — guaranteed small key-value
-    // Other devices pull this on next sync if RT didn't deliver
-    await sbClient.from('settings').upsert({key:'photo_'+pid, value:photoData});
-  }catch(e){
-    console.warn('sbPushPhoto failed:',e.message);
-  }
-}
-
-// Pull any photos from settings that weren't delivered via RT
-async function sbPullPhotos(){
-  if(!sbClient)return;
-  try{
-    let {data}=await sbClient.from('settings').select('key,value').like('key','photo_%');
-    if(!data||!data.length)return;
-    let localPhotos={};
-    try{localPhotos=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');}catch(e){}
-    let changed=false;
-    data.forEach(row=>{
-      let pid=parseInt(row.key.replace('photo_',''));
-      if(pid&&row.value&&row.value.length>100&&row.value!==localPhotos[pid]){
-        localPhotos[pid]=row.value;
-        let p=products.find(x=>x.id===pid);
-        if(p)p.photo=row.value;
-        changed=true;
-      }
-    });
-    if(changed){
-      try{localStorage.setItem('citystar_photos_v1',JSON.stringify(localPhotos));}catch(e){}
-      if(document.getElementById('page-products').classList.contains('on'))renderProds();
-    }
-  }catch(e){}
-}
-// ════════════════════════════════════════════════════════
-// MM MART SYSTEM
-// Flow: Warehouse (boxes) → MM Mart → Shops (pcs or boxes)
-// ════════════════════════════════════════════════════════
-const MMMART_KEY = 'mmmart_data_v1';
-let mmData = {
-  stock:  {},  // {pid: boxQty}  MM Mart's own inventory
-  shops:  ['Kitaotsuka','Baba','Minamiotsuka','Jujo','Komagome','Kawaguchi','Sugamo'],
-  orders: []   // completed shop orders
-};
-let _mmCurShop = '';
-let _mmOrderItems = {}; // {pid: {qty, unit:'pcs'|'box'}}
-
-// ── Persist ──────────────────────────────────────────────
-function mmLoad(){
-  try{
-    let raw=localStorage.getItem(MMMART_KEY);
-    if(raw){ let d=JSON.parse(raw); if(d.shops) mmData.shops=d.shops; if(d.stock) mmData.stock=d.stock; if(d.orders) mmData.orders=d.orders; }
-  }catch(e){}
-  // Sync from Supabase settings key
-  if(sbClient){
-    sbClient.from('settings').select('value').eq('key','mmmart_data').single()
-      .then(({data,error})=>{ if(!error&&data&&data.value){ try{ let d=JSON.parse(data.value); if(d.shops) mmData.shops=d.shops; if(d.stock) mmData.stock=d.stock; if(d.orders) mmData.orders=d.orders; mmSave(false); }catch(e){} } })
-      .catch(()=>{});
-  }
-}
-function mmSave(pushDb=true){
-  try{ localStorage.setItem(MMMART_KEY,JSON.stringify(mmData)); }catch(e){}
-  if(pushDb&&sbClient){
-    sbClient.from('settings').upsert({key:'mmmart_data',value:JSON.stringify(mmData)}).catch(()=>{});
-  }
-}
-
-// ── Page init ────────────────────────────────────────────
-function mmInit(){
-  mmLoad();
-  mmRenderShopBtns();
-  mmTab('out');
-}
-function mmTab(t){
-  ['out','stock','hist','set'].forEach(x=>{
-    let pn=document.getElementById('mm-pane-'+x); if(pn) pn.style.display=t===x?'':'none';
-    let btn=document.getElementById('mm-tab-'+x); if(btn){
-      if(x===t){
-        btn.style.borderColor='var(--pu)';btn.style.background='var(--pu2)';
-        btn.querySelector('div:last-child').style.color='var(--pu)';
-      } else {
-        btn.style.borderColor='var(--bdr)';btn.style.background='var(--sur2)';
-        btn.querySelector('div:last-child').style.color='var(--tx2)';
-      }
-    }
-  });
-  // Active stock-out button stays red
-  let outBtn=document.getElementById('mm-tab-out');
-  if(t==='out'&&outBtn){outBtn.style.borderColor='var(--rd)';outBtn.style.background='var(--rd2)';outBtn.querySelector('div:last-child').style.color='var(--rd)';}
-  if(t==='stock')  mmRenderStock();
-  if(t==='hist')   { mmRenderHist(); mmRenderAnalytics(); }
-  if(t==='set')    mmRenderShopSettings();
-}
-
-// ── Shop buttons ─────────────────────────────────────────
-function mmRenderShopBtns(){
-  let el=document.getElementById('mm-shop-btns'); if(!el)return;
-  el.innerHTML=mmData.shops.map(s=>
-    '<button onclick="mmSelectShop(\''+s+'\')" style="padding:12px 8px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--sur2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;color:var(--tx);transition:all .12s">🏪 '+s+'</button>'
-  ).join('');
-}
-function mmSelectShop(name){
-  _mmCurShop=name; _mmOrderItems={};
-  document.getElementById('mm-order-shop-name').textContent=name;
-  document.getElementById('mm-order-panel').style.display='block';
-  document.getElementById('mm-scan-cnt').textContent='0';
-  _mmRenderOrderList();
-}
-function mmCancelOrder(){
-  _mmCurShop=''; _mmOrderItems={};
-  document.getElementById('mm-order-panel').style.display='none';
-}
-
-// ── Add product to MM shop order ─────────────────────────
-function mmAddToOrder(pid){
-  if(!_mmCurShop){ toast('Select a shop first','rd'); return; }
-  let p=gP(pid); if(!p)return;
-  if(!_mmOrderItems[pid]){
-    // Default unit: pcs if pcsPerBox set, else box
-    _mmOrderItems[pid]={qty:1, unit: p.pcsPerBox?'pcs':'box'};
-  } else {
-    _mmOrderItems[pid].qty++;
-  }
-  _mmRenderOrderList();
-  toast('+1 '+p.name.split(' ').slice(0,3).join(' '),'ok');
-}
-
-function _mmRenderOrderList(){
-  let pids=Object.keys(_mmOrderItems);
-  let cntEl=document.getElementById('mm-scan-cnt');
-  let emEl=document.getElementById('mm-order-empty');
-  let listEl=document.getElementById('mm-order-list');
-  let sumEl=document.getElementById('mm-order-summary');
-  let totEl=document.getElementById('mm-order-total');
-  if(cntEl) cntEl.textContent=pids.length;
-  if(!pids.length){
-    if(emEl) emEl.style.display='block';
-    if(sumEl) sumEl.textContent='0 products';
-    if(totEl) totEl.textContent='¥ 0';
-    return;
-  }
-  if(emEl) emEl.style.display='none';
-  let grandTotal=0;
-  let rows=pids.map(pid=>{
-    let p=gP(parseInt(pid)); if(!p)return '';
-    let item=_mmOrderItems[pid];
-    let pcsPerBox=p.pcsPerBox||0;
-    let pricePerBox=p.pricePerBox||0;
-    let mmStock=mmData.stock[pid]||0;
-    // Calculate box equivalent and price
-    let boxEq = item.unit==='pcs' && pcsPerBox>0 ? (item.qty/pcsPerBox) : item.qty;
-    let lineTotal = Math.ceil(boxEq)*pricePerBox;
-    grandTotal+=lineTotal;
-    let stockOk = Math.ceil(boxEq)<=mmStock;
-    let stockWarn = !stockOk ? '<span style="font-size:10px;color:var(--rd);margin-left:6px">⚠ Need '+Math.ceil(boxEq)+' boxes, have '+mmStock+'</span>' : '';
-    // Unit toggle
-    let unitToggle = pcsPerBox>0
-      ? '<div style="display:flex;border:1px solid var(--bdr);border-radius:6px;overflow:hidden;flex-shrink:0">'
-        +'<button onclick="_mmSetUnit('+pid+',\'pcs\')" style="padding:6px 10px;border:none;background:'+(item.unit==='pcs'?'var(--pu)':'var(--sur2)')+';color:'+(item.unit==='pcs'?'#fff':'var(--tx2)')+';font-size:12px;font-weight:600;cursor:pointer">Pcs</button>'
-        +'<button onclick="_mmSetUnit('+pid+',\'box\')" style="padding:6px 10px;border:none;background:'+(item.unit==='box'?'var(--pu)':'var(--sur2)')+';color:'+(item.unit==='box'?'#fff':'var(--tx2)')+';font-size:12px;font-weight:600;cursor:pointer">Box</button>'
-        +'</div>'
-      : '<span style="font-size:11px;color:var(--tx3);padding:6px">boxes</span>';
-    return '<div style="padding:10px 12px;border-bottom:1px solid var(--bdr)">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
-        +(p.photo?'<img src="'+p.photo+'" style="width:36px;height:36px;border-radius:7px;object-fit:cover;flex-shrink:0">':'<div style="width:36px;height:36px;border-radius:7px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📦</div>')
-        +'<div style="flex:1;min-width:0">'
-          +'<div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
-          +'<div style="font-size:11px;color:var(--tx3);margin-top:1px">'
-            +'MM stock: <b>'+mmStock+'</b> boxes'
-            +(pcsPerBox?' · '+pcsPerBox+' pcs/box':'')
-            +stockWarn
-          +'</div>'
-        +'</div>'
-        +(lineTotal>0?'<div style="font-size:13px;font-weight:700;color:var(--gn3);flex-shrink:0">¥'+lineTotal.toLocaleString()+'</div>':'')
-      +'</div>'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-        +unitToggle
-        +'<div style="display:flex;align-items:center;border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;flex:1;background:var(--sur2)">'
-          +'<button onclick="_mmAdjQty('+pid+',-1)" style="padding:8px 14px;border:none;background:transparent;font-size:18px;cursor:pointer">−</button>'
-          +'<input type="number" value="'+item.qty+'" min="1" inputmode="numeric" onchange="_mmSetQty('+pid+',this.value)" style="flex:1;text-align:center;font-size:16px;font-weight:700;border:none;background:transparent;color:var(--tx);padding:6px 0">'
-          +'<button onclick="_mmAdjQty('+pid+',1)" style="padding:8px 14px;border:none;background:transparent;font-size:18px;cursor:pointer">+</button>'
-        +'</div>'
-        +(pcsPerBox&&item.unit==='pcs'?'<div style="font-size:10px;color:var(--tx3);flex-shrink:0;text-align:center;min-width:44px">='+Math.ceil(boxEq).toFixed(1)+'<br>boxes</div>':'')
-        +'<button onclick="_mmRemove('+pid+')" style="background:none;border:none;color:var(--rd);font-size:18px;cursor:pointer;padding:4px;flex-shrink:0">✕</button>'
-      +'</div></div>';
-  }).join('');
-  listEl.innerHTML=rows;
-  if(sumEl) sumEl.textContent=pids.length+' product'+(pids.length!==1?'s':'');
-  if(totEl) totEl.textContent=grandTotal>0?'¥'+grandTotal.toLocaleString():'¥ 0';
-}
-function _mmSetUnit(pid,unit){ if(_mmOrderItems[pid]) _mmOrderItems[pid].unit=unit; _mmRenderOrderList(); }
-function _mmAdjQty(pid,d){ if(_mmOrderItems[pid]){ _mmOrderItems[pid].qty=Math.max(1,_mmOrderItems[pid].qty+d); _mmRenderOrderList(); } }
-function _mmSetQty(pid,v){ if(_mmOrderItems[pid]){ _mmOrderItems[pid].qty=Math.max(1,parseInt(v)||1); _mmRenderOrderList(); } }
-function _mmRemove(pid){ delete _mmOrderItems[pid]; _mmRenderOrderList(); }
-
-// ── Confirm shop order ───────────────────────────────────
-function mmConfirmOrder(){
-  if(!_mmCurShop){ toast('Select a shop first','rd'); return; }
-  let pids=Object.keys(_mmOrderItems);
-  if(!pids.length){ toast('Scan some products first','rd'); return; }
-  let errors=[], items=[], grandTotal=0;
-  pids.forEach(pid=>{
-    let p=gP(parseInt(pid)); if(!p)return;
-    let item=_mmOrderItems[pid];
-    let pcsPerBox=p.pcsPerBox||0;
-    let pricePerBox=p.pricePerBox||0;
-    let boxQty=item.unit==='pcs'&&pcsPerBox>0?Math.ceil(item.qty/pcsPerBox):item.qty;
-    let mmStock=mmData.stock[pid]||0;
-    if(boxQty>mmStock) errors.push(p.name.split(' ').slice(0,3).join(' ')+'(need '+boxQty+', have '+mmStock+')');
-    let lineTotal=boxQty*pricePerBox;
-    grandTotal+=lineTotal;
-    items.push({pid:parseInt(pid),name:p.name,qty:item.qty,unit:item.unit,boxes:boxQty,price:lineTotal});
-  });
-  if(errors.length){ toast('Not enough MM Mart stock: '+errors.slice(0,2).join(', '),'rd'); return; }
-  // Deduct from MM stock
-  items.forEach(item=>{
-    mmData.stock[item.pid]=Math.max(0,(mmData.stock[item.pid]||0)-item.boxes);
-    // Log in activity
-    let act={type:'out',prod:item.name,qty:item.boxes,time:nowT(),user:currentUser||'MM Mart',dest:'shop',destName:_mmCurShop};
-    activity.unshift(act); sbPushActivity(act);
-  });
-  mmData.orders.unshift({shop:_mmCurShop,items,total:grandTotal,time:nowT(),user:currentUser||'Unknown'});
-  mmSave();
-  toast('✓ Sent to '+_mmCurShop+(grandTotal>0?' — ¥'+grandTotal.toLocaleString():''),'ok');
-  mmCancelOrder();
-  refreshDash();
-}
-
-// ── MM Mart receives stock from warehouse ────────────────
-// Called from doSO when dest='mmmart'
-function mmReceiveFromWarehouse(pid, boxQty){
-  mmData.stock[pid]=(mmData.stock[pid]||0)+boxQty;
-  mmSave();
-}
-
-// ── Stock view ───────────────────────────────────────────
-function mmRenderStock(){
-  let el=document.getElementById('mm-stock-list'); if(!el)return;
-  let pids=Object.keys(mmData.stock).filter(pid=>mmData.stock[pid]>0);
-  if(!pids.length){ el.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3)">No stock — use Stock Out → MM MART to transfer</div>'; return; }
-  el.innerHTML=pids.map(pid=>{
-    let p=gP(parseInt(pid)); if(!p)return '';
-    let qty=mmData.stock[pid]||0;
-    let pcsEq=p.pcsPerBox?qty*p.pcsPerBox:null;
-    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--bdr)">'
-      +(p.photo?'<img src="'+p.photo+'" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0">':'<div style="width:40px;height:40px;border-radius:8px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:20px">📦</div>')
-      +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
-      +'<div style="font-size:11px;color:var(--tx3)">'+(pcsEq?pcsEq+' pcs · ':'')+qty+' boxes</div></div>'
-      +'<div style="font-size:20px;font-weight:900;color:var(--bl)">'+qty+'</div>'
-      +'</div>';
-  }).join('');
-}
-
-// ── History + Analytics ──────────────────────────────────
-function mmRenderHist(){
-  let el=document.getElementById('mm-hist-list'); if(!el)return;
-  if(!mmData.orders.length){ el.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3)">No orders yet</div>'; return; }
-  el.innerHTML=mmData.orders.slice(0,40).map(ord=>{
-    return '<div style="padding:12px;border-bottom:1px solid var(--bdr)">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
-        +'<span style="font-size:18px">🏪</span>'
-        +'<div style="flex:1"><div style="font-size:13px;font-weight:700">'+ord.shop+'</div><div style="font-size:11px;color:var(--tx3)">'+ord.time+' · by '+ord.user+'</div></div>'
-        +(ord.total?'<div style="font-size:14px;font-weight:800;color:var(--gn3)">¥'+ord.total.toLocaleString()+'</div>':'')
-      +'</div>'
-      +'<div style="font-size:11px;color:var(--tx3)">'+ord.items.map(i=>i.qty+' '+i.unit+' '+i.name.split(' ').slice(0,3).join(' ')).join(' · ')+'</div>'
-      +'</div>';
-  }).join('');
-}
-function mmRenderAnalytics(){
-  let el=document.getElementById('mm-analytics'); if(!el)return;
-  if(!mmData.orders.length){ el.innerHTML='<div style="color:var(--tx3);font-size:13px;padding:8px 0">No orders yet</div>'; return; }
-  let shopMap={}, prodMap={};
-  mmData.orders.forEach(ord=>{
-    if(!shopMap[ord.shop]) shopMap[ord.shop]={orders:0,total:0,boxes:0};
-    shopMap[ord.shop].orders++; shopMap[ord.shop].total+=(ord.total||0);
-    ord.items.forEach(item=>{
-      shopMap[ord.shop].boxes+=(item.boxes||item.qty||0);
-      let key=item.pid||item.name;
-      if(!prodMap[key]) prodMap[key]={name:item.name,boxes:0,total:0};
-      prodMap[key].boxes+=(item.boxes||item.qty||0);
-      prodMap[key].total+=(item.price||0);
-    });
-  });
-  let entries=Object.entries(shopMap).sort((a,b)=>b[1].total-a[1].total);
-  let maxV=entries[0]?Math.max(entries[0][1].total,1):1;
-  let html='<div style="margin-bottom:14px">';
-  entries.forEach(([shop,d])=>{
-    let pct=Math.round(d.total/maxV*100);
-    html+='<div style="margin-bottom:10px">'
-      +'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
-        +'<span style="font-size:13px;font-weight:600">🏪 '+shop+'</span>'
-        +'<div style="text-align:right">'
-          +(d.total?'<div style="font-size:13px;font-weight:700;color:var(--gn3)">¥'+d.total.toLocaleString()+'</div>':'')
-          +'<div style="font-size:10px;color:var(--tx3)">'+d.orders+' orders · '+d.boxes+' boxes</div>'
-        +'</div>'
-      +'</div>'
-      +'<div style="height:8px;border-radius:4px;background:var(--sur3);overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--gn);border-radius:4px;transition:width .4s"></div></div>'
-      +'</div>';
-  });
-  html+='</div>';
-  let topProds=Object.values(prodMap).sort((a,b)=>b.boxes-a.boxes).slice(0,5);
-  if(topProds.length){
-    html+='<div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Top products</div>';
-    topProds.forEach(p=>{
-      html+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bdr);font-size:12px">'
-        +'<span style="color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+p.name.split(' ').slice(0,4).join(' ')+'</span>'
-        +'<div style="display:flex;gap:8px;flex-shrink:0;margin-left:8px">'
-          +'<span style="color:var(--tx2);font-weight:600">'+p.boxes+' boxes</span>'
-          +(p.total?'<span style="color:var(--gn3);font-weight:700">¥'+p.total.toLocaleString()+'</span>':'')
-        +'</div>'
-        +'</div>';
-    });
-  }
-  el.innerHTML=html;
-}
-
-// ── Settings: manage shops ───────────────────────────────
-function mmRenderShopSettings(){
-  let el=document.getElementById('mm-shops-set-list'); if(!el)return;
-  el.innerHTML=mmData.shops.map((s,i)=>
-    '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bdr)">'
-    +'<span style="flex:1;font-size:14px">🏪 '+s+'</span>'
-    +'<button onclick="mmDeleteShop('+i+')" style="background:var(--rd2);border:none;border-radius:var(--r);color:var(--rd);padding:5px 12px;cursor:pointer;font-size:12px;font-weight:600">Delete</button>'
+function renderOH(){
+  let el=document.getElementById('oh-list'); if(!el)return;
+  if(!orderHistory.length){el.innerHTML='<div style="padding:16px;text-align:center;color:var(--tx3);font-size:13px">No history yet</div>';return;}
+  el.innerHTML=orderHistory.slice(0,20).map(o=>
+    '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--bdr)">'
+    +'<div style="flex:1"><div style="font-size:13px;font-weight:600">'+o.desc+'</div>'
+    +'<div style="font-size:11px;color:var(--tx3)">'+o.time+'</div></div>'
+    +'<span class="badge '+(o.smsSent?'bg':'bgr')+'" style="font-size:10px">'+(o.smsSent?'✓ Sent':'Pending')+'</span>'
     +'</div>'
   ).join('');
-}
-function mmAddShop(){
-  let inp=document.getElementById('mm-new-shop'); let name=(inp?inp.value.trim():'');
-  if(!name||mmData.shops.includes(name)){ toast(name?'Shop already exists':'Enter shop name','rd'); return; }
-  mmData.shops.push(name); mmSave(); if(inp)inp.value='';
-  mmRenderShopSettings(); mmRenderShopBtns(); toast('✓ Shop "'+name+'" added');
-}
-function mmAddShopQuick(){
-  let inp=document.getElementById('mm-new-shop-quick'); let name=(inp?inp.value.trim():'');
-  if(!name||mmData.shops.includes(name)){ toast(name?'Already exists':'Enter name','rd'); return; }
-  mmData.shops.push(name); mmSave(); if(inp)inp.value='';
-  mmRenderShopBtns(); toast('✓ '+name+' added');
-}
-function mmDeleteShop(i){
-  if(!confirm('Delete shop "'+mmData.shops[i]+'"?')) return;
-  mmData.shops.splice(i,1); mmSave();
-  mmRenderShopSettings(); mmRenderShopBtns();
 }
 
 // ── Init ──────────────────────────────────────────────────────────
