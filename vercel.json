@@ -1,7 +1,15 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/((?!api/|.*\\.html|.*\\.js|.*\\.css|.*\\.png|.*\\.jpg|.*\\.svg|.*\\.ico|.*\\.json|.*\\.pdf|.*\\.woff|.*\\.woff2).*)", "destination": "/index.html" }
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/rack.html", "dest": "/rack.html" },
+    { "src": "/register.html", "dest": "/register.html" },
+    { "src": "/scanner.html", "dest": "/scanner.html" },
+    { "src": "/rack", "dest": "/rack.html" },
+    { "src": "/register", "dest": "/register.html" },
+    { "src": "/scanner", "dest": "/scanner.html" },
+    { "src": "/(.*\\.(js|css|png|jpg|svg|ico|json|woff|woff2))", "dest": "/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ],
   "headers": [
     {

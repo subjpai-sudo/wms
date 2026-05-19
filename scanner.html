@@ -464,6 +464,18 @@ const REQUIRED = 3;
 
 // ── HELPERS ───────────────────────────────────────────────────────
 const gP  = id => products.find(p => p.id == id);
+
+// Apply barcodes from register.html and photos on boot (before Supabase loads)
+(function mergeLocalData(){
+  try{
+    let bm=JSON.parse(localStorage.getItem('citystar_barcodes_v1')||'{}');
+    for(let pid in bm){let p=products.find(x=>x.id==parseInt(pid));if(p&&bm[pid])p.barcode=bm[pid];}
+  }catch(e){}
+  try{
+    let pm=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');
+    for(let pid in pm){let p=products.find(x=>x.id==parseInt(pid));if(p&&pm[pid])p.photo=pm[pid];}
+  }catch(e){}
+})();
 const gC  = id => categories.find(c => c.id === id);
 const cN  = id => { let c=gC(id); return c?c.name:id; };
 const sN  = (c,s) => { let cat=gC(c); if(!cat)return s; let sub=cat.subs.find(x=>x.id===s); return sub?sub.name:s; };
@@ -963,6 +975,16 @@ async function sbPull() {
       let valid=prods.filter(r=>r.id&&r.name&&categories.some(c=>c.id===r.cat));
       if(valid.length>=10) {
         products=valid.map(r=>({id:r.id,name:r.name,sku:r.sku||'',cat:r.cat,sub:r.sub,qty:r.qty||0,threshold:r.threshold||20,vendor:r.vendor||'',barcode:r.barcode||undefined,lastUpdated:r.last_updated,photo:r.photo||undefined}));
+        // Apply barcodes from register.html localStorage
+        try{
+          let bm=JSON.parse(localStorage.getItem('citystar_barcodes_v1')||'{}');
+          for(let pid in bm){ let p=products.find(x=>x.id==parseInt(pid)); if(p&&bm[pid])p.barcode=bm[pid]; }
+        }catch(e){}
+        // Apply photos from localStorage
+        try{
+          let pm=JSON.parse(localStorage.getItem('citystar_photos_v1')||'{}');
+          for(let pid in pm){ let p=products.find(x=>x.id==parseInt(pid)); if(p&&pm[pid])p.photo=pm[pid]; }
+        }catch(e){}
       }
     }
     // Get user from URL param
