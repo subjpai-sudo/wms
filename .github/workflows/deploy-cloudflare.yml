@@ -25,4 +25,4 @@ jobs:
         run: wrangler whoami
 
       - name: Deploy
-        run: wrangler deploy --no-bundle
+        run: wrangler deploy --config wrangler.toml --no-bundle
