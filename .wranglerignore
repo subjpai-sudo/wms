@@ -1,0 +1,13 @@
+functions/
+node_modules/
+.git/
+.github/
+*.xlsx
+y/
+push.sh
+skills-lock.json
+database.rules.json
+firestore.indexes.json
+firestore.rules
+firebase.json
+README.md
