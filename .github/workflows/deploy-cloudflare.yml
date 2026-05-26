@@ -8,18 +8,21 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify Cloudflare token
-        run: npx wrangler@3 whoami
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-      - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: "0904cebf589c811674756fe596a9e8e3"
-          wranglerVersion: "3"
-          workingDirectory: "."
+          node-version: "20"
+
+      - name: Install Wrangler
+        run: npm install -g wrangler@latest
+
+      - name: Verify token
+        run: wrangler whoami
+
+      - name: Deploy
+        run: wrangler deploy --no-bundle
