@@ -18,5 +18,5 @@ jobs:
       - name: Mark workspace safe for git
         run: git config --global --add safe.directory '*'
 
-      - name: Deploy
-        run: npx wrangler@3 deploy --config wrangler.toml 2>&1
+      - name: Deploy to Cloudflare Workers
+        run: npx wrangler@3 deploy --config wrangler.toml
