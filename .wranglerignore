@@ -1,16 +1,13 @@
 .git
 .git/**
+**/.git/**
 .github
 .github/**
 .wrangler
 .wrangler/**
-functions
 functions/**
-node_modules
 node_modules/**
 *.xlsx
-y
-y/**
 push.sh
 skills-lock.json
 database.rules.json
